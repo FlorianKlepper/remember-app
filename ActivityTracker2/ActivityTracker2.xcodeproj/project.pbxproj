@@ -26,6 +26,12 @@
 		15388BBF2F8CA71C000A024E /* Location.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location.swift; sourceTree = "<group>"; };
 		15388BC02F8CA71C000A024E /* SubscriptionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStatus.swift; sourceTree = "<group>"; };
 		15388BC12F8CA71C000A024E /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		15388BC22F8CC90B000A024E /* AnalyticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsManager.swift; sourceTree = "<group>"; };
+		15388BC32F8CC90B000A024E /* GeocodeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodeManager.swift; sourceTree = "<group>"; };
+		15388BC42F8CC90B000A024E /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		15388BC52F8CC90B000A024E /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
+		15388BC62F8CC90B000A024E /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		15388BC72F8CC90B000A024E /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -103,6 +109,12 @@
 		15388BB22F8C9D67000A024E /* Manager */ = {
 			isa = PBXGroup;
 			children = (
+				15388BC22F8CC90B000A024E /* AnalyticsManager.swift */,
+				15388BC32F8CC90B000A024E /* GeocodeManager.swift */,
+				15388BC42F8CC90B000A024E /* HapticManager.swift */,
+				15388BC52F8CC90B000A024E /* LanguageManager.swift */,
+				15388BC62F8CC90B000A024E /* LocationManager.swift */,
+				15388BC72F8CC90B000A024E /* StoreKitManager.swift */,
 			);
 			path = Manager;
 			sourceTree = "<group>";
