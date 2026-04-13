@@ -43,6 +43,11 @@
 		15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFF2F8CDE83000A024E /* EmptyStateView.swift */; };
 		15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C012F8CDE83000A024E /* FloatingPlusButton.swift */; };
 		15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C042F8CDE83000A024E /* StatsSummaryCard.swift */; };
+		15388C2A2F8CF01D000A024E /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C252F8CF01C000A024E /* MapScreen.swift */; };
+		15388C2B2F8CF01F000A024E /* ListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C262F8CF01E000A024E /* ListScreen.swift */; };
+		15388C2C2F8CF021000A024E /* ActivityBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C272F8CF020000A024E /* ActivityBottomSheet.swift */; };
+		15388C2D2F8CF023000A024E /* StatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C282F8CF022000A024E /* StatsScreen.swift */; };
+		15388C2E2F8CF025000A024E /* PlusScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C292F8CF024000A024E /* PlusScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +88,11 @@
 		15388C022F8CDE83000A024E /* MiniMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniMapView.swift; sourceTree = "<group>"; };
 		15388C032F8CDE83000A024E /* PlusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusBadge.swift; sourceTree = "<group>"; };
 		15388C042F8CDE83000A024E /* StatsSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSummaryCard.swift; sourceTree = "<group>"; };
+		15388C252F8CF01C000A024E /* MapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScreen.swift; sourceTree = "<group>"; };
+		15388C262F8CF01E000A024E /* ListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListScreen.swift; sourceTree = "<group>"; };
+		15388C272F8CF020000A024E /* ActivityBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityBottomSheet.swift; sourceTree = "<group>"; };
+		15388C282F8CF022000A024E /* StatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsScreen.swift; sourceTree = "<group>"; };
+		15388C292F8CF024000A024E /* PlusScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -189,6 +199,11 @@
 		15388BB42F8C9D7B000A024E /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				15388C252F8CF01C000A024E /* MapScreen.swift */,
+				15388C262F8CF01E000A024E /* ListScreen.swift */,
+				15388C272F8CF020000A024E /* ActivityBottomSheet.swift */,
+				15388C282F8CF022000A024E /* StatsScreen.swift */,
+				15388C292F8CF024000A024E /* PlusScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -330,6 +345,11 @@
 				15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */,
 				15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */,
 				15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */,
+				15388C2A2F8CF01D000A024E /* MapScreen.swift in Sources */,
+				15388C2B2F8CF01F000A024E /* ListScreen.swift in Sources */,
+				15388C2C2F8CF021000A024E /* ActivityBottomSheet.swift in Sources */,
+				15388C2D2F8CF023000A024E /* StatsScreen.swift in Sources */,
+				15388C2E2F8CF025000A024E /* PlusScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

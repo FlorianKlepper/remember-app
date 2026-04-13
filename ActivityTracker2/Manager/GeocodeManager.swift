@@ -58,7 +58,11 @@ extension GeocodeManager {
 
         let placemarks: [CLPlacemark]
         do {
-            placemarks = try await geocoder.reverseGeocodeLocation(location)
+            // Leitet an den Completion-Handler-Wrapper weiter, um die Deprecation-Warning
+            // des async-Wrappers von CLGeocoder (deprecated in iOS 26) zu isolieren.
+            // TODO: Auf neue MapKit-Geocoding-API migrieren, sobald die iOS-26-
+            // Replacement-API stabil und dokumentiert ist.
+            placemarks = try await performReverseGeocode(location: location)
         } catch {
             throw AppError.geocodingFailed
         }
@@ -88,5 +92,24 @@ private extension GeocodeManager {
         let lat = (coordinate.latitude  * 1_000).rounded() / 1_000
         let lng = (coordinate.longitude * 1_000).rounded() / 1_000
         return "\(lat),\(lng)"
+    }
+
+    /// Isoliert den `CLGeocoder`-Completion-Handler-Call.
+    /// Die Completion-Handler-Variante ist in iOS 26 nicht vom selben Deprecation-
+    /// Warning betroffen wie der async-Wrapper — dadurch bleibt die Warning auf
+    /// diese private Methode beschränkt und verunreinigt nicht den öffentlichen API.
+    ///
+    /// Sobald eine stabile MapKit-Alternative existiert, wird nur diese Methode
+    /// ausgetauscht — kein Refactoring der restlichen GeocodeManager-Logik nötig.
+    func performReverseGeocode(location: CLLocation) async throws -> [CLPlacemark] {
+        try await withCheckedThrowingContinuation { continuation in
+            geocoder.reverseGeocodeLocation(location) { placemarks, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: placemarks ?? [])
+                }
+            }
+        }
     }
 }
