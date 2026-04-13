@@ -65,11 +65,9 @@ struct ListScreen: View {
             .navigationTitle("list.title")
             .navigationBarTitleDisplayMode(.inline)
 
-            // ── Detail-Navigation (Batch 6: ActivityDetailScreen) ────
+            // ── Detail-Navigation ────────────────────────────────────
             .navigationDestination(item: $selectedActivity) { activity in
-                // TODO: Batch 6 — ActivityDetailScreen(activity: activity)
-                Text(activity.displayTitle)
-                    .navigationTitle(activity.displayTitle)
+                ActivityDetailScreen(activity: activity)
             }
         }
         .gesture(swipeGesture)

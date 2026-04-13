@@ -74,8 +74,7 @@ struct MapScreen: View {
 
         // ── Sheet 1: Add Activity Flow ──────────────────────────────
         .sheet(isPresented: $showAddFlow) {
-            // TODO: Batch 6 — AddActivityCategoryScreen()
-            Text("add.activity.coming_soon")
+            AddActivityCategoryScreen()
                 .presentationDetents([.large])
         }
 

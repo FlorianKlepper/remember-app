@@ -50,6 +50,12 @@ final class AddActivityViewModel {
     /// Wird während SwiftData-Operationen auf `true` gesetzt.
     var isLoading: Bool = false
 
+    // MARK: Sheet-Dismiss-Signal
+
+    /// `true` nach erfolgreichem Speichern — löst das Schließen des Add-Sheets aus.
+    /// Wird von `AddActivityCategoryScreen` beobachtet, das als Sheet-Root `dismiss()` aufruft.
+    var isSaved: Bool = false
+
     // MARK: Init
 
     init() {}
@@ -185,5 +191,6 @@ extension AddActivityViewModel {
         text = ""
         selectedDate = .now
         isLoading = false
+        isSaved = false
     }
 }
