@@ -11,6 +11,38 @@
 		15388BA52F8C99AE000A024E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BA42F8C99AE000A024E /* ContentView.swift */; };
 		15388BB92F8CA489000A024E /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BB82F8CA489000A024E /* Extensions.swift */; };
 		15388BBA2F8CA489000A024E /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BB72F8CA489000A024E /* AppConstants.swift */; };
+		15388C052F8CE01C000A024E /* MiniMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C022F8CDE83000A024E /* MiniMapView.swift */; };
+		15388C062F8CE038000A024E /* PlusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C032F8CDE83000A024E /* PlusBadge.swift */; };
+		15388C072F8CE048000A024E /* FilterStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C002F8CDE83000A024E /* FilterStatusBanner.swift */; };
+		15388C082F8CE05C000A024E /* ActivityCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BF92F8CDE83000A024E /* ActivityCardView.swift */; };
+		15388C092F8CF000000A024E /* Activity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BBB2F8CA71C000A024E /* Activity.swift */; };
+		15388C0A2F8CF001000A024E /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BBC2F8CA71C000A024E /* AnalyticsEvent.swift */; };
+		15388C0B2F8CF002000A024E /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BBD2F8CA71C000A024E /* AppError.swift */; };
+		15388C0C2F8CF003000A024E /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BBE2F8CA71C000A024E /* Category.swift */; };
+		15388C0D2F8CF004000A024E /* Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BBF2F8CA71C000A024E /* Location.swift */; };
+		15388C0E2F8CF005000A024E /* SubscriptionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC02F8CA71C000A024E /* SubscriptionStatus.swift */; };
+		15388C0F2F8CF006000A024E /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC12F8CA71C000A024E /* UserSettings.swift */; };
+		15388C102F8CF007000A024E /* AnalyticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC22F8CC90B000A024E /* AnalyticsManager.swift */; };
+		15388C112F8CF008000A024E /* GeocodeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC32F8CC90B000A024E /* GeocodeManager.swift */; };
+		15388C122F8CF009000A024E /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC42F8CC90B000A024E /* HapticManager.swift */; };
+		15388C132F8CF00A000A024E /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC52F8CC90B000A024E /* LanguageManager.swift */; };
+		15388C142F8CF00B000A024E /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC62F8CC90B000A024E /* LocationManager.swift */; };
+		15388C152F8CF00C000A024E /* StoreKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC72F8CC90B000A024E /* StoreKitManager.swift */; };
+		15388C162F8CF00D000A024E /* ActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC82F8CCE91000A024E /* ActivityViewModel.swift */; };
+		15388C172F8CF00E000A024E /* AddActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BC92F8CCE91000A024E /* AddActivityViewModel.swift */; };
+		15388C182F8CF00F000A024E /* FilterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BCA2F8CCE91000A024E /* FilterViewModel.swift */; };
+		15388C192F8CF010000A024E /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BCB2F8CCE91000A024E /* MapViewModel.swift */; };
+		15388C1A2F8CF011000A024E /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BCC2F8CCE91000A024E /* OnboardingViewModel.swift */; };
+		15388C1B2F8CF012000A024E /* PlusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BCD2F8CCE91000A024E /* PlusViewModel.swift */; };
+		15388C1C2F8CF013000A024E /* StatsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BCE2F8CCE91000A024E /* StatsViewModel.swift */; };
+		15388C1D2F8CF014000A024E /* ActivityMapAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFA2F8CDE83000A024E /* ActivityMapAnnotation.swift */; };
+		15388C1E2F8CF015000A024E /* ActivityRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFB2F8CDE83000A024E /* ActivityRowView.swift */; };
+		15388C1F2F8CF016000A024E /* CategoryChipBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFC2F8CDE83000A024E /* CategoryChipBar.swift */; };
+		15388C202F8CF017000A024E /* CategoryIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFD2F8CDE83000A024E /* CategoryIconView.swift */; };
+		15388C212F8CF018000A024E /* CategoryPickerGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFE2F8CDE83000A024E /* CategoryPickerGrid.swift */; };
+		15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFF2F8CDE83000A024E /* EmptyStateView.swift */; };
+		15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C012F8CDE83000A024E /* FloatingPlusButton.swift */; };
+		15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C042F8CDE83000A024E /* StatsSummaryCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +71,18 @@
 		15388BCC2F8CCE91000A024E /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		15388BCD2F8CCE91000A024E /* PlusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusViewModel.swift; sourceTree = "<group>"; };
 		15388BCE2F8CCE91000A024E /* StatsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsViewModel.swift; sourceTree = "<group>"; };
+		15388BF92F8CDE83000A024E /* ActivityCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityCardView.swift; sourceTree = "<group>"; };
+		15388BFA2F8CDE83000A024E /* ActivityMapAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityMapAnnotation.swift; sourceTree = "<group>"; };
+		15388BFB2F8CDE83000A024E /* ActivityRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityRowView.swift; sourceTree = "<group>"; };
+		15388BFC2F8CDE83000A024E /* CategoryChipBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryChipBar.swift; sourceTree = "<group>"; };
+		15388BFD2F8CDE83000A024E /* CategoryIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryIconView.swift; sourceTree = "<group>"; };
+		15388BFE2F8CDE83000A024E /* CategoryPickerGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryPickerGrid.swift; sourceTree = "<group>"; };
+		15388BFF2F8CDE83000A024E /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		15388C002F8CDE83000A024E /* FilterStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterStatusBanner.swift; sourceTree = "<group>"; };
+		15388C012F8CDE83000A024E /* FloatingPlusButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlusButton.swift; sourceTree = "<group>"; };
+		15388C022F8CDE83000A024E /* MiniMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniMapView.swift; sourceTree = "<group>"; };
+		15388C032F8CDE83000A024E /* PlusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusBadge.swift; sourceTree = "<group>"; };
+		15388C042F8CDE83000A024E /* StatsSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSummaryCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -152,6 +196,18 @@
 		15388BB52F8C9D86000A024E /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				15388BF92F8CDE83000A024E /* ActivityCardView.swift */,
+				15388BFA2F8CDE83000A024E /* ActivityMapAnnotation.swift */,
+				15388BFB2F8CDE83000A024E /* ActivityRowView.swift */,
+				15388BFC2F8CDE83000A024E /* CategoryChipBar.swift */,
+				15388BFD2F8CDE83000A024E /* CategoryIconView.swift */,
+				15388BFE2F8CDE83000A024E /* CategoryPickerGrid.swift */,
+				15388BFF2F8CDE83000A024E /* EmptyStateView.swift */,
+				15388C002F8CDE83000A024E /* FilterStatusBanner.swift */,
+				15388C012F8CDE83000A024E /* FloatingPlusButton.swift */,
+				15388C022F8CDE83000A024E /* MiniMapView.swift */,
+				15388C032F8CDE83000A024E /* PlusBadge.swift */,
+				15388C042F8CDE83000A024E /* StatsSummaryCard.swift */,
 				15388BB62F8C9D95000A024E /* Add */,
 			);
 			path = Components;
@@ -238,10 +294,42 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15388C052F8CE01C000A024E /* MiniMapView.swift in Sources */,
 				15388BA52F8C99AE000A024E /* ContentView.swift in Sources */,
+				15388C072F8CE048000A024E /* FilterStatusBanner.swift in Sources */,
 				15388BB92F8CA489000A024E /* Extensions.swift in Sources */,
 				15388BBA2F8CA489000A024E /* AppConstants.swift in Sources */,
+				15388C082F8CE05C000A024E /* ActivityCardView.swift in Sources */,
 				15388BA32F8C99AE000A024E /* ActivityTracker2App.swift in Sources */,
+				15388C062F8CE038000A024E /* PlusBadge.swift in Sources */,
+				15388C092F8CF000000A024E /* Activity.swift in Sources */,
+				15388C0A2F8CF001000A024E /* AnalyticsEvent.swift in Sources */,
+				15388C0B2F8CF002000A024E /* AppError.swift in Sources */,
+				15388C0C2F8CF003000A024E /* Category.swift in Sources */,
+				15388C0D2F8CF004000A024E /* Location.swift in Sources */,
+				15388C0E2F8CF005000A024E /* SubscriptionStatus.swift in Sources */,
+				15388C0F2F8CF006000A024E /* UserSettings.swift in Sources */,
+				15388C102F8CF007000A024E /* AnalyticsManager.swift in Sources */,
+				15388C112F8CF008000A024E /* GeocodeManager.swift in Sources */,
+				15388C122F8CF009000A024E /* HapticManager.swift in Sources */,
+				15388C132F8CF00A000A024E /* LanguageManager.swift in Sources */,
+				15388C142F8CF00B000A024E /* LocationManager.swift in Sources */,
+				15388C152F8CF00C000A024E /* StoreKitManager.swift in Sources */,
+				15388C162F8CF00D000A024E /* ActivityViewModel.swift in Sources */,
+				15388C172F8CF00E000A024E /* AddActivityViewModel.swift in Sources */,
+				15388C182F8CF00F000A024E /* FilterViewModel.swift in Sources */,
+				15388C192F8CF010000A024E /* MapViewModel.swift in Sources */,
+				15388C1A2F8CF011000A024E /* OnboardingViewModel.swift in Sources */,
+				15388C1B2F8CF012000A024E /* PlusViewModel.swift in Sources */,
+				15388C1C2F8CF013000A024E /* StatsViewModel.swift in Sources */,
+				15388C1D2F8CF014000A024E /* ActivityMapAnnotation.swift in Sources */,
+				15388C1E2F8CF015000A024E /* ActivityRowView.swift in Sources */,
+				15388C1F2F8CF016000A024E /* CategoryChipBar.swift in Sources */,
+				15388C202F8CF017000A024E /* CategoryIconView.swift in Sources */,
+				15388C212F8CF018000A024E /* CategoryPickerGrid.swift in Sources */,
+				15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */,
+				15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */,
+				15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
