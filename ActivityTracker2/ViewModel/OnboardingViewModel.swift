@@ -36,11 +36,10 @@ extension OnboardingViewModel {
         }
     }
 
-    /// Beendet das Onboarding vorzeitig via "Überspringen".
-    /// Setzt `hasCompletedOnboarding` ohne Sprachauswahl zu persistieren.
-    /// - Parameter settings: Globales `UserSettings`-Objekt.
-    func skipOnboarding(settings: UserSettings) {
-        settings.hasCompletedOnboarding = true
+    /// Springt direkt zu Page 2 (Location Permission) — wird vom "Überspringen"-Button
+    /// auf Page 0 und 1 aufgerufen. Beendet das Onboarding NICHT vorzeitig.
+    func skipToLocationPage() {
+        currentPage = 2
     }
 }
 

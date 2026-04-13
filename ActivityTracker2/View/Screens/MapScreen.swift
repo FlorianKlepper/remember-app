@@ -153,8 +153,15 @@ struct MapScreen: View {
     let mapVM = MapViewModel()
     let filterVM = FilterViewModel()
 
-    // Mock-Activities mit Locations eintragen
+    // Alle 5 Münchner Sample-Activities als Pins eintragen
     activityVM.activities = Activity.samples
+
+    // Ausschnitt so wählen, dass alle 5 Pins sichtbar sind
+    // (Olympiapark Nord bis Viktualienmarkt Süd, Olympiapark West bis Englischer Garten Ost)
+    mapVM.region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 48.154, longitude: 11.578),
+        span: MKCoordinateSpan(latitudeDelta: 0.07, longitudeDelta: 0.07)
+    )
 
     return MapScreen()
         .environment(mapVM)

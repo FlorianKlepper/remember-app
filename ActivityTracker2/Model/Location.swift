@@ -91,4 +91,30 @@ extension Location {
             country: "Deutschland"
         )
     }
+
+    /// Fünf realistische Münchner Locations für Map- und Listen-Previews.
+    static var samples: [Location] {
+        [
+            Location(
+                latitude: 48.1374, longitude: 11.5755,
+                city: "Marienplatz", region: "Bayern", country: "Deutschland"
+            ),
+            Location(
+                latitude: 48.1642, longitude: 11.6054,
+                city: "Englischer Garten", region: "Bayern", country: "Deutschland"
+            ),
+            Location(
+                latitude: 48.1351, longitude: 11.5761,
+                city: "Viktualienmarkt", region: "Bayern", country: "Deutschland"
+            ),
+            Location(
+                latitude: 48.1731, longitude: 11.5508,
+                city: "Olympiapark", region: "Bayern", country: "Deutschland"
+            ),
+            Location(
+                latitude: 48.1376, longitude: 11.5800,
+                city: "Hofbräuhaus", region: "Bayern", country: "Deutschland"
+            ),
+        ]
+    }
 }

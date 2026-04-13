@@ -193,13 +193,12 @@
       }
     },
     "add.location.current" : {
-      "comment" : "Label for using the current GPS position",
-      "extractionState" : "stale",
+      "comment" : "Section label above the GPS map preview",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktueller Ort"
+            "value" : "Aktueller Standort"
           }
         },
         "en" : {
@@ -229,7 +228,6 @@
     },
     "add.location.home" : {
       "comment" : "Button to use the saved home location",
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -299,7 +297,6 @@
     },
     "add.location.search" : {
       "comment" : "Placeholder text for the location search field",
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -334,19 +331,18 @@
       }
     },
     "add.location.use" : {
-      "comment" : "Button to confirm and use the displayed location",
-      "extractionState" : "stale",
+      "comment" : "Primary button to confirm and use the current GPS location",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diesen Ort verwenden"
+            "value" : "Aktuellen Standort verwenden"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use this location"
+            "value" : "Use Current Location"
           }
         }
       }
@@ -561,6 +557,7 @@
     },
     "button.continue" : {
       "comment" : "Generic continue / next step button",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1274,7 +1271,6 @@
     },
     "general.or" : {
       "comment" : "Conjunction 'or' used between options",
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1932,6 +1928,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allow Location"
+          }
+        }
+      }
+    },
+    "onboarding.screen3.skip" : {
+      "comment" : "Secondary link on onboarding screen 3 — leads to dead-end screen (no GPS = no app)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Standort fortfahren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue without location"
           }
         }
       }

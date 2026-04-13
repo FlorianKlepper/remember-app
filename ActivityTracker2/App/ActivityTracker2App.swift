@@ -83,6 +83,11 @@ struct ActivityTracker2App: App {
             // Dieser Pfad ist bei gültigem Schema nicht erreichbar
             fatalError("ModelContainer konnte nicht erstellt werden — Schema ungültig")
         }
+
+        // 6. Debug: Sample-Daten einfügen wenn Store leer ist
+        #if DEBUG
+        PreviewDataHelper.insertSampleDataIfNeeded(context: modelContainer.mainContext)
+        #endif
     }
 
     // MARK: Scene

@@ -25,6 +25,9 @@ struct OnboardingScreen: View {
     /// Gewählte Sprache — temporär bis Onboarding abgeschlossen.
     @State private var selectedLanguage: String = "system"
 
+    /// Steuert den LocationPermissionDeniedScreen (Sackgassen-Screen).
+    @State private var showDeniedScreen = false
+
     // MARK: Body
 
     var body: some View {
@@ -38,6 +41,9 @@ struct OnboardingScreen: View {
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .ignoresSafeArea(edges: .bottom)
+        .fullScreenCover(isPresented: $showDeniedScreen) {
+            LocationPermissionDeniedScreen()
+        }
     }
 
     // MARK: Page 1 — App-Wert & Sprachauswahl
@@ -174,7 +180,16 @@ struct OnboardingScreen: View {
             .disabled(onboardingVM.isRequestingPermission)
             .padding(.horizontal, 32)
 
-            skipButton
+            // ── Sekundärer Link: Sackgassen-Screen ────────────────
+            // Kein "Überspringen" — wer den Link tippt landet im
+            // LocationPermissionDeniedScreen ohne Weiterkommen-Option.
+            Button {
+                showDeniedScreen = true
+            } label: {
+                Text("onboarding.screen3.skip")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.bottom, 56)
     }
@@ -218,9 +233,10 @@ struct OnboardingScreen: View {
         .padding(.horizontal, 32)
     }
 
+    /// "Überspringen" auf Page 0 und 1 — springt zu Page 2, beendet Onboarding NICHT.
     private var skipButton: some View {
         Button {
-            onboardingVM.skipOnboarding(settings: userSettings)
+            onboardingVM.skipToLocationPage()
         } label: {
             Text("button.skip")
                 .font(.footnote)

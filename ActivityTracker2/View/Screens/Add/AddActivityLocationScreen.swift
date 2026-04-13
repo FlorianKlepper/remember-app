@@ -1,17 +1,18 @@
 // AddActivityLocationScreen.swift
 // ActivityTracker2 — Remember
-// Step 2 des Add-Flows: Ort wählen (GPS-Autofill)
+// Step 2 des Add-Flows: Ort wählen — GPS-Autofill oder Suche
 
 import SwiftUI
-import CoreLocation
+import MapKit
 
 // MARK: - AddActivityLocationScreen
 
-/// Screen 2 des Add-Flows. Holt die GPS-Position per `LocationManager.fetchCurrentLocation()`
-/// und befüllt `addActivityVM.pendingCoordinate` + `pendingLocationName`.
+/// Screen 2 des Add-Flows. Bietet zwei Entscheidungspunkte:
+/// 1. Aktuellen GPS-Standort verwenden (mit MiniMap-Vorschau)
+/// 2. Ort manuell über MKLocalSearch suchen
 ///
-/// Journal-Shortcut: Wenn `addActivityVM.isJournalCategory` und `userSettings.hasHomeLocation`,
-/// wird die gespeicherte Heimat-Location direkt verwendet und sofort zu Screen 3 navigiert.
+/// Journal-Sonderfall: Wenn `isJournalCategory` und `hasHomeLocation`,
+/// erscheint ein zusätzlicher "Zuhause"-Button oberhalb von Punkt 1.
 struct AddActivityLocationScreen: View {
 
     // MARK: Environment
@@ -20,6 +21,7 @@ struct AddActivityLocationScreen: View {
     @Environment(LocationManager.self)      private var locationManager
     @Environment(GeocodeManager.self)       private var geocodeManager
     @Environment(UserSettings.self)         private var userSettings
+    @Environment(MapViewModel.self)         private var mapVM
 
     // MARK: Navigation
 
@@ -30,20 +32,30 @@ struct AddActivityLocationScreen: View {
 
     @State private var isLoadingLocation = false
     @State private var locationError: String? = nil
+    @State private var searchText: String = ""
+    @State private var searchResults: [MKMapItem] = []
 
     // MARK: Body
 
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                if isLoadingLocation {
-                    loadingView
-                } else if let coordinate = addActivityVM.pendingCoordinate {
-                    locationPreview(coordinate: coordinate)
-                } else if locationError != nil {
-                    errorView
+
+                // ── Journal-Sonderfall: Zuhause-Button ───────────────
+                if addActivityVM.isJournalCategory && userSettings.hasHomeLocation {
+                    homeButton
                 }
+
+                // ── Entscheidungspunkt 1: Aktueller Standort ─────────
+                currentLocationSection
+
+                // ── Oder-Trennlinie ──────────────────────────────────
+                orDivider
+
+                // ── Entscheidungspunkt 2: Ort suchen ─────────────────
+                searchSection
             }
+            .padding(.horizontal)
             .padding(.vertical, 24)
         }
         .navigationTitle(String(localized: "add.step2.title", defaultValue: "Ort"))
@@ -51,100 +63,204 @@ struct AddActivityLocationScreen: View {
         .onAppear {
             handleAppear()
         }
-    }
-
-    // MARK: Sub-Views
-
-    @ViewBuilder
-    private var loadingView: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.4)
-            Text("add.location.loading")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        // .task(id:) startet neu wenn searchText sich ändert und cancelt vorherige Task
+        .task(id: searchText) {
+            await performSearch()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
     }
 
-    @ViewBuilder
-    private func locationPreview(coordinate: CLLocationCoordinate2D) -> some View {
-        MiniMapView(coordinate: coordinate)
-            .padding(.horizontal)
+    // MARK: Journal — Zuhause-Button
 
-        if let name = addActivityVM.pendingLocationName {
-            Label(name, systemImage: "mappin")
-                .font(.subheadline)
+    @ViewBuilder
+    private var homeButton: some View {
+        Button {
+            addActivityVM.useHomeLocation(from: userSettings)
+            navigationPath.append(3)
+        } label: {
+            Label(
+                String(localized: "add.location.home", defaultValue: "Zuhause verwenden"),
+                systemImage: "house.fill"
+            )
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.bordered)
+        .tint(Color(hex: "#E8593C"))
+    }
+
+    // MARK: Entscheidungspunkt 1 — Aktueller Standort
+
+    @ViewBuilder
+    private var currentLocationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            Text("add.location.current")
+                .font(.caption)
                 .foregroundStyle(.secondary)
+
+            if isLoadingLocation {
+                HStack(spacing: 12) {
+                    ProgressView()
+                    Text("add.location.loading")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 180, alignment: .center)
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+
+            } else if let coordinate = addActivityVM.pendingCoordinate {
+                MiniMapView(coordinate: coordinate)
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                Text(addActivityVM.pendingLocationName ?? "...")
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+
+            } else if locationError != nil {
+                VStack(spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "location.slash")
+                            .foregroundStyle(.secondary)
+                        Text("add.location.error")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 12) {
+                        Button(String(localized: "add.location.retry")) {
+                            locationError = nil
+                            Task { await fetchLocation() }
+                        }
+                        .buttonStyle(.bordered)
+
+                        // ── Simulator-Fallback ─────────────────────────────
+                        // GPS ist im Simulator nicht verfügbar — Demo-Koordinate
+                        // (München) ermöglicht den kompletten Add-Flow zu testen.
+                        Button("München (Demo)") {
+                            addActivityVM.pendingCoordinate = CLLocationCoordinate2D(
+                                latitude:  AppConstants.defaultLatitude,
+                                longitude: AppConstants.defaultLongitude
+                            )
+                            addActivityVM.pendingLocationName = "München, Bayern, Deutschland"
+                            locationError = nil
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: 180, alignment: .center)
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+
+            } else {
+                // Platzhalter bevor der erste GPS-Wert eingetroffen ist
+                Color(.systemGray6)
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
         }
 
         Button {
             navigationPath.append(3)
         } label: {
-            Text("button.continue")
+            Text("add.location.use")
                 .font(.headline)
-                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    Color(hex: "#E8593C"),
-                    in: RoundedRectangle(cornerRadius: 14)
-                )
+                .padding(.vertical, 14)
         }
-        .padding(.horizontal)
+        .buttonStyle(.borderedProminent)
+        .tint(Color(hex: "#E8593C"))
+        .disabled(addActivityVM.pendingCoordinate == nil)
     }
 
-    @ViewBuilder
-    private var errorView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "location.slash")
-                .font(.system(size: 44))
+    // MARK: Oder-Trennlinie
+
+    private var orDivider: some View {
+        HStack(spacing: 0) {
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(.secondary.opacity(0.3))
+            Text("general.or")
+                .font(.caption)
                 .foregroundStyle(.secondary)
-
-            Text("add.location.error")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button(String(localized: "add.location.retry")) {
-                locationError = nil
-                Task { await fetchLocation() }
-            }
-            .buttonStyle(.bordered)
-
-            // ── Simulator-Fallback ───────────────────────────────
-            // GPS ist im Simulator nicht verfügbar — Demo-Koordinate (München)
-            // ermöglicht den kompletten Add-Flow trotzdem zu testen.
-            Button("München (Demo)") {
-                addActivityVM.pendingCoordinate = CLLocationCoordinate2D(
-                    latitude: AppConstants.defaultLatitude,
-                    longitude: AppConstants.defaultLongitude
-                )
-                addActivityVM.pendingLocationName = "München, Bayern, Deutschland"
-                locationError = nil
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Color(hex: "#E8593C"))
+                .padding(.horizontal, 8)
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(.secondary.opacity(0.3))
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
-        .padding(.horizontal)
+    }
+
+    // MARK: Entscheidungspunkt 2 — Suche
+
+    @ViewBuilder
+    private var searchSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            // Suchfeld
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField(
+                    String(localized: "add.location.search", defaultValue: "Ort suchen..."),
+                    text: $searchText
+                )
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(12)
+            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 10))
+
+            // Suchergebnisse (max. 5)
+            if !searchResults.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(searchResults.indices, id: \.self) { index in
+                        let mapItem = searchResults[index]
+
+                        Button {
+                            selectResult(mapItem)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(mapItem.name ?? "")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+
+                                if let locality = mapItem.placemark.locality,
+                                   locality != mapItem.name {
+                                    Text(locality)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                        }
+
+                        if index < searchResults.count - 1 {
+                            Divider()
+                                .padding(.leading, 16)
+                        }
+                    }
+                }
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 10))
+            }
+        }
     }
 
     // MARK: Private Logic
 
     private func handleAppear() {
-        // Journal-Shortcut: Heimat-Koordinate direkt nutzen, sofort zu Screen 3
-        if addActivityVM.isJournalCategory && userSettings.hasHomeLocation {
-            addActivityVM.useHomeLocation(from: userSettings)
-            navigationPath.append(3)
-            return
-        }
-
         // Koordinate bereits gesetzt (z.B. nach Back-Navigation) → nichts tun
         guard addActivityVM.pendingCoordinate == nil else { return }
-
         Task { await fetchLocation() }
     }
 
@@ -156,7 +272,7 @@ struct AddActivityLocationScreen: View {
             let coordinate = try await locationManager.fetchCurrentLocation()
             addActivityVM.pendingCoordinate = coordinate
 
-            // Reverse Geocoding — non-blocking, fehler werden still ignoriert
+            // Reverse Geocoding — non-blocking, Fehler werden still ignoriert
             if let result = try? await geocodeManager.reverseGeocode(coordinate) {
                 let parts = [result.city, result.region, result.country].compactMap { $0 }
                 addActivityVM.pendingLocationName = parts.isEmpty ? nil : parts.joined(separator: ", ")
@@ -165,20 +281,69 @@ struct AddActivityLocationScreen: View {
             locationError = error.localizedDescription
         }
     }
+
+    /// Startet MKLocalSearch mit 300ms Debounce.
+    /// Wird via `.task(id: searchText)` aufgerufen — vorherige Task wird automatisch gecancelt.
+    private func performSearch() async {
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else {
+            searchResults = []
+            return
+        }
+
+        // 300ms Debounce — CancellationError bei searchText-Änderung beendet Task sauber
+        do {
+            try await Task.sleep(for: .milliseconds(300))
+        } catch {
+            return
+        }
+
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = query
+        request.region = mapVM.region
+
+        let search = MKLocalSearch(request: request)
+        if let response = try? await search.start() {
+            searchResults = Array(response.mapItems.prefix(5))
+        } else {
+            searchResults = []
+        }
+    }
+
+    /// Setzt pendingCoordinate + pendingLocationName aus dem Suchergebnis
+    /// und navigiert sofort zu Screen 3. Reverse Geocoding läuft non-blocking nach.
+    private func selectResult(_ mapItem: MKMapItem) {
+        let coordinate = mapItem.placemark.coordinate
+        addActivityVM.pendingCoordinate = coordinate
+        addActivityVM.pendingLocationName = mapItem.name
+
+        // Reverse Geocoding verfeinert pendingLocationName mit city/region/country
+        Task {
+            if let result = try? await geocodeManager.reverseGeocode(coordinate) {
+                let parts = [result.city, result.region, result.country].compactMap { $0 }
+                if !parts.isEmpty {
+                    addActivityVM.pendingLocationName = parts.joined(separator: ", ")
+                }
+            }
+        }
+
+        navigationPath.append(3)
+    }
 }
 
 // MARK: - Preview
 
 #Preview("Add — Step 2: Ort") {
-    let analytics  = AnalyticsManager()
-    let addVM      = AddActivityViewModel()
+    let analytics   = AnalyticsManager()
+    let addVM       = AddActivityViewModel()
     let locationMgr = LocationManager()
     let geocodeMgr  = GeocodeManager()
-    let settings   = UserSettings()
+    let settings    = UserSettings()
+    let mapVM       = MapViewModel()
 
     // Koordinate vorbelegen für Map-Preview
     addVM.pendingCoordinate = CLLocationCoordinate2D(
-        latitude: AppConstants.defaultLatitude,
+        latitude:  AppConstants.defaultLatitude,
         longitude: AppConstants.defaultLongitude
     )
     addVM.pendingLocationName = "München, Bayern, Deutschland"
@@ -190,4 +355,5 @@ struct AddActivityLocationScreen: View {
     .environment(locationMgr)
     .environment(geocodeMgr)
     .environment(settings)
+    .environment(mapVM)
 }

@@ -55,6 +55,7 @@
 		15388C3A2F8CF031000A024E /* EditActivityScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C332F8CF02A000A024E /* EditActivityScreen.swift */; };
 		15388C3B2F8CF032000A024E /* OnboardingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C342F8CF02B000A024E /* OnboardingScreen.swift */; };
 		15388C3C2F8CF033000A024E /* LocationPermissionDeniedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */; };
+		15388C3E2F8CF035000A024E /* PreviewDataHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -107,6 +108,7 @@
 		15388C332F8CF02A000A024E /* EditActivityScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditActivityScreen.swift; sourceTree = "<group>"; };
 		15388C342F8CF02B000A024E /* OnboardingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreen.swift; sourceTree = "<group>"; };
 		15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionDeniedScreen.swift; sourceTree = "<group>"; };
+		15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDataHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -156,6 +158,7 @@
 				15388BB82F8CA489000A024E /* Extensions.swift */,
 				15388BA42F8C99AE000A024E /* ContentView.swift */,
 				15388BA22F8C99AE000A024E /* ActivityTracker2App.swift */,
+				15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -378,6 +381,7 @@
 				15388C3A2F8CF031000A024E /* EditActivityScreen.swift in Sources */,
 				15388C3B2F8CF032000A024E /* OnboardingScreen.swift in Sources */,
 				15388C3C2F8CF033000A024E /* LocationPermissionDeniedScreen.swift in Sources */,
+				15388C3E2F8CF035000A024E /* PreviewDataHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

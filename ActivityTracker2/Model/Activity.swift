@@ -113,54 +113,52 @@ extension Activity {
         )
     }
 
-    /// Mehrere Beispiel-Activities für Listen-Previews.
+    /// Fünf Münchner Beispiel-Activities für Map- und Listen-Previews.
+    /// Je eine Activity pro Location aus `Location.samples`, mit verschiedenen Kategorien.
     static var samples: [Activity] {
-        let munich = Location(
-            latitude: 48.1351, longitude: 11.5820,
-            city: "München", region: "Bayern", country: "Deutschland"
-        )
-        let venice = Location(
-            latitude: 45.4408, longitude: 12.3155,
-            city: "Venedig", region: "Venetien", country: "Italien"
-        )
-        let berlin = Location(
-            latitude: 52.5200, longitude: 13.4050,
-            city: "Berlin", region: "Berlin", country: "Deutschland"
-        )
+        let locations = Location.samples
 
         return [
             Activity(
-                categoryId: "hiking",
-                date: Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now,
-                title: "Wanderung am Tegernsee",
-                text: "Traumwetter, klare Sicht. Der Weg war perfekt.",
-                isFavorite: true,
-                location: munich
-            ),
-            Activity(
                 categoryId: "restaurant",
-                date: Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now,
-                title: "Cicchetti Bar in Venedig",
-                text: "Kleine Weinbar versteckt in einer Seitengasse. Baccalà mantecato war ausgezeichnet.",
-                isFavorite: false,
-                location: venice
-            ),
-            Activity(
-                categoryId: "concert",
-                date: Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now,
-                title: nil,
-                text: "Philharmonie Berlin — Mahler Sinfonie Nr. 9. Unvergesslich.",
+                date: Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now,
+                title: "Abendessen am Marienplatz",
+                text: "Schöner Abend mit Blick auf das Rathaus.",
                 isFavorite: true,
-                location: berlin
+                location: locations[0]   // Marienplatz
             ),
             Activity(
-                categoryId: "cafe",
-                date: Calendar.current.date(byAdding: .day, value: -10, to: .now) ?? .now,
-                title: "Frühstück im Café Luitpold",
+                categoryId: "hiking",
+                date: Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now,
+                title: "Spaziergang im Englischen Garten",
+                text: "Endlich mal wieder raus. Der Monopteros bei Sonnenuntergang ist unschlagbar.",
+                isFavorite: false,
+                location: locations[1]   // Englischer Garten
+            ),
+            Activity(
+                categoryId: "shopping",
+                date: Calendar.current.date(byAdding: .day, value: -5, to: .now) ?? .now,
+                title: "Markttag am Viktualienmarkt",
+                text: "Frischer Käse und Radieschen vom Stand gegenüber.",
+                isFavorite: false,
+                location: locations[2]   // Viktualienmarkt
+            ),
+            Activity(
+                categoryId: "fitness",
+                date: Calendar.current.date(byAdding: .day, value: -8, to: .now) ?? .now,
+                title: nil,
+                text: "5 km Runde um den Olympiasee. Perfektes Wetter.",
+                isFavorite: true,
+                location: locations[3]   // Olympiapark
+            ),
+            Activity(
+                categoryId: "bar",
+                date: Calendar.current.date(byAdding: .day, value: -12, to: .now) ?? .now,
+                title: "Abend im Hofbräuhaus",
                 text: nil,
                 isFavorite: false,
-                location: munich
-            )
+                location: locations[4]   // Hofbräuhaus
+            ),
         ]
     }
 }

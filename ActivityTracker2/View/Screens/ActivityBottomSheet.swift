@@ -116,9 +116,11 @@ struct ActivityBottomSheet: View {
 
 #Preview("Activity Bottom Sheet") {
     let mapVM = MapViewModel()
-    let samples = Activity.samples
-    mapVM.activitiesAtPin = samples
-    mapVM.selectedLocation = samples.first?.location
+
+    // 3 Activities für horizontales Scrollen — Marienplatz, Englischer Garten, Viktualienmarkt
+    let previewActivities = Array(Activity.samples.prefix(3))
+    mapVM.activitiesAtPin    = previewActivities
+    mapVM.selectedLocation   = previewActivities.first?.location
     mapVM.selectedActivityIndex = 0
 
     return NavigationStack {
