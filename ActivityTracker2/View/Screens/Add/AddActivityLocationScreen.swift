@@ -107,11 +107,25 @@ struct AddActivityLocationScreen: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
-            Button(String(localized: "button.retry", defaultValue: "Erneut versuchen")) {
+            Button(String(localized: "add.location.retry")) {
                 locationError = nil
                 Task { await fetchLocation() }
             }
             .buttonStyle(.bordered)
+
+            // ── Simulator-Fallback ───────────────────────────────
+            // GPS ist im Simulator nicht verfügbar — Demo-Koordinate (München)
+            // ermöglicht den kompletten Add-Flow trotzdem zu testen.
+            Button("München (Demo)") {
+                addActivityVM.pendingCoordinate = CLLocationCoordinate2D(
+                    latitude: AppConstants.defaultLatitude,
+                    longitude: AppConstants.defaultLongitude
+                )
+                addActivityVM.pendingLocationName = "München, Bayern, Deutschland"
+                locationError = nil
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color(hex: "#E8593C"))
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 60)
