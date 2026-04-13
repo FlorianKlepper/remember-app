@@ -84,7 +84,8 @@ struct CategoryChipBar: View {
         } label: {
             HStack(spacing: 4) {
                 CategoryIconView(categoryId: category.id, size: 16)
-                Text(category.localizedName(for: language))
+                let count = activities.filter { $0.categoryId == category.id }.count
+                Text("\(category.localizedName(for: language)) (\(count))")
                     .font(.caption)
                     .fontWeight(isActive ? .semibold : .regular)
             }

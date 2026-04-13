@@ -47,6 +47,14 @@ struct ActivityRowView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+
+                if let text = activity.text, !text.isBlank {
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -57,7 +65,7 @@ struct ActivityRowView: View {
                     .foregroundStyle(Color(.systemYellow))
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
     }
 }
 

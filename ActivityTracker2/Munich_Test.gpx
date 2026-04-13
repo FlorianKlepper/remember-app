@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ActivityTracker2 — Remember"
+     xmlns="http://www.topografix.com/GPX/1/1">
+
+  <!-- ── Wandern (10) ──────────────────────────────── -->
+  <wpt lat="48.1642" lon="11.6054">
+    <name>Wandern · Englischer Garten Nord</name>
+    <desc>Sonnenaufgang im Englischen Garten</desc>
+  </wpt>
+  <wpt lat="48.1598" lon="11.6012">
+    <name>Wandern · Englischer Garten Mitte</name>
+    <desc>Spaziergang zum Chinesischen Turm</desc>
+  </wpt>
+  <wpt lat="48.1731" lon="11.5508">
+    <name>Wandern · Olympiapark Hügel</name>
+    <desc>Runde um den Olympiapark</desc>
+  </wpt>
+  <wpt lat="48.1689" lon="11.5467">
+    <name>Wandern · Olympiapark See</name>
+    <desc>Olympiasee im Herbst</desc>
+  </wpt>
+  <wpt lat="48.1523" lon="11.5234">
+    <name>Wandern · Nymphenburg Park</name>
+    <desc>Herbstwanderung im Nymphenburger Park</desc>
+  </wpt>
+  <wpt lat="48.1489" lon="11.5198">
+    <name>Wandern · Nymphenburg Schloss</name>
+    <desc>Schlosspark Nymphenburg</desc>
+  </wpt>
+  <wpt lat="48.0941" lon="11.5234">
+    <name>Wandern · Forstenrieder Park</name>
+    <desc>Waldspaziergang im Forstenrieder Park</desc>
+  </wpt>
+  <wpt lat="48.1823" lon="11.6234">
+    <name>Wandern · Biederstein</name>
+    <desc>Biedersteiner Park am Nachmittag</desc>
+  </wpt>
+  <wpt lat="48.1756" lon="11.6123">
+    <name>Wandern · Hirschau</name>
+    <desc>Hirschau entlang der Isar</desc>
+  </wpt>
+  <wpt lat="48.1634" lon="11.5923">
+    <name>Wandern · Kleinhesseloher See</name>
+    <desc>Kleinhesseloher See im Frühling</desc>
+  </wpt>
+
+  <!-- ── Restaurant (7) ──────────────────────────────── -->
+  <wpt lat="48.1374" lon="11.5755">
+    <name>Restaurant · Marienplatz</name>
+    <desc>Abendessen am Marienplatz</desc>
+  </wpt>
+  <wpt lat="48.1389" lon="11.5712">
+    <name>Restaurant · Viktualienmarkt</name>
+    <desc>Mittagessen am Viktualienmarkt</desc>
+  </wpt>
+  <wpt lat="48.1423" lon="11.5801">
+    <name>Restaurant · Maxvorstadt</name>
+    <desc>Italiener in der Maxvorstadt</desc>
+  </wpt>
+  <wpt lat="48.1356" lon="11.5634">
+    <name>Restaurant · Sendlinger Tor</name>
+    <desc>Thai-Restaurant am Sendlinger Tor</desc>
+  </wpt>
+  <wpt lat="48.1298" lon="11.5523">
+    <name>Restaurant · Glockenbachviertel</name>
+    <desc>Frühstück im Glockenbach</desc>
+  </wpt>
+  <wpt lat="48.1534" lon="11.5867">
+    <name>Restaurant · Schwabing</name>
+    <desc>Sushi in Schwabing</desc>
+  </wpt>
+  <wpt lat="48.1467" lon="11.5934">
+    <name>Restaurant · Herzogpark</name>
+    <desc>Sonntagsbrunch im Herzogpark</desc>
+  </wpt>
+
+  <!-- ── Kino (5) ──────────────────────────────── -->
+  <wpt lat="48.1401" lon="11.5523">
+    <name>Kino · Mathäser Filmpalast</name>
+    <desc>Kinoabend im Mathäser</desc>
+  </wpt>
+  <wpt lat="48.1389" lon="11.5634">
+    <name>Kino · City Kino</name>
+    <desc>Filmklassiker im City Kino</desc>
+  </wpt>
+  <wpt lat="48.1534" lon="11.5712">
+    <name>Kino · Museum Lichtspiele</name>
+    <desc>Stummfilm in den Museum Lichtspielen</desc>
+  </wpt>
+  <wpt lat="48.1623" lon="11.5823">
+    <name>Kino · Rio Filmpalast</name>
+    <desc>Dokumentarfilm im Rio</desc>
+  </wpt>
+  <wpt lat="48.1312" lon="11.5689">
+    <name>Kino · Gloria Palast</name>
+    <desc>Spätvorstellung im Gloria Palast</desc>
+  </wpt>
+
+  <!-- ── Café (4) ──────────────────────────────── -->
+  <wpt lat="48.1356" lon="11.5712">
+    <name>Café · Marienplatz</name>
+    <desc>Kaffee mit Ausblick</desc>
+  </wpt>
+  <wpt lat="48.1423" lon="11.5634">
+    <name>Café · Schwabing</name>
+    <desc>Nachmittagskaffee in Schwabing</desc>
+  </wpt>
+  <wpt lat="48.1489" lon="11.5801">
+    <name>Café · Maxvorstadt</name>
+    <desc>Arbeiten im Lieblingscafé</desc>
+  </wpt>
+  <wpt lat="48.1534" lon="11.5523">
+    <name>Café · Glockenbach</name>
+    <desc>Sonntagskaffee in Glockenbach</desc>
+  </wpt>
+
+  <!-- ── Fitness (4) ──────────────────────────────── -->
+  <wpt lat="48.1731" lon="11.5508">
+    <name>Fitness · Olympiapark Sport</name>
+    <desc>Crossfit im Olympiapark</desc>
+  </wpt>
+  <wpt lat="48.1423" lon="11.5234">
+    <name>Fitness · McFit Maxvorstadt</name>
+    <desc>Krafttraining Beine und Rücken</desc>
+  </wpt>
+  <wpt lat="48.1356" lon="11.5867">
+    <name>Fitness · Holmes Place</name>
+    <desc>Schwimmen und Sauna</desc>
+  </wpt>
+  <wpt lat="48.1623" lon="11.5634">
+    <name>Fitness · Yoga Studio Schwabing</name>
+    <desc>Yoga-Stunde in Schwabing</desc>
+  </wpt>
+
+  <!-- ── Bar & Kneipe (4) ──────────────────────────────── -->
+  <wpt lat="48.1376" lon="11.5800">
+    <name>Bar · Hofbräuhaus</name>
+    <desc>Abend im Hofbräuhaus</desc>
+  </wpt>
+  <wpt lat="48.1389" lon="11.5712">
+    <name>Bar · Augustiner Keller</name>
+    <desc>Biergarten im Augustiner Keller</desc>
+  </wpt>
+  <wpt lat="48.1312" lon="11.5634">
+    <name>Bar · Atzinger</name>
+    <desc>Stammtisch im Atzinger</desc>
+  </wpt>
+  <wpt lat="48.1298" lon="11.5756">
+    <name>Bar · Trachtenvogl</name>
+    <desc>Cocktails im Trachtenvogl</desc>
+  </wpt>
+
+  <!-- ── Museum (3) ──────────────────────────────── -->
+  <wpt lat="48.1456" lon="11.5712">
+    <name>Museum · Deutsches Museum</name>
+    <desc>Besuch im Deutschen Museum</desc>
+  </wpt>
+  <wpt lat="48.1534" lon="11.5634">
+    <name>Museum · Pinakothek der Moderne</name>
+    <desc>Moderne Kunst in der Pinakothek</desc>
+  </wpt>
+  <wpt lat="48.1512" lon="11.5601">
+    <name>Museum · Alte Pinakothek</name>
+    <desc>Alte Meister in der Alten Pinakothek</desc>
+  </wpt>
+
+  <!-- ── Konzert (3) ──────────────────────────────── -->
+  <wpt lat="48.1398" lon="11.5634">
+    <name>Konzert · Olympiahalle</name>
+    <desc>Konzert in der Olympiahalle</desc>
+  </wpt>
+  <wpt lat="48.1623" lon="11.5523">
+    <name>Konzert · Muffatwerk</name>
+    <desc>Jazzkonzert im Muffatwerk</desc>
+  </wpt>
+  <wpt lat="48.1534" lon="11.5801">
+    <name>Konzert · Backstage</name>
+    <desc>Indie-Konzert im Backstage</desc>
+  </wpt>
+
+  <!-- ── Reise (3) ──────────────────────────────── -->
+  <wpt lat="48.3537" lon="11.7750">
+    <name>Reise · Flughafen München</name>
+    <desc>Flug nach Barcelona</desc>
+  </wpt>
+  <wpt lat="48.1401" lon="11.5601">
+    <name>Reise · Hauptbahnhof</name>
+    <desc>Zugreise nach Berlin</desc>
+  </wpt>
+  <wpt lat="48.1312" lon="11.5712">
+    <name>Reise · Ostbahnhof</name>
+    <desc>Wochenendtrip nach Wien</desc>
+  </wpt>
+
+  <!-- ── Shopping (3) ──────────────────────────────── -->
+  <wpt lat="48.1389" lon="11.5689">
+    <name>Shopping · Kaufingerstrasse</name>
+    <desc>Shopping in der Kaufingerstrasse</desc>
+  </wpt>
+  <wpt lat="48.1401" lon="11.5756">
+    <name>Shopping · Marienplatz</name>
+    <desc>Weihnachtseinkäufe am Marienplatz</desc>
+  </wpt>
+  <wpt lat="48.1623" lon="11.5867">
+    <name>Shopping · Leopoldstrasse</name>
+    <desc>Bummel auf der Leopoldstrasse</desc>
+  </wpt>
+
+  <!-- ── Tagebuch / Journal (2) ──────────────────────────────── -->
+  <wpt lat="48.1351" lon="11.5820">
+    <name>Tagebuch · Zuhause München</name>
+    <desc>Jahresrückblick</desc>
+  </wpt>
+  <wpt lat="48.1423" lon="11.5712">
+    <name>Tagebuch · Lieblingscafé</name>
+    <desc>Gedanken zum neuen Jahr</desc>
+  </wpt>
+
+  <!-- ── Fotografie (2) ──────────────────────────────── -->
+  <wpt lat="48.1731" lon="11.5508">
+    <name>Fotografie · Olympiaturm Aussicht</name>
+    <desc>Fotos vom Olympiaturm</desc>
+  </wpt>
+  <wpt lat="48.1374" lon="11.5755">
+    <name>Fotografie · Marienplatz Foto-Spot</name>
+    <desc>Marienplatz im Morgenrot</desc>
+  </wpt>
+
+</gpx>

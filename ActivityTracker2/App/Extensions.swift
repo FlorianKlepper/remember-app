@@ -10,6 +10,12 @@ import CoreLocation
 
 extension Date {
 
+    /// Gibt ein Datum zurück, das `days` Tage in der Vergangenheit liegt.
+    /// Nützlich für Debug-Sample-Daten.
+    static func daysAgo(_ days: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+    }
+
     /// Gibt das Datum im deutschen Langformat zurück, z.B. "6. Feb 2026".
     var formattedActivityDate: String {
         let formatter = DateFormatter()

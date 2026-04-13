@@ -1,6 +1,6 @@
 // MapScreen.swift
 // ActivityTracker2 — Remember
-// Homescreen der App — interaktive Karte mit Pins und Bottom Sheet
+// Homescreen der App — interaktive Karte mit permanentem Bottom Sheet
 
 import SwiftUI
 import MapKit
@@ -8,28 +8,30 @@ import MapKit
 // MARK: - MapScreen
 
 /// Startscreen der App. Zeigt alle Activities als Pins auf der Karte.
-/// Pin-Tap öffnet das Bottom Sheet mit allen Activities an diesem Ort.
+/// Das `PermanentBottomSheet` ist IMMER sichtbar — mindestens 15 % Höhe.
+/// Pin-Tap → Sheet springt automatisch auf 50 %.
 struct MapScreen: View {
 
     // MARK: Environment
 
-    @Environment(MapViewModel.self)    private var mapVM
-    @Environment(FilterViewModel.self) private var filterVM
+    @Environment(MapViewModel.self)      private var mapVM
+    @Environment(FilterViewModel.self)   private var filterVM
     @Environment(ActivityViewModel.self) private var activityVM
 
     // MARK: State
 
-    @State private var showAddFlow    = false
-    @State private var showBottomSheet = false
+    @State private var showAddFlow = false
     @State private var cameraPosition: MapCameraPosition = .automatic
 
     // MARK: Private
 
+    private var language: String {
+        Locale.current.language.languageCode?.identifier ?? "en"
+    }
+
     /// Alle einzigartigen Locations der gefilterten Activities.
     private var uniqueLocations: [Location] {
-        let filtered = activityVM.filteredActivities(
-            categoryId: filterVM.selectedCategoryId
-        )
+        let filtered = activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
         var seen = Set<UUID>()
         return filtered
             .compactMap { $0.location }
@@ -39,55 +41,58 @@ struct MapScreen: View {
     // MARK: Body
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .bottom) {
 
-            // ── Karte ──────────────────────────────────────────────
+            // ── Karte — volle Höhe ────────────────────────────────
             mapLayer
                 .ignoresSafeArea()
 
-            // ── Obere UI-Leiste ────────────────────────────────────
+            // ── Overlays oben ─────────────────────────────────────
             VStack(spacing: 0) {
                 CategoryChipBar(
                     filterVM: filterVM,
                     activities: activityVM.activities,
-                    language: Locale.current.language.languageCode?.identifier ?? "en"
+                    language: language
                 )
                 .background(.ultraThinMaterial)
 
                 if filterVM.isFilterActive {
-                    FilterStatusBanner(
-                        filterVM: filterVM,
-                        language: Locale.current.language.languageCode?.identifier ?? "en"
-                    )
-                    .padding(.top, 4)
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                    FilterStatusBanner(filterVM: filterVM, language: language)
+                        .padding(.top, 4)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
+
+                Spacer()
             }
             .animation(.easeInOut(duration: AppConstants.animationStandard),
                        value: filterVM.isFilterActive)
 
-            // ── Floating Plus Button ────────────────────────────────
-            FloatingPlusButton {
-                showAddFlow = true
+            // ── FloatingPlusButton — über dem Sheet ───────────────
+            // Bottom-Padding = .small-Höhe (15 %) + Abstand,
+            // damit der Button nie vom Sheet verdeckt wird.
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    FloatingPlusButton {
+                        showAddFlow = true
+                    }
+                    .padding(.trailing, 24)
+                    // UIScreen.main.bounds.height ist deprecated ab iOS 16 —
+                    // TODO: auf GeometryReader-Ansatz migrieren
+                    .padding(.bottom, UIScreen.main.bounds.height * 0.15 + 24)
+                }
             }
-        }
 
-        // ── Sheet 1: Add Activity Flow ──────────────────────────────
+            // ── Permanenter Bottom Sheet — NIEMALS schließbar ────
+            PermanentBottomSheet(mapVM: mapVM, activityVM: activityVM)
+        }
+        .ignoresSafeArea(edges: .bottom)
+
+        // ── Add-Flow Sheet ────────────────────────────────────────
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()
                 .presentationDetents([.large])
-        }
-
-        // ── Sheet 2: Bottom Sheet ───────────────────────────────────
-        .sheet(isPresented: $showBottomSheet) {
-            ActivityBottomSheet()
-                .presentationDetents([
-                    .fraction(AppConstants.bottomSheetSmall),
-                    .fraction(AppConstants.bottomSheetMedium),
-                    .fraction(1.0)
-                ])
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(AppConstants.bottomSheetMedium)))
         }
 
         .onAppear {
@@ -110,17 +115,11 @@ struct MapScreen: View {
 
     @ViewBuilder
     private var mapLayer: some View {
-        let filtered = activityVM.filteredActivities(
-            categoryId: filterVM.selectedCategoryId
-        )
+        let filtered = activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
 
         Map(position: $cameraPosition) {
             ForEach(uniqueLocations) { location in
-                Annotation(
-                    "",
-                    coordinate: location.coordinate,
-                    anchor: .bottom
-                ) {
+                Annotation("", coordinate: location.coordinate, anchor: .bottom) {
                     ActivityMapAnnotation(
                         location: location,
                         dominantCategoryId: mapVM.dominantCategoryId(
@@ -130,12 +129,8 @@ struct MapScreen: View {
                         isSelected: mapVM.selectedLocation?.id == location.id,
                         onTap: {
                             withAnimation {
-                                mapVM.handlePinTap(
-                                    location: location,
-                                    activities: filtered
-                                )
+                                mapVM.handlePinTap(location: location, activities: filtered)
                             }
-                            showBottomSheet = true
                         }
                     )
                 }
@@ -153,11 +148,8 @@ struct MapScreen: View {
     let mapVM = MapViewModel()
     let filterVM = FilterViewModel()
 
-    // Alle 5 Münchner Sample-Activities als Pins eintragen
     activityVM.activities = Activity.samples
 
-    // Ausschnitt so wählen, dass alle 5 Pins sichtbar sind
-    // (Olympiapark Nord bis Viktualienmarkt Süd, Olympiapark West bis Englischer Garten Ost)
     mapVM.region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 48.154, longitude: 11.578),
         span: MKCoordinateSpan(latitudeDelta: 0.07, longitudeDelta: 0.07)
