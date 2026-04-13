@@ -32,6 +32,13 @@
 		15388BC52F8CC90B000A024E /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		15388BC62F8CC90B000A024E /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		15388BC72F8CC90B000A024E /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
+		15388BC82F8CCE91000A024E /* ActivityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewModel.swift; sourceTree = "<group>"; };
+		15388BC92F8CCE91000A024E /* AddActivityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddActivityViewModel.swift; sourceTree = "<group>"; };
+		15388BCA2F8CCE91000A024E /* FilterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewModel.swift; sourceTree = "<group>"; };
+		15388BCB2F8CCE91000A024E /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
+		15388BCC2F8CCE91000A024E /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		15388BCD2F8CCE91000A024E /* PlusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusViewModel.swift; sourceTree = "<group>"; };
+		15388BCE2F8CCE91000A024E /* StatsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -102,6 +109,13 @@
 		15388BB12F8C9D5D000A024E /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				15388BC82F8CCE91000A024E /* ActivityViewModel.swift */,
+				15388BC92F8CCE91000A024E /* AddActivityViewModel.swift */,
+				15388BCA2F8CCE91000A024E /* FilterViewModel.swift */,
+				15388BCB2F8CCE91000A024E /* MapViewModel.swift */,
+				15388BCC2F8CCE91000A024E /* OnboardingViewModel.swift */,
+				15388BCD2F8CCE91000A024E /* PlusViewModel.swift */,
+				15388BCE2F8CCE91000A024E /* StatsViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
