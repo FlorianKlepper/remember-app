@@ -3,6 +3,7 @@
 // Detailansicht einer einzelnen Aktivität
 
 import SwiftUI
+import SwiftData
 
 // MARK: - ActivityDetailScreen
 

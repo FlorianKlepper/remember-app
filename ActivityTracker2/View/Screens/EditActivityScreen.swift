@@ -3,6 +3,7 @@
 // Bearbeitungsansicht für eine bestehende Aktivität
 
 import SwiftUI
+import SwiftData
 
 // MARK: - EditActivityScreen
 

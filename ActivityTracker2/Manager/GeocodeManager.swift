@@ -101,6 +101,7 @@ private extension GeocodeManager {
     ///
     /// Sobald eine stabile MapKit-Alternative existiert, wird nur diese Methode
     /// ausgetauscht — kein Refactoring der restlichen GeocodeManager-Logik nötig.
+    @available(iOS, deprecated: 26, message: "Auf MapKit-Geocoding-API migrieren sobald stabil")
     func performReverseGeocode(location: CLLocation) async throws -> [CLPlacemark] {
         try await withCheckedThrowingContinuation { continuation in
             geocoder.reverseGeocodeLocation(location) { placemarks, error in

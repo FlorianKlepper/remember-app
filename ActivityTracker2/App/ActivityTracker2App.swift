@@ -1,32 +1,119 @@
-//
-//  ActivityTracker2App.swift
-//  ActivityTracker2
-//
-//  Created by Florian Klepper on 13.04.26.
-//
+// ActivityTracker2App.swift
+// ActivityTracker2 — Remember
+// App Entry Point — Dependency-Setup und ModelContainer-Konfiguration
 
 import SwiftUI
 import SwiftData
 
+// MARK: - ActivityTracker2App
+
+/// Entry Point der App. Erstellt alle Manager, ViewModels und den SwiftData-Container.
+/// Alle Objekte werden per `.environment()` in die View-Hierarchie injiziert.
 @main
 struct ActivityTracker2App: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+    // MARK: Manager
+
+    private let locationManager:  LocationManager
+    private let geocodeManager:   GeocodeManager
+    private let analyticsManager: AnalyticsManager
+    private let storeKitManager:  StoreKitManager
+    // HapticManager ist ein stateless enum mit ausschließlich statischen Methoden
+    // und wird direkt via HapticManager.selectionChanged() aufgerufen — keine Injection.
+    private let languageManager:  LanguageManager
+
+    // MARK: Settings
+
+    private let userSettings: UserSettings
+
+    // MARK: ViewModels
+
+    private let activityViewModel:    ActivityViewModel
+    private let mapViewModel:         MapViewModel
+    private let filterViewModel:      FilterViewModel
+    private let addActivityViewModel: AddActivityViewModel
+    private let statsViewModel:       StatsViewModel
+    private let onboardingViewModel:  OnboardingViewModel
+    private let plusViewModel:        PlusViewModel
+
+    // MARK: Persistenz
+
+    private let modelContainer: ModelContainer
+
+    // MARK: Init
+
+    /// Initialisiert alle Abhängigkeiten in der korrekten Reihenfolge.
+    /// `AnalyticsManager` wird zuerst erstellt, da `ActivityViewModel`
+    /// und `PlusViewModel` ihn als Parameter benötigen.
+    init() {
+        // 1. Analytics zuerst — wird von mehreren ViewModels benötigt
+        let analytics = AnalyticsManager()
+        analyticsManager = analytics
+
+        // 2. Restliche Manager
+        locationManager  = LocationManager()
+        geocodeManager   = GeocodeManager()
+        storeKitManager  = StoreKitManager()
+        languageManager  = LanguageManager()
+
+        // 3. Settings
+        userSettings = UserSettings()
+
+        // 4. ViewModels — abhängige zuerst
+        activityViewModel    = ActivityViewModel(analytics: analytics)
+        plusViewModel        = PlusViewModel(analytics: analytics)
+        mapViewModel         = MapViewModel()
+        filterViewModel      = FilterViewModel()
+        addActivityViewModel = AddActivityViewModel()
+        statsViewModel       = StatsViewModel()
+        onboardingViewModel  = OnboardingViewModel()
+
+        // 5. SwiftData ModelContainer
+        let schema = Schema([Activity.self, Location.self])
+
+        if let container = try? ModelContainer(for: schema) {
+            modelContainer = container
+        } else if let fallback = try? ModelContainer(
+            for: schema,
+            configurations: [ModelConfiguration(isStoredInMemoryOnly: true)]
+        ) {
+            // Persistenz nicht verfügbar — In-Memory-Fallback (kein Datenverlust-Schutz)
+            modelContainer = fallback
+        } else {
+            // Dieser Pfad ist bei gültigem Schema nicht erreichbar
+            fatalError("ModelContainer konnte nicht erstellt werden — Schema ungültig")
         }
-    }()
+    }
+
+    // MARK: Scene
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if userSettings.hasCompletedOnboarding {
+                    ContentView()
+                } else {
+                    OnboardingScreen()
+                }
+            }
+            .modelContainer(modelContainer)
+            .environment(locationManager)
+            .environment(geocodeManager)
+            .environment(analyticsManager)
+            .environment(storeKitManager)
+            .environment(languageManager)
+            .environment(userSettings)
+            .environment(activityViewModel)
+            .environment(mapViewModel)
+            .environment(filterViewModel)
+            .environment(addActivityViewModel)
+            .environment(statsViewModel)
+            .environment(onboardingViewModel)
+            .environment(plusViewModel)
+            .onAppear {
+                analyticsManager.track(.appOpened)
+                languageManager.applyLanguage(userSettings.selectedLanguage)
+            }
         }
-        .modelContainer(sharedModelContainer)
     }
 }

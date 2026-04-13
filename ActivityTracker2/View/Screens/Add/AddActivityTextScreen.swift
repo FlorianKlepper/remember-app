@@ -3,6 +3,7 @@
 // Step 3 des Add-Flows: Titel, Text und Datum eingeben
 
 import SwiftUI
+import SwiftData
 
 // MARK: - AddActivityTextScreen
 
