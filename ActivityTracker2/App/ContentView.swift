@@ -20,49 +20,73 @@ struct ContentView: View {
     // MARK: State
 
     @State private var selectedTab: Int = 0
+    @State private var showAddFlow    = false
 
     // MARK: Body
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        ZStack(alignment: .bottomTrailing) {
 
-            // ── Tab 0: Karte (Startscreen) ──────────────────────────
-            MapScreen()
-                .tabItem {
-                    Label(LocalizedStringKey("tab.map"), systemImage: "map")
-                }
-                .tag(0)
+            // ── Tab-Navigation ───────────────────────────────────────
+            TabView(selection: $selectedTab) {
 
-            // ── Tab 1: Liste ────────────────────────────────────────
-            ListScreen()
-                .tabItem {
-                    Label(LocalizedStringKey("tab.list"), systemImage: "list.bullet")
-                }
-                .tag(1)
+                // ── Tab 0: Karte (Startscreen) ──────────────────────
+                MapScreen()
+                    .tabItem {
+                        Label(LocalizedStringKey("tab.map"), systemImage: "map")
+                    }
+                    .tag(0)
 
-            // ── Tab 2: Statistik ────────────────────────────────────
-            StatsScreen()
-                .tabItem {
-                    Label(LocalizedStringKey("tab.stats"), systemImage: "chart.bar.fill")
-                }
-                .tag(2)
+                // ── Tab 1: Liste ─────────────────────────────────────
+                ListScreen()
+                    .tabItem {
+                        Label(LocalizedStringKey("tab.list"), systemImage: "list.bullet")
+                    }
+                    .tag(1)
 
-            // ── Tab 3: Plus / Paywall ───────────────────────────────
-            PlusScreen()
-                .tabItem {
-                    Label(LocalizedStringKey("tab.plus"), systemImage: "star.fill")
-                }
-                .tag(3)
-        }
-        .onAppear {
-            // Initialer Datenabruf beim ersten Erscheinen der App
-            activityVM.fetchActivities(context: modelContext)
-        }
-        .onChange(of: selectedTab) { _, newTab in
-            if newTab == 2 {
-                analyticsManager.track(.statsOpened)
+                // ── Tab 2: Plus / Paywall ────────────────────────────
+                PlusScreen()
+                    .tabItem {
+                        Label(LocalizedStringKey("tab.plus"), systemImage: "crown.fill")
+                    }
+                    .tag(2)
+
+                // ── Tab 3: Statistik ──────────────────────────────────
+                StatsScreen()
+                    .tabItem {
+                        Label(LocalizedStringKey("tab.stats"), systemImage: "chart.dots.scatter")
+                    }
+                    .tag(3)
             }
+            .onAppear {
+                activityVM.fetchActivities(context: modelContext)
+            }
+            .onChange(of: selectedTab) { _, newTab in
+                if newTab == 3 {
+                    analyticsManager.track(.statsOpened)
+                }
+            }
+
+            // ── Globaler FloatingPlusButton — auf allen Tabs ─────────
+            FloatingPlusButton {
+                showAddFlow = true
+            }
+            .padding(.trailing, 24)
+            .padding(.bottom, tabBarHeight + 16)
         }
+        .sheet(isPresented: $showAddFlow) {
+            AddActivityCategoryScreen()
+                .presentationDetents([.large])
+        }
+    }
+
+    // MARK: Private
+
+    /// Standard Tab-Bar-Höhe (49 pt) plus Safe-Area-Inset (z.B. 34 pt auf iPhone mit Home Indicator).
+    private var tabBarHeight: CGFloat {
+        let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        let bottomInset = scene?.windows.first?.safeAreaInsets.bottom ?? 0
+        return 49 + bottomInset
     }
 }
 

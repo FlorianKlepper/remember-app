@@ -9,7 +9,9 @@ import SwiftUI
 /// Permanentes Bottom Sheet das sich NIEMALS schließt.
 /// Drei Höhenstufen: small (15 %) · medium (50 %) · large (100 %).
 /// Per Drag oder Velocity-Fling zwischen den Stufen navigieren.
-/// Reagiert automatisch auf Pin-Taps: snap von .small auf .medium.
+///
+/// Zeigt immer `mapVM.displayedActivities` — die vollständige gefilterte Liste.
+/// `mapVM.highlightedActivityId` steuert Hervorhebung und automatisches Scrollen.
 struct PermanentBottomSheet: View {
 
     // MARK: Nested Types
@@ -19,7 +21,6 @@ struct PermanentBottomSheet: View {
     // MARK: Inputs
 
     var mapVM: MapViewModel
-    var activityVM: ActivityViewModel
 
     // MARK: State
 
@@ -39,8 +40,6 @@ struct PermanentBottomSheet: View {
             VStack(spacing: 0) {
 
                 // ── Drag Handle — nur für .small und .medium ─────────
-                // Im .large Zustand übernimmt largeContent seinen eigenen
-                // sticky Header mit Drag-Pille und Karte-Button.
                 if currentDetent != .large {
                     RoundedRectangle(cornerRadius: 2.5)
                         .fill(Color.secondary.opacity(0.4))
@@ -73,7 +72,6 @@ struct PermanentBottomSheet: View {
                 DragGesture()
                     .onChanged { value in
                         let newH = currentH - value.translation.height
-                        // Minimum erzwingen — Sheet kann nicht unter minH
                         dragOffset = newH >= minH ? newH - currentH : minH - currentH
                     }
                     .onEnded { value in
@@ -97,10 +95,9 @@ struct PermanentBottomSheet: View {
                 ActivityDetailScreen(activity: activity)
             }
         }
-        // Pin getappt → Sheet automatisch auf .medium hochfahren
-        .onChange(of: mapVM.selectedLocation?.id) { _, _ in
-            guard !mapVM.activitiesAtPin.isEmpty,
-                  currentDetent == .small else { return }
+        // Highlight wechselt → Sheet auf .medium hochfahren wenn aktuell .small
+        .onChange(of: mapVM.highlightedActivityId) { _, newId in
+            guard newId != nil, currentDetent == .small else { return }
             withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                 currentDetent = .medium
             }
@@ -118,8 +115,8 @@ struct PermanentBottomSheet: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
-            if !mapVM.activitiesAtPin.isEmpty {
-                Text("\(mapVM.activitiesAtPin.count)")
+            if !mapVM.displayedActivities.isEmpty {
+                Text("\(mapVM.displayedActivities.count)")
                     .font(.caption.bold())
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
@@ -131,92 +128,14 @@ struct PermanentBottomSheet: View {
         .padding(.vertical, 8)
     }
 
-    // MARK: Row Helpers
-
-    /// Erweiterte Zeile für 1–3 Aktivitäten — zeigt Datum, Stadt und erste Textzeile.
-    @ViewBuilder
-    private func extendedRow(activity: Activity) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            CategoryIconView(categoryId: activity.categoryId, size: 40)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(activity.displayTitle)
-                    .font(.headline)
-                    .lineLimit(1)
-
-                Text([activity.formattedDate, activity.location?.city]
-                    .compactMap { $0 }
-                    .joined(separator: " · "))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                if let text = activity.text, !text.isBlank {
-                    Text(text)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .contentShape(Rectangle())
-        .onTapGesture { selectedActivity = activity }
-    }
-
-    /// Einfache Zeile für 4+ Aktivitäten — kompakt wie `ActivityRowView`.
-    @ViewBuilder
-    private func simpleRow(activity: Activity) -> some View {
-        HStack(spacing: 12) {
-            CategoryIconView(categoryId: activity.categoryId, size: 36)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(activity.displayTitle)
-                    .font(.headline)
-                    .lineLimit(1)
-
-                Text([activity.formattedDate, activity.location?.city]
-                    .compactMap { $0 }
-                    .joined(separator: " · "))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                if let text = activity.text, !text.isBlank {
-                    Text(text)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .contentShape(Rectangle())
-        .onTapGesture { selectedActivity = activity }
-    }
-
     // MARK: Medium Content (50 %)
 
     private var mediumContent: some View {
         VStack(alignment: .leading, spacing: 0) {
 
             // ── Count-Header ─────────────────────────────────────
-            if !mapVM.activitiesAtPin.isEmpty {
-                let count = mapVM.activitiesAtPin.count
+            if !mapVM.displayedActivities.isEmpty {
+                let count = mapVM.displayedActivities.count
                 let label = count == 1
                     ? String(localized: "bottomsheet.activities.count.few")
                     : String(localized: "bottomsheet.activities")
@@ -232,21 +151,34 @@ struct PermanentBottomSheet: View {
 
             Divider()
 
-            if mapVM.activitiesAtPin.isEmpty {
+            if mapVM.displayedActivities.isEmpty {
                 Text(LocalizedStringKey("bottomsheet.tap.pin"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(16)
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(mapVM.activitiesAtPin) { activity in
-                            if mapVM.activitiesAtPin.count <= 3 {
-                                extendedRow(activity: activity)
-                            } else {
-                                simpleRow(activity: activity)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(mapVM.displayedActivities) { activity in
+                                activityRow(
+                                    activity: activity,
+                                    isHighlighted: activity.id == mapVM.highlightedActivityId
+                                )
+                                .id(activity.id)
+                                Divider()
                             }
-                            Divider()
+                        }
+                    }
+                    .onChange(of: mapVM.highlightedActivityId) { _, newId in
+                        guard let newId else { return }
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            proxy.scrollTo(newId, anchor: .center)
+                        }
+                    }
+                    .onAppear {
+                        if let id = mapVM.highlightedActivityId {
+                            proxy.scrollTo(id, anchor: .center)
                         }
                     }
                 }
@@ -257,16 +189,10 @@ struct PermanentBottomSheet: View {
     // MARK: Large Content (100 %)
 
     private var largeContent: some View {
-        let activities = mapVM.activitiesAtPin.isEmpty
-            ? activityVM.activities
-            : mapVM.activitiesAtPin
-
-        return VStack(spacing: 0) {
+        VStack(spacing: 0) {
 
             // ── Sticky Header ────────────────────────────────────
             VStack(spacing: 8) {
-
-                // Drag-Pille — visueller Hinweis zum Runterziehen
                 RoundedRectangle(cornerRadius: 2.5)
                     .fill(Color.secondary.opacity(0.4))
                     .frame(width: 36, height: 5)
@@ -279,7 +205,6 @@ struct PermanentBottomSheet: View {
 
                     Spacer()
 
-                    // Karte-Button — springt zurück zu .medium
                     Button {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                             currentDetent = .medium
@@ -305,53 +230,95 @@ struct PermanentBottomSheet: View {
             .background(Color(.systemBackground))
 
             // ── Scrollbare Liste ─────────────────────────────────
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: 0) {
-                    ForEach(activities) { activity in
-                        HStack(spacing: 12) {
-                            CategoryIconView(categoryId: activity.categoryId, size: 36)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(activity.displayTitle)
-                                    .font(.headline)
-                                    .lineLimit(1)
-
-                                Text([activity.formattedDate, activity.location?.city]
-                                    .compactMap { $0 }
-                                    .joined(separator: " · "))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                if let text = activity.text, !text.isBlank {
-                                    Text(text)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                }
-                            }
-
-                            Spacer()
-
-                            if activity.isFavorite {
-                                Image(systemName: "star.fill")
-                                    .foregroundStyle(.yellow)
-                                    .font(.caption)
-                            }
-
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(mapVM.displayedActivities) { activity in
+                            activityRow(
+                                activity: activity,
+                                isHighlighted: activity.id == mapVM.highlightedActivityId
+                            )
+                            .id(activity.id)
+                            Divider()
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .contentShape(Rectangle())
-                        .onTapGesture { selectedActivity = activity }
-
-                        Divider()
+                    }
+                }
+                .onChange(of: mapVM.highlightedActivityId) { _, newId in
+                    guard let newId else { return }
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        proxy.scrollTo(newId, anchor: .center)
+                    }
+                }
+                .onAppear {
+                    if let id = mapVM.highlightedActivityId {
+                        proxy.scrollTo(id, anchor: .center)
                     }
                 }
             }
+        }
+    }
+
+    // MARK: Row Helper
+
+    /// Einheitliche Listenzeile für alle Detent-Stufen.
+    /// Hervorgehobene Zeile zeigt farbigen Streifen links und hellgrauen Hintergrund.
+    @ViewBuilder
+    private func activityRow(activity: Activity, isHighlighted: Bool) -> some View {
+        let categoryColor = Color(hex:
+            (Category.mvpCategories + Category.plusCategories)
+                .first { $0.id == activity.categoryId }?.colorHex ?? "888888"
+        )
+
+        HStack(spacing: 0) {
+            // ── Farbiger Streifen links ──────────────────────────
+            Rectangle()
+                .fill(isHighlighted ? categoryColor : Color.clear)
+                .frame(width: 3)
+                .padding(.vertical, 4)
+
+            HStack(spacing: 12) {
+                CategoryIconView(categoryId: activity.categoryId, size: 36)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(activity.displayTitle)
+                        .font(.headline)
+                        .lineLimit(1)
+
+                    Text([activity.formattedDate, activity.location?.city]
+                        .compactMap { $0 }
+                        .joined(separator: " · "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if let text = activity.text, !text.isBlank {
+                        Text(text)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
+
+                Spacer()
+
+                if activity.isFavorite {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(.yellow)
+                        .font(.caption)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
+            .padding(.vertical, 12)
+        }
+        .background(isHighlighted ? Color(.systemGray6) : Color.clear)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            mapVM.onActivityTapped(activity)
+            selectedActivity = activity
         }
     }
 
@@ -373,7 +340,6 @@ struct PermanentBottomSheet: View {
         }
     }
 
-    /// Snapped zu der Höhenstufe die dem aktuellen `dragOffset + currentH` am nächsten ist.
     private func snapToNearest(current currentH: CGFloat, screen: CGFloat) {
         let targetH: CGFloat = currentH + dragOffset
         let candidates: [(CGFloat, SheetDetent)] = [
@@ -394,13 +360,11 @@ struct PermanentBottomSheet: View {
     let activityVM = ActivityViewModel(analytics: analytics)
     let mapVM = MapViewModel()
 
-    activityVM.activities = Activity.samples
-    mapVM.activitiesAtPin = Array(Activity.samples.prefix(3))
-    mapVM.selectedLocation = Activity.samples.first?.location
-    mapVM.selectedActivityIndex = 0
+    mapVM.displayedActivities = Array(Activity.samples.prefix(5))
+    mapVM.highlightedActivityId = Activity.samples.first?.id
 
     return ZStack(alignment: .bottom) {
         Color(.systemGroupedBackground).ignoresSafeArea()
-        PermanentBottomSheet(mapVM: mapVM, activityVM: activityVM)
+        PermanentBottomSheet(mapVM: mapVM)
     }
 }

@@ -228,12 +228,13 @@ struct AddActivityLocationScreen: View {
                         Button {
                             selectResult(mapItem)
                         } label: {
+                            let placemark = mapItem.placemark
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(mapItem.name ?? "")
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
 
-                                if let locality = mapItem.placemark.locality,
+                                if let locality = placemark.locality,
                                    locality != mapItem.name {
                                     Text(locality)
                                         .font(.caption)
@@ -272,8 +273,8 @@ struct AddActivityLocationScreen: View {
             let coordinate = try await locationManager.fetchCurrentLocation()
             addActivityVM.pendingCoordinate = coordinate
 
-            // Reverse Geocoding — non-blocking, Fehler werden still ignoriert
-            if let result = try? await geocodeManager.reverseGeocode(coordinate) {
+            // Reverse Geocoding — non-blocking, Ergebnis kommt asynchron auf Main Thread
+            geocodeManager.geocode(coordinate) { result in
                 let parts = [result.city, result.region, result.country].compactMap { $0 }
                 addActivityVM.pendingLocationName = parts.isEmpty ? nil : parts.joined(separator: ", ")
             }
@@ -313,17 +314,15 @@ struct AddActivityLocationScreen: View {
     /// Setzt pendingCoordinate + pendingLocationName aus dem Suchergebnis
     /// und navigiert sofort zu Screen 3. Reverse Geocoding läuft non-blocking nach.
     private func selectResult(_ mapItem: MKMapItem) {
-        let coordinate = mapItem.placemark.coordinate
+        let coordinate = mapItem.placemark.coordinate  // MKPlacemark.coordinate, iOS 17+
         addActivityVM.pendingCoordinate = coordinate
         addActivityVM.pendingLocationName = mapItem.name
 
-        // Reverse Geocoding verfeinert pendingLocationName mit city/region/country
-        Task {
-            if let result = try? await geocodeManager.reverseGeocode(coordinate) {
-                let parts = [result.city, result.region, result.country].compactMap { $0 }
-                if !parts.isEmpty {
-                    addActivityVM.pendingLocationName = parts.joined(separator: ", ")
-                }
+        // Reverse Geocoding verfeinert pendingLocationName non-blocking
+        geocodeManager.geocode(coordinate) { result in
+            let parts = [result.city, result.region, result.country].compactMap { $0 }
+            if !parts.isEmpty {
+                addActivityVM.pendingLocationName = parts.joined(separator: ", ")
             }
         }
 

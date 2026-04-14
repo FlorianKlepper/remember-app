@@ -11,7 +11,6 @@ import MapKit
 /// Aufbau von oben nach unten:
 /// 1. Gefüllter Kreis mit weißem Rand + SF Symbol (weiß)
 /// 2. Dreieck (gleiche Farbe) als Spitze nach unten
-/// 3. Label-Pill mit Kategorienamen
 struct ActivityMapAnnotation: View {
 
     // MARK: Parameter
@@ -33,60 +32,75 @@ struct ActivityMapAnnotation: View {
         Color(hex: category?.colorHex ?? "#8E8E93")
     }
 
-    private var circleSize: CGFloat { isSelected ? 44 : 36 }
-    private var iconSize: CGFloat  { isSelected ? 20 : 16 }
-
-    private var categoryName: String {
-        guard let category else { return "" }
-        let code = Locale.current.language.languageCode?.identifier ?? "en"
-        return code == "de" ? category.nameDe : category.nameEn
-    }
+    private let goldColor = Color(hex: "#FFD700")
 
     // MARK: Body
 
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 0) {
-
-                // ── Kreis mit Icon ──────────────────────────────
-                ZStack {
-                    Circle()
-                        .fill(pinColor)
-                        .overlay(
-                            Circle()
-                                .stroke(.white, lineWidth: 2.5)
-                        )
-                    Image(systemName: category?.iconName ?? "mappin")
-                        .font(.system(size: iconSize, weight: .medium))
-                        .foregroundStyle(.white)
+                if isSelected {
+                    selectedPin
+                } else {
+                    normalPin
                 }
-                .frame(width: circleSize, height: circleSize)
-                .shadow(
-                    color: isSelected ? pinColor.opacity(0.4) : .clear,
-                    radius: isSelected ? 6 : 0
-                )
 
                 // ── Dreieck-Spitze ──────────────────────────────
                 DownwardTriangle()
-                    .fill(pinColor)
-                    .frame(width: 12, height: 7)
-                    .offset(y: -1) // leichter Überlapp mit Kreis
-
-                // ── Label-Pill ──────────────────────────────────
-                if !categoryName.isEmpty {
-                    Text(categoryName)
-                        .font(.system(size: 9, weight: .semibold))
-                        .lineLimit(1)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color(hex: "#1C1C1E"), in: Capsule())
-                        .foregroundStyle(.white)
-                        .padding(.top, 2)
-                }
+                    .fill(isSelected ? goldColor : pinColor)
+                    .frame(width: 10, height: 7)
+                    .offset(y: -1)
             }
         }
         .buttonStyle(.plain)
-        .animation(.spring(duration: AppConstants.animationStandard), value: isSelected)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
+    }
+
+    // MARK: Normal Pin
+
+    private var normalPin: some View {
+        ZStack {
+            Circle()
+                .fill(pinColor)
+                .overlay(
+                    Circle()
+                        .stroke(.white, lineWidth: 2.5)
+                )
+            Image(systemName: category?.iconName ?? "mappin")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.white)
+        }
+        .frame(width: 36, height: 36)
+    }
+
+    // MARK: Selected Pin
+
+    private var selectedPin: some View {
+        ZStack {
+            // Dezenter goldener Halo
+            Circle()
+                .fill(goldColor.opacity(0.20))
+                .frame(width: 56, height: 56)
+
+            // Haupt-Kreis mit goldenem Rahmen
+            Circle()
+                .fill(pinColor)
+                .frame(width: 46, height: 46)
+                .overlay(
+                    Circle()
+                        .stroke(goldColor, lineWidth: 3.5)
+                )
+                .shadow(
+                    color: goldColor.opacity(0.5),
+                    radius: 5,
+                    x: 0,
+                    y: 0
+                )
+
+            Image(systemName: category?.iconName ?? "mappin")
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(.white)
+        }
     }
 }
 

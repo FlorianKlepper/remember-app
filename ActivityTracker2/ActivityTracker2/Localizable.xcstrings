@@ -1213,7 +1213,7 @@
     },
     "filter.active" : {
       "comment" : "Label shown in the filter status banner when a filter is active",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1266,6 +1266,7 @@
     },
     "filter.status.prefix" : {
       "comment" : "Prefix before category name in filter status banner",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1277,6 +1278,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filtered:"
+          }
+        }
+      }
+    },
+    "general.back" : {
+      "comment" : "Back button label in detail screens",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
           }
         }
       }
@@ -1452,6 +1470,23 @@
         }
       }
     },
+    "list.back.map" : {
+      "comment" : "Button in full-screen bottom sheet to return to map view",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karte"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        }
+      }
+    },
     "list.empty.message" : {
       "comment" : "Message in the empty state of the list screen",
       "extractionState" : "stale",
@@ -1502,23 +1537,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No entries for this category"
-          }
-        }
-      }
-    },
-    "list.back.map" : {
-      "comment" : "Button in full-screen bottom sheet to return to map view",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Karte"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Map"
           }
         }
       }

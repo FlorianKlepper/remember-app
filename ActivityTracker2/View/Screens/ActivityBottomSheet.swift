@@ -1,13 +1,13 @@
 // ActivityBottomSheet.swift
 // ActivityTracker2 — Remember
-// Bottom Sheet — horizontale Karten-Ansicht aller Activities am getappten Pin
+// Legacy Bottom Sheet — ersetzt durch PermanentBottomSheet
 
 import SwiftUI
 
 // MARK: - ActivityBottomSheet
 
-/// Zeigt alle Activities am zuletzt getappten Map-Pin als horizontale Karten-Galerie.
-/// Beim Scrollen wird der aktive Map-Pin via `mapVM.syncMapToScroll` nachgeführt.
+/// Horizontale Karten-Galerie aller Activities am getappten Pin.
+/// Wird aktuell nicht verwendet — ersetzt durch `PermanentBottomSheet`.
 struct ActivityBottomSheet: View {
 
     // MARK: Environment
@@ -16,10 +16,6 @@ struct ActivityBottomSheet: View {
 
     // MARK: State
 
-    /// ID der Activity, die aktuell im ScrollView sichtbar ist (iOS 17 scrollPosition API).
-    @State private var scrolledActivityId: Activity.ID?
-
-    /// Ausgewählte Activity für Detail-Navigation.
     @State private var selectedActivity: Activity? = nil
 
     // MARK: Body
@@ -30,30 +26,21 @@ struct ActivityBottomSheet: View {
             // ── Header ─────────────────────────────────────────────
             header
 
-            // ── Karten-Galerie oder Leer-Zustand ───────────────────
-            if mapVM.activitiesAtPin.isEmpty {
+            // ── Liste oder Leer-Zustand ────────────────────────────
+            if mapVM.displayedActivities.isEmpty {
                 EmptyStateView(config: .filteredNoResults)
                     .frame(height: 180)
             } else {
-                cardGallery
+                activityList
             }
 
             Spacer()
         }
         .padding(.top, 16)
-
-        // ── Detail-Navigation (Batch 6: ActivityDetailScreen) ───────
-        .navigationDestination(item: $selectedActivity) { activity in
-            // TODO: Batch 6 — ActivityDetailScreen(activity: activity)
-            Text(activity.displayTitle)
-        }
-
-        // ── Scroll → Map-Sync ───────────────────────────────────────
-        .onChange(of: scrolledActivityId) { _, newId in
-            guard let newId,
-                  let index = mapVM.activitiesAtPin.firstIndex(where: { $0.id == newId })
-            else { return }
-            mapVM.syncMapToScroll(index: index)
+        .sheet(item: $selectedActivity) { activity in
+            NavigationStack {
+                ActivityDetailScreen(activity: activity)
+            }
         }
     }
 
@@ -61,7 +48,7 @@ struct ActivityBottomSheet: View {
 
     @ViewBuilder
     private var header: some View {
-        let count = mapVM.activitiesAtPin.count
+        let count = mapVM.displayedActivities.count
         let locationName = mapVM.selectedLocation?.displayName ?? ""
 
         VStack(alignment: .leading, spacing: 2) {
@@ -71,7 +58,7 @@ struct ActivityBottomSheet: View {
                     .padding(.horizontal, 16)
             }
 
-            Text("\(count) \(String(localized: count == 1 ? "bottomsheet.activity.singular" : "bottomsheet.activity.plural", defaultValue: count == 1 ? "Aktivität" : "Aktivitäten"))")
+            Text("\(count) \(String(localized: count == 1 ? "bottomsheet.activities.count.few" : "bottomsheet.activities", defaultValue: count == 1 ? "Aktivität" : "Aktivitäten"))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 16)
@@ -79,35 +66,47 @@ struct ActivityBottomSheet: View {
     }
 
     @ViewBuilder
-    private var cardGallery: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 12) {
-                ForEach(Array(mapVM.activitiesAtPin.enumerated()), id: \.element.id) { index, activity in
-                    ActivityCardView(
-                        activity: activity,
-                        isSelected: index == mapVM.selectedActivityIndex
-                    )
-                    .id(activity.id)
-                    .onTapGesture {
-                        mapVM.syncMapToScroll(index: index)
-                        selectedActivity = activity
-                    }
+    private var activityList: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 0) {
+                ForEach(mapVM.displayedActivities) { activity in
+                    activityRow(activity)
+                    Divider()
                 }
             }
-            .scrollTargetLayout()
-            .padding(.horizontal, 16)
-            .padding(.vertical, 4)
         }
-        .scrollPosition(id: $scrolledActivityId)
-        .scrollTargetBehavior(.viewAligned)
+    }
 
-        // Programmatisches Scrollen wenn Map-Pin von außen wechselt
-        .onChange(of: mapVM.selectedActivityIndex) { _, newIndex in
-            guard mapVM.activitiesAtPin.indices.contains(newIndex) else { return }
-            let targetId = mapVM.activitiesAtPin[newIndex].id
-            withAnimation(.easeInOut(duration: AppConstants.animationStandard)) {
-                scrolledActivityId = targetId
+    @ViewBuilder
+    private func activityRow(_ activity: Activity) -> some View {
+        let isHighlighted = activity.id == mapVM.highlightedActivityId
+
+        HStack(spacing: 12) {
+            CategoryIconView(categoryId: activity.categoryId, size: 36)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(activity.displayTitle)
+                    .font(.headline)
+                    .lineLimit(1)
+
+                Text(activity.formattedDate)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(isHighlighted ? Color(.systemGray6) : Color.clear)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            mapVM.onActivityTapped(activity)
+            selectedActivity = activity
         }
     }
 }
@@ -116,20 +115,11 @@ struct ActivityBottomSheet: View {
 
 #Preview("Activity Bottom Sheet") {
     let mapVM = MapViewModel()
-
-    // 3 Activities für horizontales Scrollen — Marienplatz, Englischer Garten, Viktualienmarkt
-    let previewActivities = Array(Activity.samples.prefix(3))
-    mapVM.activitiesAtPin    = previewActivities
-    mapVM.selectedLocation   = previewActivities.first?.location
-    mapVM.selectedActivityIndex = 0
+    mapVM.displayedActivities = Array(Activity.samples.prefix(3))
+    mapVM.highlightedActivityId = Activity.samples.first?.id
 
     return NavigationStack {
         ActivityBottomSheet()
     }
     .environment(mapVM)
-    .presentationDetents([
-        .fraction(AppConstants.bottomSheetSmall),
-        .fraction(AppConstants.bottomSheetMedium),
-        .fraction(1.0)
-    ])
 }

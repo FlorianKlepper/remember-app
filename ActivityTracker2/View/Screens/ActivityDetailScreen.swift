@@ -59,6 +59,19 @@ struct ActivityDetailScreen: View {
         .navigationTitle(activity.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                        Text(LocalizedStringKey("general.back"))
+                            .font(.body)
+                    }
+                    .foregroundStyle(brandColor)
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 actionsMenu
             }

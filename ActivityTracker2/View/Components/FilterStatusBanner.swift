@@ -1,14 +1,13 @@
 // FilterStatusBanner.swift
 // ActivityTracker2 — Remember
-// Einblendbarer Banner wenn ein Kategorie-Filter aktiv ist
+// Rechtsbündige Filter-Pill mit Kategorie-Farbe und Dismiss-Button
 
 import SwiftUI
 
 // MARK: - FilterStatusBanner
 
-/// Zeigt den aktiven Filter als schmalen Banner mit Dismiss-Button.
-/// Wird via `withAnimation` ein- und ausgeblendet wenn `filterVM.isFilterActive` sich ändert.
-/// Transition: `.move(edge: .top).combined(with: .opacity)`.
+/// Zeigt den aktiven Filter als kompakte Pill am rechten Rand.
+/// Slide-in von rechts, Slide-out nach rechts.
 struct FilterStatusBanner: View {
 
     // MARK: Parameter
@@ -37,51 +36,48 @@ struct FilterStatusBanner: View {
 
     var body: some View {
         if filterVM.isFilterActive {
-            HStack(spacing: 8) {
-
-                // ── Mini-Icon ─────────────────────────────────────
-                CategoryIconView(
-                    categoryId: filterVM.selectedCategoryId ?? "",
-                    size: 20
-                )
-
-                // ── Label ─────────────────────────────────────────
-                Text("filter.status.prefix") // "Gefiltert:"
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(categoryName)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
+            HStack {
                 Spacer()
 
-                // ── Dismiss ───────────────────────────────────────
-                Button {
-                    withAnimation(.easeInOut(duration: AppConstants.animationStandard)) {
-                        filterVM.clearFilter()
+                HStack(spacing: 8) {
+
+                    // ── Label übereinander ────────────────────────
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(LocalizedStringKey("filter.active"))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.85))
+
+                        Text(categoryName)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
                     }
-                    HapticManager.lightImpact()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                        .padding(6)
-                        .background(Color(.systemGray5), in: Circle())
+
+                    // ── Dismiss-Button ────────────────────────────
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            filterVM.clearFilter()
+                        }
+                        HapticManager.lightImpact()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(5)
+                            .background(Circle().fill(.white.opacity(0.25)))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(categoryColor)
+                        .shadow(color: categoryColor.opacity(0.4), radius: 4, x: 0, y: 2)
+                )
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                categoryColor.opacity(0.12),
-                in: RoundedRectangle(cornerRadius: 10)
-            )
-            .padding(.horizontal, 16)
-            .transition(.move(edge: .top).combined(with: .opacity))
+            .padding(.trailing, 12)
+            .transition(.move(edge: .trailing).combined(with: .opacity))
         }
     }
 }
@@ -103,17 +99,20 @@ struct FilterStatusBanner: View {
             language: "de"
         )
 
-        Text("Kein Filter → kein Banner")
+        Text("Anderer Filter")
             .font(.caption)
             .foregroundStyle(.secondary)
 
         FilterStatusBanner(
-            filterVM: FilterViewModel(),
+            filterVM: {
+                let vm = FilterViewModel()
+                vm.setFilter(categoryId: "restaurant")
+                return vm
+            }(),
             language: "de"
         )
-        // → zeigt nichts
     }
     .padding(.vertical, 32)
     .frame(maxWidth: .infinity)
-    .background(Color(.systemBackground))
+    .background(Color(.systemGroupedBackground))
 }

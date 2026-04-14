@@ -6,9 +6,8 @@ import SwiftUI
 
 // MARK: - FloatingPlusButton
 
-/// Runder Floating Action Button (56×56 pt) in der Markenfarbe Coral.
-/// Positioniert sich selbst via `frame(maxWidth: .infinity, maxHeight: .infinity)`
-/// in der unteren rechten Ecke des übergeordneten Containers.
+/// Runder Floating Action Button (52×52 pt) in elegantem Dunkelgrau.
+/// Positionierung erfolgt durch den aufrufenden Container (ContentView).
 struct FloatingPlusButton: View {
 
     // MARK: Parameter
@@ -18,28 +17,23 @@ struct FloatingPlusButton: View {
     // MARK: Body
 
     var body: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                Button(action: action) {
+        Button(action: action) {
+            Circle()
+                .fill(Color(.systemGray2))
+                .overlay(
                     Image(systemName: "plus")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 22, weight: .medium))
                         .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Color(hex: "#E8593C"), in: Circle())
-                        .shadow(
-                            color: Color(hex: "#E8593C").opacity(0.35),
-                            radius: 8,
-                            x: 0,
-                            y: 4
-                        )
-                }
-                .buttonStyle(.plain)
-            }
+                )
+                .frame(width: 52, height: 52)
+                .shadow(
+                    color: .black.opacity(0.15),
+                    radius: 6,
+                    x: 0,
+                    y: 3
+                )
         }
-        .padding(24)
+        .buttonStyle(.plain)
     }
 }
 

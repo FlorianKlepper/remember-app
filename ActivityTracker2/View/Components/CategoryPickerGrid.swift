@@ -19,7 +19,7 @@ struct CategoryPickerGrid: View {
 
     // MARK: Private
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 6)
 
     private var isPremium: Bool {
         userSettings.subscriptionStatus.isPremium
@@ -83,25 +83,18 @@ struct CategoryPickerGrid: View {
                 HapticManager.selectionChanged()
             }
         } label: {
-            VStack(spacing: 6) {
-                CategoryIconView(categoryId: category.id, size: 44)
-                    .overlay(alignment: .topTrailing) {
-                        if isLocked {
-                            PlusBadge()
-                                .offset(x: 4, y: -4)
-                        }
-                    }
+            ZStack(alignment: .topTrailing) {
+                CategoryIconView(categoryId: category.id, size: 52)
 
-                Text(category.localizedName(for: language))
-                    .font(.caption2)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .foregroundStyle(isSelected ? categoryColor : .primary)
+                if isLocked {
+                    PlusBadge()
+                        .offset(x: 4, y: -4)
+                }
             }
-            .padding(6)
+            .frame(width: 60, height: 60)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isSelected ? categoryColor : .clear, lineWidth: 2)
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? categoryColor : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)

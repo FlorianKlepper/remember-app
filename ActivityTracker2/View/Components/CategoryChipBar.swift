@@ -57,7 +57,9 @@ struct CategoryChipBar: View {
     private var allChip: some View {
         let isActive = !filterVM.isFilterActive
         return Button {
-            filterVM.clearFilter()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                filterVM.clearFilter()
+            }
             HapticManager.selectionChanged()
         } label: {
             Text("filter.all")
@@ -77,25 +79,31 @@ struct CategoryChipBar: View {
     private func categoryChip(_ category: Category) -> some View {
         let isActive = filterVM.selectedCategoryId == category.id
         let categoryColor = Color(hex: category.colorHex)
+        let count = activities.filter { $0.categoryId == category.id }.count
 
         return Button {
-            filterVM.setFilter(categoryId: category.id)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                filterVM.setFilter(categoryId: category.id)
+            }
             HapticManager.selectionChanged()
         } label: {
             HStack(spacing: 4) {
                 CategoryIconView(categoryId: category.id, size: 16)
-                let count = activities.filter { $0.categoryId == category.id }.count
                 Text("\(category.localizedName(for: language)) (\(count))")
                     .font(.caption)
                     .fontWeight(isActive ? .semibold : .regular)
+                    .foregroundStyle(isActive ? Color(.label) : Color(.secondaryLabel))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
-                isActive ? categoryColor : Color(.systemGray6),
-                in: Capsule()
+                Capsule()
+                    .fill(isActive ? Color(.systemGray5) : Color(.systemGray6))
             )
-            .foregroundStyle(isActive ? .white : .primary)
+            .overlay(
+                Capsule()
+                    .stroke(isActive ? categoryColor : Color.clear, lineWidth: 1.5)
+            )
         }
         .buttonStyle(.plain)
     }

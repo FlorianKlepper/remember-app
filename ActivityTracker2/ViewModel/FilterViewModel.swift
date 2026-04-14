@@ -17,6 +17,10 @@ final class FilterViewModel {
     /// Aktive Kategorie-ID oder `nil` wenn kein Filter gesetzt (= "Alle").
     var selectedCategoryId: String? = nil
 
+    /// Wird nach jedem Filterwechsel aufgerufen — übergibt die neue `categoryId` oder `nil`.
+    /// MapScreen hängt hier die Map-Animations-Logik ein.
+    var onCategoryChanged: ((String?) -> Void)?
+
     // MARK: Init
 
     init() {}
@@ -31,15 +35,17 @@ extension FilterViewModel {
         selectedCategoryId != nil
     }
 
-    /// Setzt den Filter auf eine Kategorie.
+    /// Setzt den Filter auf eine Kategorie und informiert den `onCategoryChanged`-Callback.
     /// - Parameter categoryId: ID der zu filternden Kategorie.
     func setFilter(categoryId: String) {
         selectedCategoryId = categoryId
+        onCategoryChanged?(categoryId)
     }
 
-    /// Setzt den Filter zurück — zeigt alle Activities.
+    /// Setzt den Filter zurück und informiert den `onCategoryChanged`-Callback.
     func clearFilter() {
         selectedCategoryId = nil
+        onCategoryChanged?(nil)
     }
 }
 
