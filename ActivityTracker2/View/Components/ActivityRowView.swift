@@ -14,39 +14,35 @@ struct ActivityRowView: View {
 
     let activity: Activity
 
-    // MARK: Private
-
-    private var cityText: String? {
-        activity.location?.city ?? activity.location?.region
-    }
-
-    private var subtitleParts: String {
-        var parts: [String] = [activity.formattedDate]
-        if let city = cityText, !city.isBlank {
-            parts.append(city)
-        }
-        return parts.joined(separator: " · ")
-    }
-
     // MARK: Body
 
     var body: some View {
         HStack(spacing: 12) {
 
-            // ── Icon ────────────────────────────────────────────
-            CategoryIconView(categoryId: activity.categoryId, size: 36)
+            // ── Datum links ──────────────────────────────────────
+            VStack(alignment: .center, spacing: 0) {
+                Text(activity.dayString)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.primary)
+                Text(activity.monthString)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.secondary)
+            }
+            .frame(width: 40)
 
-            // ── Titel + Datum/Ort ────────────────────────────────
-            VStack(alignment: .leading, spacing: 3) {
+            // ── Titel + Ort + Text mitte ─────────────────────────
+            VStack(alignment: .leading, spacing: 2) {
                 Text(activity.displayTitle)
                     .font(.headline)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text(subtitleParts)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if let city = activity.location?.city, !city.isBlank {
+                    Text(city)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
 
                 if let text = activity.text, !text.isBlank {
                     Text(text)
@@ -64,7 +60,11 @@ struct ActivityRowView: View {
                     .font(.caption)
                     .foregroundStyle(Color(.systemYellow))
             }
+
+            // ── Kategorie Icon rechts ────────────────────────────
+            CategoryIconView(categoryId: activity.categoryId, size: 36)
         }
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
 }

@@ -60,7 +60,7 @@ enum AppConstants {
     static let bottomSheetSmall: Double = 0.15
 
     /// Bottom Sheet – halbe Bildschirmhöhe (Standard-Detent).
-    static let bottomSheetMedium: Double = 0.5
+    static let bottomSheetMedium: Double = 0.45
 }
 
 // MARK: - Notification Names

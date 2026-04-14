@@ -88,8 +88,8 @@ struct AppTabBar: View {
         .frame(height: 62)
         .background(
             RoundedRectangle(cornerRadius: 26)
-                .fill(Color(.systemGray6).opacity(0.95))
-                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 4)
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 8)

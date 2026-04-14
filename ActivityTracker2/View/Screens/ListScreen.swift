@@ -79,17 +79,40 @@ struct ListScreen: View {
     private var activityList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(filteredActivities) { activity in
+                ForEach(
+                    Array(filteredActivities.enumerated()),
+                    id: \.element.id
+                ) { index, activity in
+                    let showYearHeader: Bool = {
+                        if index == 0 { return true }
+                        return filteredActivities[index - 1].yearInt != activity.yearInt
+                    }()
+
+                    if showYearHeader {
+                        HStack(spacing: 0) {
+                            Text(String(format: "%d", activity.yearInt))
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
+                                .padding(.leading, 16)
+                                .padding(.vertical, 6)
+                            Spacer()
+                            Rectangle()
+                                .fill(Color(.systemGray4))
+                                .frame(height: 0.5)
+                                .padding(.trailing, 16)
+                        }
+                        .background(Color(.systemGray6).opacity(0.5))
+                    }
+
                     Button {
                         selectedActivity = activity
                     } label: {
                         ActivityRowView(activity: activity)
-                            .padding(.horizontal, 16)
                     }
                     .buttonStyle(.plain)
 
                     Divider()
-                        .padding(.leading, 64) // Einzug unter Icon
+                        .padding(.leading, 16)
                 }
             }
         }

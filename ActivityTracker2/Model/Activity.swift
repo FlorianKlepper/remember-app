@@ -89,6 +89,26 @@ extension Activity {
         date.formattedActivityDate
     }
 
+    /// Tag als String, z.B. "14".
+    var dayString: String {
+        let f = DateFormatter()
+        f.dateFormat = "d"
+        return f.string(from: date)
+    }
+
+    /// Monat als Kurzform, z.B. "Apr".
+    var monthString: String {
+        let f = DateFormatter()
+        f.dateFormat = "MMM"
+        f.locale = Locale.current
+        return f.string(from: date)
+    }
+
+    /// Jahr als Int, z.B. 2026.
+    var yearInt: Int {
+        Calendar.current.component(.year, from: date)
+    }
+
     /// `true` wenn die Activity mindestens einen nicht-leeren Titel oder Text besitzt.
     var hasContent: Bool {
         let hasTitle = title.map { !$0.isBlank } ?? false

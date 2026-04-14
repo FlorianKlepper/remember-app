@@ -266,7 +266,64 @@ struct PermanentBottomSheet: View {
                     .foregroundStyle(.secondary)
                     .padding(16)
             } else {
-                activityScrollView
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(
+                            Array(mapVM.displayedActivities.enumerated()),
+                            id: \.element.id
+                        ) { index, activity in
+                            let showYearHeader: Bool = {
+                                if index == 0 { return true }
+                                return mapVM.displayedActivities[index - 1].yearInt != activity.yearInt
+                            }()
+
+                            if showYearHeader {
+                                HStack(spacing: 0) {
+                                    Text(String(format: "%d", activity.yearInt))
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.secondary)
+                                        .padding(.leading, 16)
+                                        .padding(.vertical, 6)
+                                    Spacer()
+                                    Rectangle()
+                                        .fill(Color(.systemGray4))
+                                        .frame(height: 0.5)
+                                        .padding(.trailing, 16)
+                                }
+                                .background(Color(.systemGray6).opacity(0.5))
+                            }
+
+                            activityRow(
+                                activity: activity,
+                                isHighlighted: activity.id == mapVM.highlightedActivityId
+                            )
+                            .id(activity.id)
+
+                            Divider()
+                                .padding(.leading, 16)
+                        }
+                    }
+                    .scrollTargetLayout()
+                }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $scrollPosition)
+                .onChange(of: scrollPosition) { _, newId in
+                    guard let newId, newId != mapVM.highlightedActivityId else { return }
+                    mapVM.highlightedActivityId = newId
+                    if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                       let location = activity.location {
+                        mapVM.selectedLocation = location
+                        let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span, sheetDetent: mapVM.currentSheetDetent)
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                        }
+                    }
+                }
+                .onAppear {
+                    if scrollPosition == nil {
+                        scrollPosition = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
+                    }
+                }
             }
         }
     }
@@ -310,11 +367,36 @@ struct PermanentBottomSheet: View {
                             )
                             .padding(.top, 40)
                         } else {
-                            ForEach(displayedActivities) { activity in
+                            ForEach(
+                                Array(displayedActivities.enumerated()),
+                                id: \.element.id
+                            ) { index, activity in
+                                let showYearHeader: Bool = {
+                                    if index == 0 { return true }
+                                    return displayedActivities[index - 1].yearInt != activity.yearInt
+                                }()
+
+                                if showYearHeader {
+                                    HStack(spacing: 0) {
+                                        Text(String(format: "%d", activity.yearInt))
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(.secondary)
+                                            .padding(.leading, 16)
+                                            .padding(.vertical, 6)
+                                        Spacer()
+                                        Rectangle()
+                                            .fill(Color(.systemGray4))
+                                            .frame(height: 0.5)
+                                            .padding(.trailing, 16)
+                                    }
+                                    .background(Color(.systemGray6).opacity(0.5))
+                                }
+
                                 let isHighlighted = activity.id == mapVM.highlightedActivityId
                                 activityRow(activity: activity, isHighlighted: isHighlighted)
                                     .id(activity.id)
                                 Divider()
+                                    .padding(.leading, 16)
                             }
                         }
                     }
@@ -394,18 +476,30 @@ struct PermanentBottomSheet: View {
                 .padding(.vertical, 4)
 
             HStack(spacing: 12) {
-                CategoryIconView(categoryId: activity.categoryId, size: 36)
 
+                // ── Datum links ──────────────────────────────────
+                VStack(alignment: .center, spacing: 0) {
+                    Text(activity.dayString)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text(activity.monthString)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(width: 40)
+
+                // ── Titel + Ort + Text mitte ─────────────────────
                 VStack(alignment: .leading, spacing: 2) {
                     Text(activity.displayTitle)
                         .font(.headline)
                         .lineLimit(1)
 
-                    Text([activity.formattedDate, activity.location?.city]
-                        .compactMap { $0 }
-                        .joined(separator: " · "))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if let city = activity.location?.city, !city.isBlank {
+                        Text(city)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
 
                     if let text = activity.text, !text.isBlank {
                         Text(text)
@@ -418,11 +512,8 @@ struct PermanentBottomSheet: View {
 
                 Spacer()
 
-                if activity.isFavorite {
-                    Image(systemName: "star.fill")
-                        .foregroundStyle(.yellow)
-                        .font(.caption)
-                }
+                // ── Kategorie Icon rechts ────────────────────────
+                CategoryIconView(categoryId: activity.categoryId, size: 36)
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
             .padding(.vertical, 12)
@@ -447,7 +538,7 @@ struct PermanentBottomSheet: View {
     private func heightFor(_ detent: SheetDetent, _ screen: CGFloat) -> CGFloat {
         switch detent {
         case .small:  return screen * 0.15
-        case .medium: return screen * 0.5
+        case .medium: return screen * 0.45
         case .large:
             let topSafeArea = UIApplication.shared
                 .connectedScenes
