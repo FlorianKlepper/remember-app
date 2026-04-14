@@ -88,7 +88,7 @@ struct AppTabBar: View {
         .frame(height: 62)
         .background(
             RoundedRectangle(cornerRadius: 26)
-                .fill(.ultraThinMaterial)
+                .fill(Color(.systemGray6).opacity(0.95))
                 .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
         )
         .padding(.horizontal, 16)
@@ -142,7 +142,7 @@ struct ContentView: View {
             // ━━━ 2. FloatingPlusButton — nur auf Map/Liste ━━━
             if selectedTab == 0 || selectedTab == 1 {
                 FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
-                    .padding(.trailing, 4)
+                    .padding(.trailing, 20)
                     .padding(.bottom, 110)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     .zIndex(999)
