@@ -57,8 +57,20 @@ enum AppConstants {
     static let toastDuration: Double = 2.0
 
     /// Bottom Sheet – schmaler Streifen (immer sichtbar nach Pin-Tap).
-    static let bottomSheetSmall: Double = 0.12
+    static let bottomSheetSmall: Double = 0.13
 
     /// Bottom Sheet – halbe Bildschirmhöhe (Standard-Detent).
     static let bottomSheetMedium: Double = 0.5
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    /// ContentView → PermanentBottomSheet: Sheet auf small setzen.
+    static let setSheetSmall  = Notification.Name("setSheetSmall")
+    /// ContentView → PermanentBottomSheet: Sheet auf large setzen.
+    static let setSheetLarge  = Notification.Name("setSheetLarge")
+    /// PermanentBottomSheet → ContentView: Sheet-Zustand hat sich geändert.
+    /// `object`: `true` = large (Liste blau), `false` = nicht large (Karte blau).
+    static let sheetDidChange = Notification.Name("sheetDidChange")
 }

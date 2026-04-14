@@ -9,12 +9,15 @@ import MapKit
 
 /// Startscreen der App. Zeigt alle Activities als Pins auf der Karte.
 /// Layout:
-///   Oben links:   CategoryChipBar (scrollbar)
-///   Oben rechts:  Zoom In / Zoom Out / GPS (fest, wandert nicht mit Sheet)
-///   Darunter:     FilterStatusBanner wenn aktiv (links)
-///   Unten rechts: FloatingPlusButton (wandert mit Sheet)
+///   Oben:         Blur-Material (Safe Area) + ChipBar + Controls
+///   Darunter:     FilterStatusBanner wenn aktiv
 ///   Unten:        PermanentBottomSheet (immer sichtbar)
 struct MapScreen: View {
+
+    // MARK: Input
+
+    /// Wenn `true` (Tab 1 — Liste): Sheet beim Erscheinen auf .large hochfahren.
+    var isListMode: Bool = false
 
     // MARK: Environment
 
@@ -26,12 +29,19 @@ struct MapScreen: View {
     // MARK: State
 
     @State private var cameraPosition: MapCameraPosition = .automatic
-    @State private var sheetHeight: CGFloat = UIScreen.main.bounds.height * 0.15
 
     // MARK: Private
 
     private var language: String {
         Locale.current.language.languageCode?.identifier ?? "en"
+    }
+
+    /// Höhe der oberen Safe Area (Notch / Dynamic Island).
+    private var topSafeArea: CGFloat {
+        UIApplication.shared
+            .connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.safeAreaInsets.top ?? 47
     }
 
     private var uniqueLocations: [Location] {
@@ -51,42 +61,59 @@ struct MapScreen: View {
             mapLayer
                 .ignoresSafeArea()
 
-            // ── Oben: ChipBar + Kontrollen ────────────────────────
+            // ── Oben: Blur-Material + ChipBar + Controls ──────────
             VStack(spacing: 0) {
 
-                // Zeile 1: ChipBar volle Breite
-                CategoryChipBar(
-                    filterVM: filterVM,
-                    activities: activityVM.activities,
-                    language: language
-                )
-                .background(.ultraThinMaterial)
+                // Milchiger Safe-Area-Bereich (Notch / Dynamic Island)
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .frame(height: topSafeArea)
+                    .ignoresSafeArea(edges: .top)
 
-                // Zeile 2: FilterBanner links + Kontrollen rechts
-                HStack(alignment: .top, spacing: 8) {
-
-                    if filterVM.isFilterActive {
-                        FilterStatusBanner(filterVM: filterVM, language: language)
-                            .transition(.move(edge: .leading).combined(with: .opacity))
-                    }
-
-                    Spacer()
+                // ChipBar + Zoom/GPS in einer Zeile
+                HStack(spacing: 0) {
+                    CategoryChipBar(
+                        filterVM: filterVM,
+                        activities: activityVM.activities,
+                        language: language
+                    )
 
                     mapControlButtons
+                        .padding(.trailing, 12)
                 }
                 .padding(.top, 8)
-                .padding(.horizontal, 12)
-                .animation(.easeInOut(duration: AppConstants.animationStandard),
-                           value: filterVM.isFilterActive)
+                .padding(.bottom, 8)
+                .background(.ultraThinMaterial)
+
+                // FilterStatusBanner — unter ChipBar, linksbündig
+                if filterVM.isFilterActive {
+                    HStack {
+                        FilterStatusBanner(filterVM: filterVM, language: language)
+                            .padding(.leading, 12)
+                            .padding(.top, 6)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
 
                 Spacer()
             }
+            .animation(.easeInOut(duration: AppConstants.animationStandard),
+                       value: filterVM.isFilterActive)
 
             // ── Permanenter Bottom Sheet ───────────────────────────
-            PermanentBottomSheet(mapVM: mapVM, currentHeight: $sheetHeight)
+            PermanentBottomSheet(mapVM: mapVM)
         }
         .ignoresSafeArea(edges: .bottom)
         .onAppear {
+            // Tab-Modus → Sheet-Position beim Start setzen
+            if isListMode {
+                NotificationCenter.default.post(name: .setSheetLarge, object: nil)
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    NotificationCenter.default.post(name: .setSheetSmall, object: nil)
+                }
+            }
             cameraPosition = .region(mapVM.region)
             filterVM.onCategoryChanged = { categoryId in
                 mapVM.onCategorySelected(
