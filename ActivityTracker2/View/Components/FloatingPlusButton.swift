@@ -13,13 +13,16 @@ struct FloatingPlusButton: View {
     // MARK: Parameter
 
     let action: () -> Void
+    /// Hintergrundfarbe des Buttons. Default: systemGray2.
+    /// Wird auf die aktive Kategorie-Farbe gesetzt wenn ein Filter aktiv ist.
+    var color: Color = Color(.systemGray2)
 
     // MARK: Body
 
     var body: some View {
         Button(action: action) {
             Circle()
-                .fill(Color(.systemGray2))
+                .fill(color)
                 .overlay(
                     Image(systemName: "plus")
                         .font(.system(size: 22, weight: .medium))

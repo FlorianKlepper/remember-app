@@ -72,8 +72,22 @@ struct ActivityDetailScreen: View {
                     .foregroundStyle(brandColor)
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                actionsMenu
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    showEditSheet = true
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 16, weight: .medium))
+                }
+                .foregroundStyle(.primary)
+
+                Button {
+                    showDeleteConfirm = true
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 16, weight: .medium))
+                }
+                .foregroundStyle(.red)
             }
         }
         .sheet(isPresented: $showEditSheet) {
@@ -149,29 +163,6 @@ struct ActivityDetailScreen: View {
         }
     }
 
-    private var actionsMenu: some View {
-        Menu {
-            Button {
-                showEditSheet = true
-            } label: {
-                Label(
-                    String(localized: "button.edit", defaultValue: "Bearbeiten"),
-                    systemImage: "pencil"
-                )
-            }
-
-            Button(role: .destructive) {
-                showDeleteConfirm = true
-            } label: {
-                Label(
-                    String(localized: "button.delete", defaultValue: "Löschen"),
-                    systemImage: "trash"
-                )
-            }
-        } label: {
-            Image(systemName: "ellipsis.circle")
-        }
-    }
 }
 
 // MARK: - Preview

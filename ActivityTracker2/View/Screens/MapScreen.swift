@@ -8,8 +8,12 @@ import MapKit
 // MARK: - MapScreen
 
 /// Startscreen der App. Zeigt alle Activities als Pins auf der Karte.
-/// Das `PermanentBottomSheet` ist IMMER sichtbar — mindestens 15 % Höhe.
-/// Pin-Tap → Sheet springt automatisch auf 50 %.
+/// Layout:
+///   Oben links:   CategoryChipBar (scrollbar)
+///   Oben rechts:  Zoom In / Zoom Out / GPS (fest, wandert nicht mit Sheet)
+///   Darunter:     FilterStatusBanner wenn aktiv (links)
+///   Unten rechts: FloatingPlusButton (wandert mit Sheet)
+///   Unten:        PermanentBottomSheet (immer sichtbar)
 struct MapScreen: View {
 
     // MARK: Environment
@@ -17,10 +21,13 @@ struct MapScreen: View {
     @Environment(MapViewModel.self)      private var mapVM
     @Environment(FilterViewModel.self)   private var filterVM
     @Environment(ActivityViewModel.self) private var activityVM
+    @Environment(LocationManager.self)   private var locationManager
 
     // MARK: State
 
     @State private var cameraPosition: MapCameraPosition = .automatic
+    @State private var sheetHeight: CGFloat = UIScreen.main.bounds.height * 0.15
+    @State private var showAddFlow = false
 
     // MARK: Private
 
@@ -28,13 +35,21 @@ struct MapScreen: View {
         Locale.current.language.languageCode?.identifier ?? "en"
     }
 
-    /// Alle einzigartigen Locations der gefilterten Activities.
     private var uniqueLocations: [Location] {
         let filtered = activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
         var seen = Set<UUID>()
         return filtered
             .compactMap { $0.location }
             .filter { seen.insert($0.id).inserted }
+    }
+
+    /// FAB-Farbe: aktive Kategorie-Farbe wenn Filter gesetzt, sonst systemGray2.
+    private var fabColor: Color {
+        guard let categoryId = filterVM.selectedCategoryId,
+              let category = (Category.mvpCategories + Category.plusCategories)
+                  .first(where: { $0.id == categoryId })
+        else { return Color(.systemGray2) }
+        return Color(hex: category.colorHex)
     }
 
     // MARK: Body
@@ -46,8 +61,10 @@ struct MapScreen: View {
             mapLayer
                 .ignoresSafeArea()
 
-            // ── Overlays oben ─────────────────────────────────────
+            // ── Oben: ChipBar + Kontrollen ────────────────────────
             VStack(spacing: 0) {
+
+                // Zeile 1: ChipBar volle Breite
                 CategoryChipBar(
                     filterVM: filterVM,
                     activities: activityVM.activities,
@@ -55,45 +72,64 @@ struct MapScreen: View {
                 )
                 .background(.ultraThinMaterial)
 
-                if filterVM.isFilterActive {
-                    FilterStatusBanner(filterVM: filterVM, language: language)
-                        .padding(.top, 4)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                // Zeile 2: FilterBanner links + Kontrollen rechts
+                HStack(alignment: .top, spacing: 8) {
+
+                    if filterVM.isFilterActive {
+                        FilterStatusBanner(filterVM: filterVM, language: language)
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                    }
+
+                    Spacer()
+
+                    mapControlButtons
                 }
+                .padding(.top, 8)
+                .padding(.horizontal, 12)
+                .animation(.easeInOut(duration: AppConstants.animationStandard),
+                           value: filterVM.isFilterActive)
 
                 Spacer()
             }
-            .animation(.easeInOut(duration: AppConstants.animationStandard),
-                       value: filterVM.isFilterActive)
 
-            // ── Permanenter Bottom Sheet — NIEMALS schließbar ────
-            PermanentBottomSheet(mapVM: mapVM)
+            // ── Unten rechts: FloatingPlusButton wandert mit Sheet ─
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
+                        .padding(.trailing, 24)
+                        .padding(.bottom, sheetHeight + 16)
+                }
+            }
+
+            // ── Permanenter Bottom Sheet ───────────────────────────
+            PermanentBottomSheet(mapVM: mapVM, currentHeight: $sheetHeight)
         }
         .ignoresSafeArea(edges: .bottom)
-
+        .sheet(isPresented: $showAddFlow) {
+            AddActivityCategoryScreen()
+                .presentationDetents([.large])
+        }
         .onAppear {
             cameraPosition = .region(mapVM.region)
-            // Callback: Chip-Tap → Liste + Map aktualisieren
             filterVM.onCategoryChanged = { categoryId in
                 mapVM.onCategorySelected(
                     categoryId: categoryId,
                     allActivities: activityVM.activities
                 )
             }
-            // Initiale Liste befüllen (Activities könnten bereits geladen sein)
             mapVM.onCategorySelected(
                 categoryId: filterVM.selectedCategoryId,
                 allActivities: activityVM.activities
             )
         }
-        // Activities nachgeladen → Liste aktualisieren
         .onChange(of: activityVM.activities) { _, newActivities in
             mapVM.onCategorySelected(
                 categoryId: filterVM.selectedCategoryId,
                 allActivities: newActivities
             )
         }
-        // MKCoordinateRegion ist nicht Equatable — center und span separat tracken
         .onChange(of: mapVM.region.center.latitude) { _, _ in
             withAnimation(.easeInOut(duration: AppConstants.animationStandard)) {
                 cameraPosition = .region(mapVM.region)
@@ -135,6 +171,91 @@ struct MapScreen: View {
         }
         .mapStyle(.standard)
     }
+
+    // MARK: Map Control Buttons (rechts oben, fix)
+
+    @ViewBuilder
+    private var mapControlButtons: some View {
+        VStack(spacing: 0) {
+
+            // Zoom In
+            Button { zoomIn() } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+            }
+
+            Divider().frame(width: 36)
+
+            // Zoom Out
+            Button { zoomOut() } label: {
+                Image(systemName: "minus")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+            }
+
+            // Trennlinie zwischen Zoom und GPS
+            Color(.systemGray4)
+                .frame(width: 36, height: 0.5)
+                .padding(.vertical, 4)
+
+            // GPS Refokussierung
+            Button { refocusOnGPS() } label: {
+                let hasLocation = locationManager.currentLocation != nil
+                Image(systemName: hasLocation ? "location.fill" : "location.slash")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(hasLocation ? Color(hex: "#E8593C") : Color(.systemGray3))
+                    .frame(width: 36, height: 36)
+            }
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.systemBackground).opacity(0.95))
+                .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color(.systemGray5), lineWidth: 0.5)
+        )
+    }
+
+    // MARK: Zoom + GPS Actions
+
+    private func zoomIn() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            let span = MKCoordinateSpan(
+                latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.002),
+                longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.002)
+            )
+            mapVM.region = MKCoordinateRegion(center: mapVM.region.center, span: span)
+        }
+    }
+
+    private func zoomOut() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            let span = MKCoordinateSpan(
+                latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 50.0),
+                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 50.0)
+            )
+            mapVM.region = MKCoordinateRegion(center: mapVM.region.center, span: span)
+        }
+    }
+
+    private func refocusOnGPS() {
+        guard let coordinate = locationManager.currentLocation else { return }
+        withAnimation(.easeInOut(duration: 0.5)) {
+            mapVM.region = MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(
+                    latitudeDelta:  AppConstants.defaultMapSpan,
+                    longitudeDelta: AppConstants.defaultMapSpan
+                )
+            )
+        }
+    }
 }
 
 // MARK: - Preview
@@ -144,9 +265,9 @@ struct MapScreen: View {
     let activityVM = ActivityViewModel(analytics: analytics)
     let mapVM = MapViewModel()
     let filterVM = FilterViewModel()
+    let locationManager = LocationManager()
 
     activityVM.activities = Activity.samples
-
     mapVM.region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 48.154, longitude: 11.578),
         span: MKCoordinateSpan(latitudeDelta: 0.07, longitudeDelta: 0.07)
@@ -156,4 +277,5 @@ struct MapScreen: View {
         .environment(mapVM)
         .environment(filterVM)
         .environment(activityVM)
+        .environment(locationManager)
 }

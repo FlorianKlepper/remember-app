@@ -171,8 +171,8 @@ extension MapViewModel {
 
     /// Verschiebt den Kartenmittelpunkt nach Süden, damit der Pin optisch
     /// im oberen Drittel der sichtbaren Map erscheint (nicht hinter dem Bottom Sheet).
-    /// Offset: 30 % der latitudeDelta nach Süden.
-    private func adjustedCenter(
+    /// Offset: 18 % der latitudeDelta nach Süden.
+    func adjustedCenter(
         for coordinate: CLLocationCoordinate2D,
         span: MKCoordinateSpan
     ) -> CLLocationCoordinate2D {

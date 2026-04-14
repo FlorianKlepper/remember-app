@@ -105,3 +105,13 @@ extension String {
         trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
+
+// MARK: - Array
+
+extension Array {
+
+    /// Gibt das Element an `index` zurück oder `nil` wenn der Index außerhalb liegt.
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}

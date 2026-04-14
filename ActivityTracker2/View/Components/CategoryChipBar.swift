@@ -1,136 +1,126 @@
 // CategoryChipBar.swift
 // ActivityTracker2 — Remember
-// Horizontale scrollbare Kategorie-Chips für Map und Liste
+// Horizontale Chip-Leiste — freies Scrollen ohne Snapping
 
 import SwiftUI
 
 // MARK: - CategoryChipBar
 
-/// Horizontale, scrollbare Chip-Leiste für den aktiven Kategorie-Filter.
-/// Erster Chip: "Alle" — setzt Filter zurück.
-/// Folgende Chips: genutzte Kategorien, sortiert nach Anzahl absteigend.
-/// Wird bei Swipe-Geste in der Liste automatisch nachgeführt.
+/// Horizontale Chip-Leiste ohne ChipItem-Struct.
+/// Tap auf Chip → Filter setzen, Map + Liste aktualisieren.
 struct CategoryChipBar: View {
 
-    // MARK: Parameter
-
     var filterVM: FilterViewModel
-    let activities: [Activity]
-    let language: String
-
-    // MARK: Private
-
-    private var sortedCategories: [Category] {
-        filterVM.sortedUsedCategories(from: activities)
-    }
-
-    // MARK: Body
+    var activities: [Activity]
+    var language: String
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
 
-                    // ── "Alle"-Chip ───────────────────────────────
-                    allChip
-                        .id("all")
+                // "Alle" Chip
+                allChip
 
-                    // ── Kategorie-Chips ───────────────────────────
-                    ForEach(sortedCategories) { category in
-                        categoryChip(category)
-                            .id(category.id)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
-            }
-            .onChange(of: filterVM.selectedCategoryId) { _, newId in
-                withAnimation {
-                    proxy.scrollTo(newId ?? "all", anchor: .center)
+                // Kategorie Chips
+                ForEach(usedCategories, id: \.id) { category in
+                    categoryChip(category)
                 }
             }
+            .padding(.horizontal, 12)
         }
+        .frame(height: 44)
     }
 
-    // MARK: Private Views
+    // MARK: Alle Chip
 
+    @ViewBuilder
     private var allChip: some View {
-        let isActive = !filterVM.isFilterActive
-        return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                filterVM.clearFilter()
-            }
+        let isSelected = filterVM.selectedCategoryId == nil
+        Button {
+            filterVM.clearFilter()
             HapticManager.selectionChanged()
         } label: {
-            Text("filter.all")
+            Text(LocalizedStringKey("filter.all"))
                 .font(.caption)
-                .fontWeight(isActive ? .semibold : .regular)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundStyle(isSelected ? Color(.systemBackground) : Color(.secondaryLabel))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(
-                    isActive ? Color.primary : Color(.systemGray6),
-                    in: Capsule()
-                )
-                .foregroundStyle(isActive ? Color(.systemBackground) : .primary)
+                .background {
+                    ZStack {
+                        Capsule().fill(isSelected ? Color(.label) : Color(.systemGray6))
+                        Capsule().strokeBorder(isSelected ? Color(.label) : Color.clear, lineWidth: 1.5)
+                    }
+                }
         }
         .buttonStyle(.plain)
     }
 
-    private func categoryChip(_ category: Category) -> some View {
-        let isActive = filterVM.selectedCategoryId == category.id
-        let categoryColor = Color(hex: category.colorHex)
-        let count = activities.filter { $0.categoryId == category.id }.count
+    // MARK: Kategorie Chip
 
-        return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                filterVM.setFilter(categoryId: category.id)
-            }
+    @ViewBuilder
+    private func categoryChip(_ category: Category) -> some View {
+        let isSelected = filterVM.selectedCategoryId == category.id
+        let count = activities.filter { $0.categoryId == category.id }.count
+        let categoryColor = Color(hex: category.colorHex)
+        Button {
+            filterVM.setFilter(categoryId: category.id)
             HapticManager.selectionChanged()
         } label: {
             HStack(spacing: 4) {
                 CategoryIconView(categoryId: category.id, size: 16)
                 Text("\(category.localizedName(for: language)) (\(count))")
                     .font(.caption)
-                    .fontWeight(isActive ? .semibold : .regular)
-                    .foregroundStyle(isActive ? Color(.label) : Color(.secondaryLabel))
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundStyle(isSelected ? Color(.label) : Color(.secondaryLabel))
+                    .lineLimit(1)
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(isActive ? Color(.systemGray5) : Color(.systemGray6))
-            )
-            .overlay(
-                Capsule()
-                    .stroke(isActive ? categoryColor : Color.clear, lineWidth: 1.5)
-            )
+            .padding(.vertical, 7)
+            .background {
+                ZStack {
+                    Capsule().fill(isSelected ? Color(.systemGray5) : Color(.systemGray6))
+                    Capsule().strokeBorder(isSelected ? categoryColor : Color.clear, lineWidth: 1.5)
+                }
+            }
         }
         .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
+    }
+
+    // MARK: Used Categories
+
+
+    /// Nur Kategorien mit mindestens einer Activity — sortiert nach Anzahl absteigend.
+    private var usedCategories: [Category] {
+        filterVM.sortedUsedCategories(from: activities)
     }
 }
 
 // MARK: - Preview
 
 #Preview("Category Chip Bar") {
-    let filterVM = FilterViewModel()
-    let activities = Activity.samples
-
     VStack(spacing: 20) {
-        Text("Kein Filter aktiv")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        CategoryChipBar(filterVM: filterVM, activities: activities, language: "de")
+        CategoryChipBar(
+            filterVM: FilterViewModel(),
+            activities: Activity.samples,
+            language: "de"
+        )
+        .background(.ultraThinMaterial)
 
         Divider()
 
-        Text("Filter: Wandern aktiv")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        CategoryChipBar(filterVM: {
-            let vm = FilterViewModel()
-            vm.setFilter(categoryId: "hiking")
-            return vm
-        }(), activities: activities, language: "de")
+        CategoryChipBar(
+            filterVM: {
+                let vm = FilterViewModel()
+                vm.setFilter(categoryId: "hiking")
+                return vm
+            }(),
+            activities: Activity.samples,
+            language: "de"
+        )
+        .background(.ultraThinMaterial)
     }
     .padding(.vertical)
     .background(Color(.systemBackground))

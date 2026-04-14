@@ -95,10 +95,6 @@ struct ActivityBottomSheet: View {
             }
 
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

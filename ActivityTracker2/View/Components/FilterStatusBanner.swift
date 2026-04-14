@@ -1,13 +1,14 @@
 // FilterStatusBanner.swift
 // ActivityTracker2 — Remember
-// Rechtsbündige Filter-Pill mit Kategorie-Farbe und Dismiss-Button
+// Dezenter Filter-Chip am rechten Rand — gleiche Optik wie aktiver CategoryChip
 
 import SwiftUI
 
 // MARK: - FilterStatusBanner
 
 /// Zeigt den aktiven Filter als kompakte Pill am rechten Rand.
-/// Slide-in von rechts, Slide-out nach rechts.
+/// Design: systemGray6 Hintergrund + farbiger Rand — wie aktiver Chip in der ChipBar.
+/// Transition: von rechts einfahren / ausfahren.
 struct FilterStatusBanner: View {
 
     // MARK: Parameter
@@ -39,17 +40,23 @@ struct FilterStatusBanner: View {
             HStack {
                 Spacer()
 
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
+
+                    // ── Kategorie-Icon ────────────────────────────
+                    CategoryIconView(
+                        categoryId: filterVM.selectedCategoryId ?? "",
+                        size: 16
+                    )
 
                     // ── Label übereinander ────────────────────────
                     VStack(alignment: .leading, spacing: 1) {
                         Text(LocalizedStringKey("filter.active"))
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.85))
+                            .foregroundStyle(.secondary)
 
                         Text(categoryName)
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.primary)
                             .lineLimit(1)
                     }
 
@@ -61,20 +68,22 @@ struct FilterStatusBanner: View {
                         HapticManager.lightImpact()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.secondary)
                             .padding(5)
-                            .background(Circle().fill(.white.opacity(0.25)))
+                            .background(Circle().fill(Color(.systemGray4)))
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(categoryColor)
-                        .shadow(color: categoryColor.opacity(0.4), radius: 4, x: 0, y: 2)
-                )
+                .background {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6))
+                        RoundedRectangle(cornerRadius: 10).strokeBorder(categoryColor, lineWidth: 1.5)
+                    }
+                }
+                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
             }
             .padding(.trailing, 12)
             .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -85,11 +94,7 @@ struct FilterStatusBanner: View {
 // MARK: - Preview
 
 #Preview("Filter Status Banner") {
-    VStack(spacing: 24) {
-        Text("Aktiver Filter")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
+    VStack(spacing: 16) {
         FilterStatusBanner(
             filterVM: {
                 let vm = FilterViewModel()
@@ -98,11 +103,6 @@ struct FilterStatusBanner: View {
             }(),
             language: "de"
         )
-
-        Text("Anderer Filter")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
         FilterStatusBanner(
             filterVM: {
                 let vm = FilterViewModel()
@@ -111,6 +111,11 @@ struct FilterStatusBanner: View {
             }(),
             language: "de"
         )
+        FilterStatusBanner(
+            filterVM: FilterViewModel(),
+            language: "de"
+        )
+        // → zeigt nichts
     }
     .padding(.vertical, 32)
     .frame(maxWidth: .infinity)

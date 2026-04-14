@@ -39,8 +39,8 @@ struct StatsScreen: View {
                     StatsSummaryCard(
                         totalCount: statsVM.totalActivities,
                         thisWeek: statsVM.activitiesThisWeek,
-                        topCategoryName: topCategory?.name,
-                        topCategoryIcon: topCategory?.iconName
+                        topCategoryId: topCategory?.id,
+                        topCategoryName: topCategory?.name
                     )
                     .padding(.horizontal)
 
@@ -79,27 +79,57 @@ struct StatsScreen: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
             } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(statsVM.topCategories) { stat in
-                            VStack(spacing: 6) {
-                                CategoryIconView(categoryId: stat.id, size: 44)
+                let maxCount = statsVM.topCategories.first?.count ?? 1
 
-                                Text(stat.name)
-                                    .font(.caption)
-                                    .lineLimit(1)
+                VStack(spacing: 0) {
+                    ForEach(statsVM.topCategories) { stat in
+                        HStack(spacing: 12) {
+                            CategoryIconView(categoryId: stat.id, size: 36)
 
-                                Text("\(stat.count)")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .frame(width: 68)
+                            Text(stat.name)
+                                .font(.body)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Text("\(stat.count)")
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color(hex: categoryColorHex(for: stat.id)))
+                                .frame(width: barWidth(count: stat.count, maxCount: maxCount), height: 6)
+                                .frame(width: 60, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+
+                        if stat.id != statsVM.topCategories.last?.id {
+                            Divider()
+                                .padding(.leading, 64)
                         }
                     }
-                    .padding(.horizontal)
                 }
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                .padding(.horizontal)
             }
         }
+    }
+
+    // MARK: Category Helpers
+
+    private func categoryColorHex(for id: String) -> String {
+        (Category.mvpCategories + Category.plusCategories)
+            .first { $0.id == id }?.colorHex ?? "888888"
+    }
+
+    private func barWidth(count: Int, maxCount: Int) -> CGFloat {
+        let ratio = CGFloat(count) / CGFloat(maxCount)
+        return Swift.max(4, ratio * 60)
     }
 
     @ViewBuilder

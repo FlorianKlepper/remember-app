@@ -3,6 +3,7 @@
 // Immer sichtbares Bottom Sheet mit 3 Höhenstufen — ersetzt das dismissbare .sheet()
 
 import SwiftUI
+import MapKit
 
 // MARK: - PermanentBottomSheet
 
@@ -11,7 +12,8 @@ import SwiftUI
 /// Per Drag oder Velocity-Fling zwischen den Stufen navigieren.
 ///
 /// Zeigt immer `mapVM.displayedActivities` — die vollständige gefilterte Liste.
-/// `mapVM.highlightedActivityId` steuert Hervorhebung und automatisches Scrollen.
+/// `mapVM.highlightedActivityId` steuert Hervorhebung, Scroll-Position und Map-Pin.
+/// Scroll-Snap: jede Zeile ist ein Snap-Punkt — beim Landen folgt die Map dem Pin.
 struct PermanentBottomSheet: View {
 
     // MARK: Nested Types
@@ -21,12 +23,18 @@ struct PermanentBottomSheet: View {
     // MARK: Inputs
 
     var mapVM: MapViewModel
+    /// Wird bei jedem Detent-Wechsel aktualisiert — MapScreen nutzt es
+    /// um Zoom + GPS + Plus Buttons mit dem Sheet mitbewegen zu lassen.
+    @Binding var currentHeight: CGFloat
 
     // MARK: State
 
     @State private var currentDetent: SheetDetent = .small
     @State private var dragOffset: CGFloat = 0
     @State private var selectedActivity: Activity? = nil
+
+    /// Aktuell gesnappte Activity-ID — steuert Scroll-Position und Map-Sync.
+    @State private var scrollPosition: Activity.ID? = nil
 
     // MARK: Body
 
@@ -95,11 +103,28 @@ struct PermanentBottomSheet: View {
                 ActivityDetailScreen(activity: activity)
             }
         }
-        // Highlight wechselt → Sheet auf .medium hochfahren wenn aktuell .small
+        // Highlight von außen (z.B. Pin-Tap) → Scroll-Position synchronisieren
         .onChange(of: mapVM.highlightedActivityId) { _, newId in
-            guard newId != nil, currentDetent == .small else { return }
+            guard let newId, newId != scrollPosition else { return }
+            withAnimation(.easeInOut(duration: 0.3)) {
+                scrollPosition = newId
+            }
+            // Sheet auf .medium hochfahren wenn aktuell .small
+            if currentDetent == .small {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                    currentDetent = .medium
+                }
+            }
+        }
+        // Detent-Wechsel → currentHeight nach außen propagieren
+        .onChange(of: currentDetent) { _, detent in
             withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                currentDetent = .medium
+                let screen = UIScreen.main.bounds.height
+                switch detent {
+                case .small:  currentHeight = screen * 0.15
+                case .medium: currentHeight = screen * 0.5
+                case .large:  currentHeight = screen
+                }
             }
         }
     }
@@ -107,25 +132,7 @@ struct PermanentBottomSheet: View {
     // MARK: Small Content (15 %)
 
     private var smallContent: some View {
-        HStack {
-            Image(systemName: "chevron.up")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text("bottomsheet.swipe.up")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            if !mapVM.displayedActivities.isEmpty {
-                Text("\(mapVM.displayedActivities.count)")
-                    .font(.caption.bold())
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Color(hex: "#E8593C")))
-                    .foregroundStyle(.white)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        Spacer().frame(height: 4)
     }
 
     // MARK: Medium Content (50 %)
@@ -157,31 +164,7 @@ struct PermanentBottomSheet: View {
                     .foregroundStyle(.secondary)
                     .padding(16)
             } else {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(spacing: 0) {
-                            ForEach(mapVM.displayedActivities) { activity in
-                                activityRow(
-                                    activity: activity,
-                                    isHighlighted: activity.id == mapVM.highlightedActivityId
-                                )
-                                .id(activity.id)
-                                Divider()
-                            }
-                        }
-                    }
-                    .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                        guard let newId else { return }
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            proxy.scrollTo(newId, anchor: .center)
-                        }
-                    }
-                    .onAppear {
-                        if let id = mapVM.highlightedActivityId {
-                            proxy.scrollTo(id, anchor: .center)
-                        }
-                    }
-                }
+                activityScrollView
             }
         }
     }
@@ -229,31 +212,51 @@ struct PermanentBottomSheet: View {
             }
             .background(Color(.systemBackground))
 
-            // ── Scrollbare Liste ─────────────────────────────────
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(mapVM.displayedActivities) { activity in
-                            activityRow(
-                                activity: activity,
-                                isHighlighted: activity.id == mapVM.highlightedActivityId
-                            )
-                            .id(activity.id)
-                            Divider()
-                        }
+            activityScrollView
+        }
+    }
+
+    // MARK: Shared Scroll View mit Snap
+
+    /// Gemeinsame scrollbare Liste für medium und large — mit Snap-Verhalten.
+    /// Jede Row ist ein Snap-Punkt; beim Landen folgt die Map dem Pin.
+    private var activityScrollView: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 0) {
+                ForEach(mapVM.displayedActivities) { activity in
+                    VStack(spacing: 0) {
+                        activityRow(
+                            activity: activity,
+                            isHighlighted: activity.id == mapVM.highlightedActivityId
+                        )
+                        .frame(height: rowHeight(for: activity))
+                        Divider()
                     }
+                    .id(activity.id)
                 }
-                .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                    guard let newId else { return }
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        proxy.scrollTo(newId, anchor: .center)
-                    }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $scrollPosition)
+        // Scroll-Snap → Map nachführen
+        .onChange(of: scrollPosition) { _, newId in
+            guard let newId, newId != mapVM.highlightedActivityId else { return }
+            mapVM.highlightedActivityId = newId
+            if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
+               let location = activity.location {
+                mapVM.selectedLocation = location
+                let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span)
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
                 }
-                .onAppear {
-                    if let id = mapVM.highlightedActivityId {
-                        proxy.scrollTo(id, anchor: .center)
-                    }
-                }
+            }
+        }
+        // Initiale Scroll-Position beim Erscheinen der Liste
+        .onAppear {
+            if scrollPosition == nil {
+                scrollPosition = mapVM.highlightedActivityId
+                    ?? mapVM.displayedActivities.first?.id
             }
         }
     }
@@ -306,10 +309,6 @@ struct PermanentBottomSheet: View {
                         .foregroundStyle(.yellow)
                         .font(.caption)
                 }
-
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
             .padding(.vertical, 12)
@@ -323,6 +322,13 @@ struct PermanentBottomSheet: View {
     }
 
     // MARK: Helpers
+
+    /// Fixe Zeilenhöhe für sauberes Snap-Verhalten.
+    /// Mit Text-Vorschau: 72 pt — ohne: 52 pt.
+    private func rowHeight(for activity: Activity) -> CGFloat {
+        let hasText = activity.text?.isBlank == false
+        return hasText ? 72 : 52
+    }
 
     private func heightFor(_ detent: SheetDetent, _ screen: CGFloat) -> CGFloat {
         switch detent {
@@ -356,15 +362,12 @@ struct PermanentBottomSheet: View {
 // MARK: - Preview
 
 #Preview("Permanent Bottom Sheet — medium") {
-    let analytics = AnalyticsManager()
-    let activityVM = ActivityViewModel(analytics: analytics)
     let mapVM = MapViewModel()
-
     mapVM.displayedActivities = Array(Activity.samples.prefix(5))
     mapVM.highlightedActivityId = Activity.samples.first?.id
 
     return ZStack(alignment: .bottom) {
         Color(.systemGroupedBackground).ignoresSafeArea()
-        PermanentBottomSheet(mapVM: mapVM)
+        PermanentBottomSheet(mapVM: mapVM, currentHeight: .constant(UIScreen.main.bounds.height * 0.15))
     }
 }

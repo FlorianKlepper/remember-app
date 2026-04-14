@@ -14,8 +14,8 @@ struct StatsSummaryCard: View {
 
     let totalCount: Int
     let thisWeek: Int
+    let topCategoryId: String?
     let topCategoryName: String?
-    let topCategoryIcon: String?
 
     // MARK: Body
 
@@ -23,8 +23,7 @@ struct StatsSummaryCard: View {
         HStack(spacing: 0) {
             StatItemView(
                 value: "\(totalCount)",
-                labelKey: "stats.total_activities",
-                systemImage: nil
+                labelKey: "stats.total_activities"
             )
 
             Divider()
@@ -32,18 +31,33 @@ struct StatsSummaryCard: View {
 
             StatItemView(
                 value: "\(thisWeek)",
-                labelKey: "stats.this_week",
-                systemImage: nil
+                labelKey: "stats.this_week"
             )
 
             Divider()
                 .frame(height: 40)
 
-            StatItemView(
-                value: topCategoryName ?? "–",
-                labelKey: "stats.top_category",
-                systemImage: topCategoryIcon
-            )
+            // ── Top Kategorie — gross + farbig ──────────────────
+            VStack(spacing: 6) {
+                if let id = topCategoryId {
+                    CategoryIconView(categoryId: id, size: 44)
+                } else {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(topCategoryName ?? "–")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                Text(LocalizedStringKey("stats.top_category"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 8)
@@ -56,21 +70,14 @@ struct StatsSummaryCard: View {
 
 // MARK: - StatItemView (privat)
 
-/// Einzelne Statistik-Zelle: optionales Icon, Wert, Label.
+/// Einzelne Statistik-Zelle: Wert + Label.
 private struct StatItemView: View {
 
     let value: String
     let labelKey: LocalizedStringKey
-    var systemImage: String?
 
     var body: some View {
         VStack(spacing: 4) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
@@ -95,14 +102,14 @@ private struct StatItemView: View {
         StatsSummaryCard(
             totalCount: 42,
             thisWeek: 5,
-            topCategoryName: "Wandern",
-            topCategoryIcon: "figure.hiking"
+            topCategoryId: "hiking",
+            topCategoryName: "Wandern"
         )
         StatsSummaryCard(
             totalCount: 0,
             thisWeek: 0,
-            topCategoryName: nil,
-            topCategoryIcon: nil
+            topCategoryId: nil,
+            topCategoryName: nil
         )
     }
     .padding()

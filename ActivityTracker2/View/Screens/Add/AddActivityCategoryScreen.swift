@@ -84,9 +84,8 @@ struct AddActivityCategoryScreen: View {
 // MARK: - Preview
 
 #Preview("Add — Step 1: Kategorie") {
-    let analytics = AnalyticsManager()
-    let addVM     = AddActivityViewModel()
-    let settings  = UserSettings()
+    let addVM    = AddActivityViewModel()
+    let settings = UserSettings()
 
     return AddActivityCategoryScreen()
         .environment(addVM)

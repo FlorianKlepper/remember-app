@@ -228,14 +228,13 @@ struct AddActivityLocationScreen: View {
                         Button {
                             selectResult(mapItem)
                         } label: {
-                            let placemark = mapItem.placemark
+                            let locality: String? = mapItem.placemark.locality
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(mapItem.name ?? "")
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
 
-                                if let locality = placemark.locality,
-                                   locality != mapItem.name {
+                                if let locality, locality != mapItem.name {
                                     Text(locality)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -314,7 +313,7 @@ struct AddActivityLocationScreen: View {
     /// Setzt pendingCoordinate + pendingLocationName aus dem Suchergebnis
     /// und navigiert sofort zu Screen 3. Reverse Geocoding läuft non-blocking nach.
     private func selectResult(_ mapItem: MKMapItem) {
-        let coordinate = mapItem.placemark.coordinate  // MKPlacemark.coordinate, iOS 17+
+        let coordinate = mapItem.placemark.location?.coordinate ?? CLLocationCoordinate2D()
         addActivityVM.pendingCoordinate = coordinate
         addActivityVM.pendingLocationName = mapItem.name
 
@@ -333,7 +332,6 @@ struct AddActivityLocationScreen: View {
 // MARK: - Preview
 
 #Preview("Add — Step 2: Ort") {
-    let analytics   = AnalyticsManager()
     let addVM       = AddActivityViewModel()
     let locationMgr = LocationManager()
     let geocodeMgr  = GeocodeManager()
