@@ -124,7 +124,16 @@ struct PermanentBottomSheet: View {
                             dragOffset = 0
                         }
 
-                        sendSheetChange()
+                        // Drag-Notification an ContentView — NUR wenn User selbst wischt
+                        // asyncAfter 0.1s: Animation läuft zuerst, dann State-Sync
+                        let detentAfterDrag = currentDetent
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            if detentAfterDrag == .large {
+                                NotificationCenter.default.post(name: .sheetBecameLarge, object: nil)
+                            } else {
+                                NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
+                            }
+                        }
                     }
             )
         }
@@ -147,21 +156,19 @@ struct PermanentBottomSheet: View {
                 }
             }
         }
-        // Tab "Karte" → Sheet klein
+        // Tab "Karte" → Sheet klein (kein Rück-Post — ContentView hat bereits gesetzt)
         .onReceive(NotificationCenter.default.publisher(for: .setSheetSmall)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .small
                 dragOffset = 0
             }
-            sendSheetChange()
         }
-        // Tab "Liste" → Sheet gross
+        // Tab "Liste" → Sheet gross (kein Rück-Post — ContentView hat bereits gesetzt)
         .onReceive(NotificationCenter.default.publisher(for: .setSheetLarge)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .large
                 dragOffset = 0
             }
-            sendSheetChange()
         }
     }
 
@@ -398,14 +405,6 @@ struct PermanentBottomSheet: View {
     }
 
     // MARK: Helpers
-
-    /// Sendet `.sheetDidChange` mit dem aktuellen large-Zustand.
-    /// Wird nach jeder Detent-Änderung aufgerufen — via Drag und via Notification.
-    private func sendSheetChange() {
-        let isLarge = currentDetent == .large
-        print("sendSheetChange: isLarge=\(isLarge)")
-        NotificationCenter.default.post(name: .sheetDidChange, object: isLarge)
-    }
 
     /// Fixe Zeilenhöhe für sauberes Snap-Verhalten.
     /// Mit Text-Vorschau: 72 pt — ohne: 52 pt.

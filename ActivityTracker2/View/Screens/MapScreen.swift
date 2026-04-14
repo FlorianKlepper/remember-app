@@ -103,6 +103,7 @@ struct MapScreen: View {
 
             // ── Permanenter Bottom Sheet ───────────────────────────
             PermanentBottomSheet(mapVM: mapVM)
+                .zIndex(50)
         }
         .ignoresSafeArea(edges: .bottom)
         .onAppear {

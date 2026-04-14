@@ -5,12 +5,101 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - AppTabBar
+
+/// Separate View damit SwiftUI @Binding-Änderungen zuverlässig trackt.
+struct AppTabBar: View {
+
+    @Binding var isSheetLarge: Bool
+    @Binding var selectedTab:  Int
+    var onKarte:     () -> Void
+    var onListe:     () -> Void
+    var onPlus:      () -> Void
+    var onStatistik: () -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+
+            // Karte
+            Button(action: onKarte) {
+                VStack(spacing: 3) {
+                    Image(systemName: "map")
+                        .font(.system(size: 22))
+                    Text(LocalizedStringKey("tab.map"))
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(
+                    (!isSheetLarge && selectedTab <= 1) ? Color.blue : Color(.systemGray2)
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
+            }
+            .buttonStyle(.plain)
+
+            // Liste
+            Button(action: onListe) {
+                VStack(spacing: 3) {
+                    Image(systemName: "list.bullet")
+                        .font(.system(size: 22))
+                    Text(LocalizedStringKey("tab.list"))
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(
+                    isSheetLarge ? Color.blue : Color(.systemGray2)
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
+            }
+            .buttonStyle(.plain)
+
+            // Plus — Icon immer gold
+            Button(action: onPlus) {
+                VStack(spacing: 3) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(Color(hex: "#FFD700"))
+                    Text(LocalizedStringKey("tab.plus"))
+                        .font(.system(size: 10))
+                        .foregroundStyle(
+                            selectedTab == 2 ? Color.blue : Color(.systemGray2)
+                        )
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
+            }
+            .buttonStyle(.plain)
+
+            // Statistik
+            Button(action: onStatistik) {
+                VStack(spacing: 3) {
+                    Image(systemName: "rectangle.3.group.fill")
+                        .font(.system(size: 22))
+                    Text(LocalizedStringKey("tab.stats"))
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(
+                    selectedTab == 3 ? Color.blue : Color(.systemGray2)
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(height: 49)
+        .background(
+            RoundedRectangle(cornerRadius: 26)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
+        )
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+    }
+}
+
 // MARK: - ContentView
 
 /// Haupt-Navigation der App nach abgeschlossenem Onboarding.
-/// Vier Tabs: Map · Liste · Plus · Statistik.
-/// Floating Tab Bar — kein UITabBar, kein TabView.
-/// Tab-Wechsel postet direkt NotificationCenter-Events → kein Loop-Risiko.
+/// AppTabBar als separate View mit @Binding — garantiert reaktives Re-Rendering.
 struct ContentView: View {
 
     // MARK: Environment
@@ -24,7 +113,6 @@ struct ContentView: View {
 
     @State private var selectedTab:  Int  = 0
     @State private var showAddFlow        = false
-    /// Spiegelt den aktuellen Sheet-Zustand — steuert Karte/Liste-Highlighting.
     @State private var isSheetLarge: Bool = false
 
     // MARK: Body
@@ -56,11 +144,38 @@ struct ContentView: View {
                     .padding(.trailing, 8)
                     .padding(.bottom, tabBarHeight + 4)
                     .zIndex(999)
+                    .allowsHitTesting(true)
             }
 
             // ── Floating Tab Bar ──────────────────────────────────────
-            customTabBar
-                .zIndex(100)
+            AppTabBar(
+                isSheetLarge: $isSheetLarge,
+                selectedTab:  $selectedTab,
+                onKarte: {
+                    isSheetLarge = false
+                    selectedTab = 0
+                    NotificationCenter.default.post(name: .setSheetSmall, object: nil)
+                    HapticManager.selectionChanged()
+                },
+                onListe: {
+                    isSheetLarge = true
+                    selectedTab = 1
+                    NotificationCenter.default.post(name: .setSheetLarge, object: nil)
+                    HapticManager.selectionChanged()
+                },
+                onPlus: {
+                    isSheetLarge = false
+                    selectedTab = 2
+                    HapticManager.selectionChanged()
+                },
+                onStatistik: {
+                    isSheetLarge = false
+                    selectedTab = 3
+                    HapticManager.selectionChanged()
+                }
+            )
+            .zIndex(9999)
+            .allowsHitTesting(true)
         }
         .onAppear {
             activityVM.fetchActivities(context: modelContext)
@@ -72,116 +187,15 @@ struct ContentView: View {
             AddActivityCategoryScreen()
                 .presentationDetents([.large])
         }
-        // Sheet-Zustand → Tab Bar Farbe + selectedTab sync
-        .onReceive(NotificationCenter.default.publisher(for: .sheetDidChange)) { notification in
-            print("ContentView empfängt sheetDidChange: \(notification.object ?? "nil")")
-            guard let isLarge = notification.object as? Bool else { return }
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isSheetLarge = isLarge
-                print("isSheetLarge = \(isLarge)")
-            }
-            if isLarge && selectedTab != 1 {
-                selectedTab = 1
-            } else if !isLarge && selectedTab == 1 {
-                selectedTab = 0
-            }
+        // Sheet-Drag → isSheetLarge + Tab Bar Farbe sync
+        .onReceive(NotificationCenter.default.publisher(for: .sheetBecameLarge)) { _ in
+            isSheetLarge = true
+            selectedTab = 1
         }
-    }
-
-    // MARK: Custom Floating Tab Bar
-    // Inline-Buttons mit direktem Zugriff auf isSheetLarge + selectedTab —
-    // kein Funktionsaufruf, damit SwiftUI reaktiv auf State-Änderungen rendert.
-
-    private var customTabBar: some View {
-        HStack(spacing: 0) {
-
-            // ── Karte — blau wenn Sheet NICHT large ─────────────────
-            Button {
-                selectedTab = 0
-                NotificationCenter.default.post(name: .setSheetSmall, object: nil)
-                HapticManager.selectionChanged()
-            } label: {
-                VStack(spacing: 3) {
-                    Image(systemName: "map")
-                        .font(.system(size: 22))
-                    Text(LocalizedStringKey("tab.map"))
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(
-                    !isSheetLarge && selectedTab <= 1 ? Color.blue : Color(.systemGray2)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
-            }
-            .buttonStyle(.plain)
-
-            // ── Liste — blau wenn Sheet large ───────────────────────
-            Button {
-                selectedTab = 1
-                NotificationCenter.default.post(name: .setSheetLarge, object: nil)
-                HapticManager.selectionChanged()
-            } label: {
-                VStack(spacing: 3) {
-                    Image(systemName: "list.bullet")
-                        .font(.system(size: 22))
-                    Text(LocalizedStringKey("tab.list"))
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(
-                    isSheetLarge ? Color.blue : Color(.systemGray2)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
-            }
-            .buttonStyle(.plain)
-
-            // ── Plus — Icon immer gold ───────────────────────────────
-            Button {
-                selectedTab = 2
-                HapticManager.selectionChanged()
-            } label: {
-                VStack(spacing: 3) {
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(Color(hex: "#FFD700"))
-                    Text(LocalizedStringKey("tab.plus"))
-                        .font(.system(size: 10))
-                        .foregroundStyle(
-                            selectedTab == 2 ? Color.blue : Color(.systemGray2)
-                        )
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
-            }
-            .buttonStyle(.plain)
-
-            // ── Statistik ────────────────────────────────────────────
-            Button {
-                selectedTab = 3
-                HapticManager.selectionChanged()
-            } label: {
-                VStack(spacing: 3) {
-                    Image(systemName: "rectangle.3.group.fill")
-                        .font(.system(size: 22))
-                    Text(LocalizedStringKey("tab.stats"))
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(
-                    selectedTab == 3 ? Color.blue : Color(.systemGray2)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
-            }
-            .buttonStyle(.plain)
+        .onReceive(NotificationCenter.default.publisher(for: .sheetBecameSmall)) { _ in
+            isSheetLarge = false
+            selectedTab = 0
         }
-        .frame(height: 49)
-        .background(
-            RoundedRectangle(cornerRadius: 26)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
-        )
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
     }
 
     // MARK: Private Helpers

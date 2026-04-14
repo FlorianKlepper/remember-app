@@ -66,11 +66,16 @@ enum AppConstants {
 // MARK: - Notification Names
 
 extension Notification.Name {
-    /// ContentView → PermanentBottomSheet: Sheet auf small setzen.
-    static let setSheetSmall  = Notification.Name("setSheetSmall")
-    /// ContentView → PermanentBottomSheet: Sheet auf large setzen.
-    static let setSheetLarge  = Notification.Name("setSheetLarge")
-    /// PermanentBottomSheet → ContentView: Sheet-Zustand hat sich geändert.
-    /// `object`: `true` = large (Liste blau), `false` = nicht large (Karte blau).
-    static let sheetDidChange = Notification.Name("sheetDidChange")
+    /// ContentView → PermanentBottomSheet: Sheet auf small setzen (Tab-Tap).
+    static let setSheetSmall = Notification.Name("setSheetSmall")
+    /// ContentView → PermanentBottomSheet: Sheet auf large setzen (Tab-Tap).
+    static let setSheetLarge = Notification.Name("setSheetLarge")
+    /// PermanentBottomSheet → ContentView: User hat Sheet manuell auf large gezogen.
+    static let userDraggedSheetLarge = Notification.Name("userDraggedSheetLarge")
+    /// PermanentBottomSheet → ContentView: User hat Sheet manuell auf small/medium gezogen.
+    static let userDraggedSheetSmall = Notification.Name("userDraggedSheetSmall")
+    /// PermanentBottomSheet → ContentView: Sheet ist nach Drag-Ende auf large.
+    static let sheetBecameLarge = Notification.Name("sheetBecameLarge")
+    /// PermanentBottomSheet → ContentView: Sheet ist nach Drag-Ende auf small/medium.
+    static let sheetBecameSmall = Notification.Name("sheetBecameSmall")
 }
