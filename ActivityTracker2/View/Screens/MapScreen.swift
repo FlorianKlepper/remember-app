@@ -27,7 +27,6 @@ struct MapScreen: View {
 
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var sheetHeight: CGFloat = UIScreen.main.bounds.height * 0.15
-    @State private var showAddFlow = false
 
     // MARK: Private
 
@@ -41,15 +40,6 @@ struct MapScreen: View {
         return filtered
             .compactMap { $0.location }
             .filter { seen.insert($0.id).inserted }
-    }
-
-    /// FAB-Farbe: aktive Kategorie-Farbe wenn Filter gesetzt, sonst systemGray2.
-    private var fabColor: Color {
-        guard let categoryId = filterVM.selectedCategoryId,
-              let category = (Category.mvpCategories + Category.plusCategories)
-                  .first(where: { $0.id == categoryId })
-        else { return Color(.systemGray2) }
-        return Color(hex: category.colorHex)
     }
 
     // MARK: Body
@@ -77,7 +67,7 @@ struct MapScreen: View {
 
                     if filterVM.isFilterActive {
                         FilterStatusBanner(filterVM: filterVM, language: language)
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                            .transition(.move(edge: .leading).combined(with: .opacity))
                     }
 
                     Spacer()
@@ -92,25 +82,10 @@ struct MapScreen: View {
                 Spacer()
             }
 
-            // ── Unten rechts: FloatingPlusButton wandert mit Sheet ─
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
-                        .padding(.trailing, 24)
-                        .padding(.bottom, sheetHeight + 16)
-                }
-            }
-
             // ── Permanenter Bottom Sheet ───────────────────────────
             PermanentBottomSheet(mapVM: mapVM, currentHeight: $sheetHeight)
         }
         .ignoresSafeArea(edges: .bottom)
-        .sheet(isPresented: $showAddFlow) {
-            AddActivityCategoryScreen()
-                .presentationDetents([.large])
-        }
         .onAppear {
             cameraPosition = .region(mapVM.region)
             filterVM.onCategoryChanged = { categoryId in

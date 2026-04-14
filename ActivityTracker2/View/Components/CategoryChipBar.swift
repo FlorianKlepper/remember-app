@@ -40,20 +40,22 @@ struct CategoryChipBar: View {
             filterVM.clearFilter()
             HapticManager.selectionChanged()
         } label: {
-            Text(LocalizedStringKey("filter.all"))
+            Text("\(String(localized: "filter.all")) (\(activities.count))")
                 .font(.caption)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundStyle(isSelected ? Color(.systemBackground) : Color(.secondaryLabel))
+                .foregroundStyle(Color(.label))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
                 .background {
                     ZStack {
-                        Capsule().fill(isSelected ? Color(.label) : Color(.systemGray6))
+                        Capsule().fill(Color(.systemGray6))
                         Capsule().strokeBorder(isSelected ? Color(.label) : Color.clear, lineWidth: 1.5)
                     }
                 }
         }
         .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
     }
 
     // MARK: Kategorie Chip

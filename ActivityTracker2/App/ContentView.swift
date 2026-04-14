@@ -9,7 +9,8 @@ import SwiftData
 
 /// Haupt-Navigation der App nach abgeschlossenem Onboarding.
 /// Vier Tabs: Map · Liste · Plus · Statistik.
-/// Plus/Krone-Icon ist gold wenn nicht ausgewählt (via UITabBarItem.image).
+/// Goldene Krone wird via static init()-Pfad SOFORT beim ersten Render gesetzt —
+/// kein asyncAfter-Delay, kein sichtbares Fade-in.
 struct ContentView: View {
 
     // MARK: Environment
@@ -23,6 +24,17 @@ struct ContentView: View {
 
     @State private var selectedTab: Int = 0
     @State private var showAddFlow    = false
+
+    // MARK: Init
+
+    init() {
+        // Appearance global setzen BEVOR die Tab Bar gerendert wird
+        Self.applyTabBarAppearance()
+        // Krone im nächsten Run Loop setzen (Tab Bar existiert dann)
+        DispatchQueue.main.async {
+            Self.setGoldenCrown()
+        }
+    }
 
     // MARK: Body
 
@@ -62,21 +74,27 @@ struct ContentView: View {
             }
             .onAppear {
                 activityVM.fetchActivities(context: modelContext)
-                setupTabBarAppearance()
-                makeGoldenCrown()
             }
             .onChange(of: selectedTab) { _, newTab in
                 if newTab == 3 { analyticsManager.track(.statsOpened) }
-                makeGoldenCrown()
+                // Krone nach Tab-Wechsel direkt im nächsten Run Loop erneuern
+                DispatchQueue.main.async {
+                    Self.setGoldenCrown()
+                }
                 HapticManager.selectionChanged()
             }
 
-            // ── Globaler FloatingPlusButton — Tab 1–3 (Map hat eigenen) ─
-            if selectedTab != 0 {
-                FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
-                    .padding(.trailing, 24)
-                    .padding(.bottom, tabBarHeight + 8)
+            // ── FloatingPlusButton — fix über Tab Bar, immer sichtbar ──
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
+                        .padding(.trailing, 24)
+                        .padding(.bottom, tabBarHeight + 12)
+                }
             }
+            .zIndex(999)
         }
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()
@@ -84,25 +102,23 @@ struct ContentView: View {
         }
     }
 
-    // MARK: Tab Bar Appearance
+    // MARK: Static Tab Bar Helpers
 
-    /// Konfiguriert UITabBar: einheitliches Material-Background + goldene Krone für Plus-Tab.
-    private func setupTabBarAppearance() {
+    /// Setzt UITabBarAppearance global — muss vor dem ersten Render laufen.
+    static func applyTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
         appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
         appearance.backgroundColor  = UIColor.systemBackground.withAlphaComponent(0.8)
 
-        // Inaktive Icons: systemGray2
         let normalAttr: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.systemGray2]
-        appearance.stackedLayoutAppearance.normal.iconColor              = .systemGray2
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes    = normalAttr
-        appearance.stackedLayoutAppearance.normal.titlePositionAdjustment  = UIOffset(horizontal: 0, vertical: -4)
+        appearance.stackedLayoutAppearance.normal.iconColor             = .systemGray2
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes   = normalAttr
+        appearance.stackedLayoutAppearance.normal.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -4)
 
-        // Ausgewählte Icons: iOS-Standard Blau
         let selectedAttr: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.systemBlue]
-        appearance.stackedLayoutAppearance.selected.iconColor             = .systemBlue
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes   = selectedAttr
+        appearance.stackedLayoutAppearance.selected.iconColor            = .systemBlue
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes  = selectedAttr
         appearance.stackedLayoutAppearance.selected.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -4)
 
         UITabBar.appearance().isTranslucent        = true
@@ -110,32 +126,30 @@ struct ContentView: View {
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
-    /// Findet alle UITabBars in der App rekursiv und setzt Krone (Index 2) auf Gold.
-    /// 0.5s Delay damit die Tab Bar vollständig gerendert ist.
-    private func makeGoldenCrown() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            let gold = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
-            let goldImage  = UIImage(systemName: "crown.fill")?.withTintColor(gold, renderingMode: .alwaysOriginal)
+    /// Findet alle UITabBars rekursiv und setzt Krone (Index 2) auf Gold.
+    /// Kein asyncAfter — wird im nächsten Run Loop nach dem Render aufgerufen.
+    static func setGoldenCrown() {
+        let gold = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
+        let goldImage = UIImage(systemName: "crown.fill")?.withTintColor(gold, renderingMode: .alwaysOriginal)
 
-            UIApplication.shared
-                .connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .flatMap { findTabBars(in: $0) }
-                .forEach { tabBar in
-                    guard let crownItem = tabBar.items?[safe: 2] else { return }
-                    crownItem.image         = goldImage
-                    crownItem.selectedImage = goldImage
-                }
-        }
+        UIApplication.shared
+            .connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .forEach { findAndGoldTabBar(in: $0, goldImage: goldImage) }
     }
 
-    /// Durchsucht die View-Hierarchie rekursiv nach allen `UITabBar`-Instanzen.
-    private func findTabBars(in view: UIView) -> [UITabBar] {
-        var result: [UITabBar] = []
-        if let tabBar = view as? UITabBar { result.append(tabBar) }
-        view.subviews.forEach { result.append(contentsOf: findTabBars(in: $0)) }
-        return result
+    /// Durchsucht die View-Hierarchie rekursiv nach UITabBar-Instanzen
+    /// und setzt Item 2 auf das goldene Kronen-Image.
+    static func findAndGoldTabBar(in view: UIView, goldImage: UIImage?) {
+        if let tabBar = view as? UITabBar {
+            guard let item = tabBar.items?[safe: 2] else { return }
+            item.image         = goldImage
+            item.selectedImage = UIImage(systemName: "crown.fill")?
+                .withTintColor(.systemBlue, renderingMode: .alwaysOriginal)
+            return
+        }
+        view.subviews.forEach { findAndGoldTabBar(in: $0, goldImage: goldImage) }
     }
 
     // MARK: Private Helpers

@@ -119,6 +119,7 @@
     },
     "activity.favorite.label" : {
       "comment" : "Label shown when an activity is marked as favorite",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1286,6 +1287,7 @@
     },
     "general.back" : {
       "comment" : "Back button label in detail screens",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1474,6 +1476,7 @@
     },
     "list.back.map" : {
       "comment" : "Button in full-screen bottom sheet to return to map view",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

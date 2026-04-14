@@ -1,14 +1,14 @@
 // FilterStatusBanner.swift
 // ActivityTracker2 — Remember
-// Dezenter Filter-Chip am rechten Rand — gleiche Optik wie aktiver CategoryChip
+// Dezenter Filter-Chip links unter der ChipBar — gleiche Optik wie aktiver CategoryChip
 
 import SwiftUI
 
 // MARK: - FilterStatusBanner
 
-/// Zeigt den aktiven Filter als kompakte Pill am rechten Rand.
+/// Zeigt den aktiven Filter als kompakte Pill links unter der ChipBar.
 /// Design: systemGray6 Hintergrund + farbiger Rand — wie aktiver Chip in der ChipBar.
-/// Transition: von rechts einfahren / ausfahren.
+/// Transition: von links einfahren / ausfahren.
 struct FilterStatusBanner: View {
 
     // MARK: Parameter
@@ -37,56 +37,50 @@ struct FilterStatusBanner: View {
 
     var body: some View {
         if filterVM.isFilterActive {
-            HStack {
-                Spacer()
+            HStack(spacing: 8) {
 
-                HStack(spacing: 6) {
+                // ── Kategorie-Icon ────────────────────────────
+                CategoryIconView(
+                    categoryId: filterVM.selectedCategoryId ?? "",
+                    size: 16
+                )
 
-                    // ── Kategorie-Icon ────────────────────────────
-                    CategoryIconView(
-                        categoryId: filterVM.selectedCategoryId ?? "",
-                        size: 16
-                    )
+                // ── Label übereinander ────────────────────────
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(LocalizedStringKey("filter.active"))
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.secondary)
 
-                    // ── Label übereinander ────────────────────────
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(LocalizedStringKey("filter.active"))
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.secondary)
-
-                        Text(categoryName)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                    }
-
-                    // ── Dismiss-Button ────────────────────────────
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            filterVM.clearFilter()
-                        }
-                        HapticManager.lightImpact()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(.secondary)
-                            .padding(5)
-                            .background(Circle().fill(Color(.systemGray4)))
-                    }
-                    .buttonStyle(.plain)
+                    Text(categoryName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6))
-                        RoundedRectangle(cornerRadius: 10).strokeBorder(categoryColor, lineWidth: 1.5)
+
+                // ── Dismiss-Button ────────────────────────────
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        filterVM.clearFilter()
                     }
+                    HapticManager.lightImpact()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .padding(5)
+                        .background(Circle().fill(Color(.systemGray4)))
                 }
-                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+                .buttonStyle(.plain)
             }
-            .padding(.trailing, 12)
-            .transition(.move(edge: .trailing).combined(with: .opacity))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6))
+                    RoundedRectangle(cornerRadius: 10).strokeBorder(categoryColor, lineWidth: 1.5)
+                }
+            }
+            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
         }
     }
 }
@@ -94,7 +88,7 @@ struct FilterStatusBanner: View {
 // MARK: - Preview
 
 #Preview("Filter Status Banner") {
-    VStack(spacing: 16) {
+    VStack(alignment: .leading, spacing: 16) {
         FilterStatusBanner(
             filterVM: {
                 let vm = FilterViewModel()
@@ -111,13 +105,8 @@ struct FilterStatusBanner: View {
             }(),
             language: "de"
         )
-        FilterStatusBanner(
-            filterVM: FilterViewModel(),
-            language: "de"
-        )
-        // → zeigt nichts
     }
-    .padding(.vertical, 32)
-    .frame(maxWidth: .infinity)
+    .padding(24)
+    .frame(maxWidth: .infinity, alignment: .leading)
     .background(Color(.systemGroupedBackground))
 }

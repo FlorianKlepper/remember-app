@@ -38,7 +38,7 @@ enum AppConstants {
     static let defaultLongitude: Double = 11.5820
 
     /// Standardzoom der Karte als MKCoordinateSpan-Delta.
-    static let defaultMapSpan: Double = 0.05
+    static let defaultMapSpan: Double = 0.12
 
     // MARK: Eingabelimits
 
@@ -57,7 +57,7 @@ enum AppConstants {
     static let toastDuration: Double = 2.0
 
     /// Bottom Sheet – schmaler Streifen (immer sichtbar nach Pin-Tap).
-    static let bottomSheetSmall: Double = 0.15
+    static let bottomSheetSmall: Double = 0.12
 
     /// Bottom Sheet – halbe Bildschirmhöhe (Standard-Detent).
     static let bottomSheetMedium: Double = 0.5

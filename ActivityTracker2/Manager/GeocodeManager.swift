@@ -52,7 +52,7 @@ extension GeocodeManager {
         let key = cacheKey(for: coordinate)
 
         // Cache Hit — synchron zurückgeben
-        if let cached = cache[key] {
+            if let cached = cache[key] {
             completion(cached)
             return
         }

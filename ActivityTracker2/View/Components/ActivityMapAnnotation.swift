@@ -48,7 +48,7 @@ struct ActivityMapAnnotation: View {
                 // ── Dreieck-Spitze ──────────────────────────────
                 DownwardTriangle()
                     .fill(isSelected ? goldColor : pinColor)
-                    .frame(width: 10, height: 7)
+                    .frame(width: isSelected ? 9 : 8, height: isSelected ? 7 : 6)
                     .offset(y: -1)
             }
         }
@@ -64,13 +64,13 @@ struct ActivityMapAnnotation: View {
                 .fill(pinColor)
                 .overlay(
                     Circle()
-                        .stroke(.white, lineWidth: 2.5)
+                        .stroke(.white, lineWidth: 2)
                 )
             Image(systemName: category?.iconName ?? "mappin")
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white)
         }
-        .frame(width: 36, height: 36)
+        .frame(width: 28, height: 28)
     }
 
     // MARK: Selected Pin
@@ -80,15 +80,15 @@ struct ActivityMapAnnotation: View {
             // Dezenter goldener Halo
             Circle()
                 .fill(goldColor.opacity(0.20))
-                .frame(width: 56, height: 56)
+                .frame(width: 46, height: 46)
 
             // Haupt-Kreis mit goldenem Rahmen
             Circle()
                 .fill(pinColor)
-                .frame(width: 46, height: 46)
+                .frame(width: 36, height: 36)
                 .overlay(
                     Circle()
-                        .stroke(goldColor, lineWidth: 3.5)
+                        .stroke(goldColor, lineWidth: 2.5)
                 )
                 .shadow(
                     color: goldColor.opacity(0.5),
@@ -98,7 +98,7 @@ struct ActivityMapAnnotation: View {
                 )
 
             Image(systemName: category?.iconName ?? "mappin")
-                .font(.system(size: 19, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.white)
         }
     }

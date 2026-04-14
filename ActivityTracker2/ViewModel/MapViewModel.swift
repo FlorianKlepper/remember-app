@@ -71,9 +71,9 @@ extension MapViewModel {
 
     /// Reagiert auf einen Kategorie-Wechsel in der ChipBar.
     ///
-    /// Befüllt `displayedActivities` mit der gefilterten Liste,
-    /// setzt das Highlight auf die erste Activity und zentriert die Map.
-    /// Bei `nil` werden alle Activities angezeigt.
+    /// Befüllt `displayedActivities` mit der gefilterten Liste und
+    /// zentriert die Map auf die neueste Activity der Auswahl.
+    /// Bei `nil` werden alle Activities angezeigt und auf die neueste zentriert.
     ///
     /// - Parameters:
     ///   - categoryId: Gewählte Kategorie-ID oder `nil` für "Alle".
@@ -83,37 +83,40 @@ extension MapViewModel {
             displayedActivities = allActivities
                 .filter { $0.categoryId == categoryId }
                 .sorted { $0.date > $1.date }
-
-            highlightedActivityId = displayedActivities.first?.id
-            selectedLocation = displayedActivities.first?.location
-
-            if let first = displayedActivities.first, let location = first.location {
-                let targetCenter = adjustedCenter(for: location.coordinate, span: defaultSpan)
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    region = MKCoordinateRegion(
-                        center: targetCenter,
-                        span: defaultSpan
-                    )
-                }
-            }
         } else {
-            // Alle Activities — kein Highlight, Map auf Mittelpunkt
             displayedActivities = allActivities.sorted { $0.date > $1.date }
-            highlightedActivityId = nil
-            selectedLocation = nil
-
-            let coords = allActivities.compactMap { $0.location?.coordinate }
-            if !coords.isEmpty {
-                let avgLat = coords.map(\.latitude).reduce(0, +)  / Double(coords.count)
-                let avgLng = coords.map(\.longitude).reduce(0, +) / Double(coords.count)
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    region = MKCoordinateRegion(
-                        center: CLLocationCoordinate2D(latitude: avgLat, longitude: avgLng),
-                        span: defaultSpan
-                    )
-                }
-            }
         }
+        centerOnNewest(activities: displayedActivities)
+    }
+
+    /// Zentriert die Map auf die neueste Activity in der übergebenen Liste.
+    /// Setzt `highlightedActivityId` und `selectedLocation` auf die neueste Activity.
+    /// - Parameter activities: Gefilterte oder vollständige Activity-Liste (bereits sortierbar).
+    func centerOnNewest(activities: [Activity]) {
+        guard let newest = activities.sorted(by: { $0.date > $1.date }).first,
+              let location = newest.location
+        else { return }
+
+        let targetCenter = adjustedCenter(
+            for: location.coordinate,
+            span: MKCoordinateSpan(
+                latitudeDelta: AppConstants.defaultMapSpan,
+                longitudeDelta: AppConstants.defaultMapSpan
+            )
+        )
+
+        withAnimation(.easeInOut(duration: 0.6)) {
+            region = MKCoordinateRegion(
+                center: targetCenter,
+                span: MKCoordinateSpan(
+                    latitudeDelta: AppConstants.defaultMapSpan,
+                    longitudeDelta: AppConstants.defaultMapSpan
+                )
+            )
+        }
+
+        highlightedActivityId = newest.id
+        selectedLocation = location
     }
 
     /// Reagiert auf einen Pin-Tap auf der Map.

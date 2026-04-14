@@ -20,12 +20,29 @@ struct PermanentBottomSheet: View {
 
     enum SheetDetent { case small, medium, large }
 
+    // MARK: Environment
+
+    @Environment(FilterViewModel.self)   private var filterVM
+    @Environment(ActivityViewModel.self) private var activityVM
+    @Environment(LanguageManager.self)   private var languageManager
+
     // MARK: Inputs
 
     var mapVM: MapViewModel
     /// Wird bei jedem Detent-Wechsel aktualisiert — MapScreen nutzt es
     /// um Zoom + GPS + Plus Buttons mit dem Sheet mitbewegen zu lassen.
     @Binding var currentHeight: CGFloat
+
+    // MARK: Private
+
+    /// Alle Aktivitäten gefiltert nach aktivem Kategorie-Filter — für den large Detent (volle Liste).
+    private var displayedActivities: [Activity] {
+        activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
+    }
+
+    private var currentLanguage: String {
+        languageManager.currentLanguageCode
+    }
 
     // MARK: State
 
@@ -41,7 +58,7 @@ struct PermanentBottomSheet: View {
     var body: some View {
         GeometryReader { geometry in
             let screen   = geometry.size.height
-            let minH     = screen * 0.15
+            let minH     = screen * 0.12
             let currentH = heightFor(currentDetent, screen)
             let displayH = max(currentH + dragOffset, minH)
 
@@ -72,7 +89,7 @@ struct PermanentBottomSheet: View {
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -2)
+                    .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: -2)
                     .ignoresSafeArea()
             )
             .offset(y: screen - displayH)
@@ -121,7 +138,7 @@ struct PermanentBottomSheet: View {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                 let screen = UIScreen.main.bounds.height
                 switch detent {
-                case .small:  currentHeight = screen * 0.15
+                case .small:  currentHeight = screen * 0.12
                 case .medium: currentHeight = screen * 0.5
                 case .large:  currentHeight = screen
                 }
@@ -175,12 +192,15 @@ struct PermanentBottomSheet: View {
         VStack(spacing: 0) {
 
             // ── Sticky Header ────────────────────────────────────
-            VStack(spacing: 8) {
+            VStack(spacing: 0) {
+
+                // Drag Handle
                 RoundedRectangle(cornerRadius: 2.5)
                     .fill(Color.secondary.opacity(0.4))
                     .frame(width: 36, height: 5)
                     .padding(.top, 8)
 
+                // Titel-Zeile
                 HStack {
                     Text(LocalizedStringKey("list.title"))
                         .font(.headline)
@@ -188,6 +208,7 @@ struct PermanentBottomSheet: View {
 
                     Spacer()
 
+                    // Karte Button
                     Button {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                             currentDetent = .medium
@@ -196,7 +217,7 @@ struct PermanentBottomSheet: View {
                         HStack(spacing: 4) {
                             Image(systemName: "map")
                                 .font(.system(size: 13))
-                            Text(LocalizedStringKey("list.back.map"))
+                            Text(LocalizedStringKey("tab.map"))
                                 .font(.caption)
                         }
                         .foregroundStyle(.primary)
@@ -206,13 +227,49 @@ struct PermanentBottomSheet: View {
                     }
                     .padding(.trailing, 16)
                 }
-                .padding(.bottom, 8)
+                .padding(.vertical, 8)
+
+                // ── CategoryChipBar ──────────────────────────────
+                CategoryChipBar(
+                    filterVM: filterVM,
+                    activities: activityVM.activities,
+                    language: currentLanguage
+                )
+                .padding(.bottom, 4)
 
                 Divider()
             }
             .background(Color(.systemBackground))
 
-            activityScrollView
+            // ── Liste mit aktivem Filter ─────────────────────────
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        if displayedActivities.isEmpty {
+                            EmptyStateView(
+                                config: filterVM.isFilterActive
+                                    ? .filteredNoResults
+                                    : .noActivities
+                            )
+                            .padding(.top, 40)
+                        } else {
+                            ForEach(displayedActivities) { activity in
+                                let isHighlighted = activity.id == mapVM.highlightedActivityId
+                                activityRow(activity: activity, isHighlighted: isHighlighted)
+                                    .id(activity.id)
+                                Divider()
+                            }
+                        }
+                    }
+                }
+                .onChange(of: mapVM.highlightedActivityId) { _, newId in
+                    if let newId {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(newId, anchor: .center)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -332,7 +389,7 @@ struct PermanentBottomSheet: View {
 
     private func heightFor(_ detent: SheetDetent, _ screen: CGFloat) -> CGFloat {
         switch detent {
-        case .small:  return screen * 0.15
+        case .small:  return screen * 0.12
         case .medium: return screen * 0.5
         case .large:  return screen
         }
@@ -349,7 +406,7 @@ struct PermanentBottomSheet: View {
     private func snapToNearest(current currentH: CGFloat, screen: CGFloat) {
         let targetH: CGFloat = currentH + dragOffset
         let candidates: [(CGFloat, SheetDetent)] = [
-            (screen * 0.15, .small),
+            (screen * 0.12, .small),
             (screen * 0.5,  .medium),
             (screen,        .large),
         ]
@@ -362,12 +419,21 @@ struct PermanentBottomSheet: View {
 // MARK: - Preview
 
 #Preview("Permanent Bottom Sheet — medium") {
-    let mapVM = MapViewModel()
-    mapVM.displayedActivities = Array(Activity.samples.prefix(5))
+    let analytics   = AnalyticsManager()
+    let mapVM       = MapViewModel()
+    let filterVM    = FilterViewModel()
+    let activityVM  = ActivityViewModel(analytics: analytics)
+    let languageManager = LanguageManager()
+
+    mapVM.displayedActivities   = Array(Activity.samples.prefix(5))
     mapVM.highlightedActivityId = Activity.samples.first?.id
+    activityVM.activities       = Activity.samples
 
     return ZStack(alignment: .bottom) {
         Color(.systemGroupedBackground).ignoresSafeArea()
-        PermanentBottomSheet(mapVM: mapVM, currentHeight: .constant(UIScreen.main.bounds.height * 0.15))
+        PermanentBottomSheet(mapVM: mapVM, currentHeight: .constant(UIScreen.main.bounds.height * 0.12))
+            .environment(filterVM)
+            .environment(activityVM)
+            .environment(languageManager)
     }
 }

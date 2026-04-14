@@ -34,7 +34,7 @@ struct MiniMapView: View {
         }
         .disabled(true)
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .frame(height: 160)
+        .frame(height: 110)
         .allowsHitTesting(false)
     }
 }
