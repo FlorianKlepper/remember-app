@@ -43,6 +43,10 @@ final class MapViewModel {
     /// ID der hervorgehobenen Activity — steuert Highlight-Zeile und Map-Zentrierung.
     var highlightedActivityId: UUID? = nil
 
+    /// Aktueller Sheet-Detent — steuert Offset-Logik in `adjustedCenter`.
+    /// 0.15 = klein, 0.5 = mittel, 1.0 = gross.
+    var currentSheetDetent: Double = 0.15
+
     // MARK: Init
 
     init() {}
@@ -102,7 +106,8 @@ extension MapViewModel {
             span: MKCoordinateSpan(
                 latitudeDelta: AppConstants.defaultMapSpan,
                 longitudeDelta: AppConstants.defaultMapSpan
-            )
+            ),
+            sheetDetent: currentSheetDetent
         )
 
         withAnimation(.easeInOut(duration: 0.6)) {
@@ -135,7 +140,7 @@ extension MapViewModel {
         let atPin = displayedActivities.filter { $0.location?.id == location.id }
         highlightedActivityId = atPin.first?.id
 
-        let targetCenter = adjustedCenter(for: location.coordinate, span: defaultSpan)
+        let targetCenter = adjustedCenter(for: location.coordinate, span: defaultSpan, sheetDetent: currentSheetDetent)
         withAnimation(.easeInOut(duration: 0.5)) {
             region = MKCoordinateRegion(
                 center: targetCenter,
@@ -153,7 +158,7 @@ extension MapViewModel {
         selectedLocation = activity.location
 
         if let location = activity.location {
-            let targetCenter = adjustedCenter(for: location.coordinate, span: region.span)
+            let targetCenter = adjustedCenter(for: location.coordinate, span: region.span, sheetDetent: currentSheetDetent)
             withAnimation(.easeInOut(duration: 0.5)) {
                 region = MKCoordinateRegion(
                     center: targetCenter,
@@ -172,15 +177,31 @@ extension MapViewModel {
         )
     }
 
-    /// Verschiebt den Kartenmittelpunkt nach Süden, damit der Pin optisch
-    /// im oberen Drittel der sichtbaren Map erscheint (nicht hinter dem Bottom Sheet).
-    /// Offset: 18 % der latitudeDelta nach Süden.
+    /// Verschiebt den Kartenmittelpunkt abhängig vom Sheet-Detent.
+    ///
+    /// - Sheet klein (≤ 0.15):  kein Offset — Pin in echter Bildschirmmitte.
+    /// - Sheet mittel (≤ 0.5):  18 % Offset nach Süden — Pin im oberen Drittel.
+    /// - Sheet gross (> 0.5):   kein Offset — Map wird von Sheet überdeckt.
+    ///
+    /// - Parameters:
+    ///   - coordinate: Ziel-Koordinate (Pin-Position).
+    ///   - span: Aktueller Kartenausschnitt.
+    ///   - sheetDetent: Aktueller Sheet-Zustand (0.15 / 0.5 / 1.0). Default: 0.5.
     func adjustedCenter(
         for coordinate: CLLocationCoordinate2D,
-        span: MKCoordinateSpan
+        span: MKCoordinateSpan,
+        sheetDetent: Double = 0.5
     ) -> CLLocationCoordinate2D {
-        CLLocationCoordinate2D(
-            latitude:  coordinate.latitude  - span.latitudeDelta  * 0.18,
+        let offsetFactor: Double
+        if sheetDetent <= 0.15 {
+            offsetFactor = 0.0
+        } else if sheetDetent <= 0.5 {
+            offsetFactor = 0.18
+        } else {
+            offsetFactor = 0.0
+        }
+        return CLLocationCoordinate2D(
+            latitude:  coordinate.latitude  - span.latitudeDelta  * offsetFactor,
             longitude: coordinate.longitude
         )
     }

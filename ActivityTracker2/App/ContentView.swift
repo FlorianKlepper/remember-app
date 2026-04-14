@@ -107,6 +107,7 @@ struct ContentView: View {
     @Environment(ActivityViewModel.self)  private var activityVM
     @Environment(AnalyticsManager.self)   private var analyticsManager
     @Environment(FilterViewModel.self)    private var filterVM
+    @Environment(MapViewModel.self)       private var mapVM
     @Environment(\.modelContext)          private var modelContext
 
     // MARK: State
@@ -142,7 +143,7 @@ struct ContentView: View {
             if selectedTab == 0 || selectedTab == 1 {
                 FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
                     .padding(.trailing, 4)
-                    .padding(.bottom, 90)
+                    .padding(.bottom, 110)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     .zIndex(999)
                     .allowsHitTesting(true)
@@ -155,6 +156,8 @@ struct ContentView: View {
                 onKarte: {
                     isSheetLarge = false
                     selectedTab = 0
+                    mapVM.currentSheetDetent = 0.15
+                    mapVM.centerOnNewest(activities: activityVM.activities)
                     NotificationCenter.default.post(name: .setSheetSmall, object: nil)
                     HapticManager.selectionChanged()
                 },

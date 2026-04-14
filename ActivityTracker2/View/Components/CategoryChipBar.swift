@@ -15,20 +15,36 @@ struct CategoryChipBar: View {
     var language: String
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
 
-                // "Alle" Chip
-                allChip
+                    // "Alle" Chip
+                    allChip
+                        .id("all")
 
-                // Kategorie Chips
-                ForEach(usedCategories, id: \.id) { category in
-                    categoryChip(category)
+                    // Kategorie Chips
+                    ForEach(usedCategories, id: \.id) { category in
+                        categoryChip(category)
+                            .id(category.id)
+                    }
+                }
+                .padding(.horizontal, 12)
+            }
+            .frame(height: 44)
+            // Aktiven Chip zentrieren wenn Filter wechselt
+            .onChange(of: filterVM.selectedCategoryId) { _, newId in
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    proxy.scrollTo(newId ?? "all", anchor: .center)
                 }
             }
-            .padding(.horizontal, 12)
+            // Beim Erscheinen aktiven Chip zentrieren
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    proxy.scrollTo(filterVM.selectedCategoryId ?? "all", anchor: .center)
+                }
+            }
         }
-        .frame(height: 44)
     }
 
     // MARK: Alle Chip

@@ -83,12 +83,16 @@ struct PermanentBottomSheet: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: displayH)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.13), radius: 8, x: 0, y: -2)
-                    .ignoresSafeArea()
+            .background(Color(.systemBackground))
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 16,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 16
+                )
             )
+            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -2)
             .offset(y: screen - displayH)
             .gesture(
                 DragGesture()
@@ -124,9 +128,62 @@ struct PermanentBottomSheet: View {
                             dragOffset = 0
                         }
 
+                        // MapViewModel: Sheet-Detent synchronisieren + Map neu zentrieren
+                        let detentAfterDrag = currentDetent
+                        switch currentDetent {
+
+                        case .small:
+                            mapVM.currentSheetDetent = 0.15
+                            // Nach Sheet-Animation neu zentrieren — kein Offset (echte Mitte)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                if let activity = mapVM.displayedActivities
+                                    .first(where: { $0.id == mapVM.highlightedActivityId }),
+                                   let location = activity.location {
+                                    let center = mapVM.adjustedCenter(
+                                        for: location.coordinate,
+                                        span: mapVM.region.span,
+                                        sheetDetent: 0.15
+                                    )
+                                    withAnimation(.easeInOut(duration: 0.4)) {
+                                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                                    }
+                                }
+                            }
+
+                        case .medium:
+                            mapVM.currentSheetDetent = 0.5
+                            // Nach Sheet-Animation neu zentrieren — 0.18 Offset (Pin oben)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                if let location = mapVM.selectedLocation,
+                                   mapVM.displayedActivities.contains(where: { $0.location?.id == location.id }) {
+                                    let center = mapVM.adjustedCenter(
+                                        for: location.coordinate,
+                                        span: mapVM.region.span,
+                                        sheetDetent: 0.5
+                                    )
+                                    withAnimation(.easeInOut(duration: 0.4)) {
+                                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                                    }
+                                } else if let highlighted = mapVM.highlightedActivityId,
+                                          let activity = mapVM.displayedActivities.first(where: { $0.id == highlighted }),
+                                          let location = activity.location {
+                                    let center = mapVM.adjustedCenter(
+                                        for: location.coordinate,
+                                        span: mapVM.region.span,
+                                        sheetDetent: 0.5
+                                    )
+                                    withAnimation(.easeInOut(duration: 0.4)) {
+                                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                                    }
+                                }
+                            }
+
+                        case .large:
+                            mapVM.currentSheetDetent = 1.0
+                        }
+
                         // Drag-Notification an ContentView — NUR wenn User selbst wischt
                         // asyncAfter 0.1s: Animation läuft zuerst, dann State-Sync
-                        let detentAfterDrag = currentDetent
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             if detentAfterDrag == .large {
                                 NotificationCenter.default.post(name: .sheetBecameLarge, object: nil)
@@ -162,6 +219,7 @@ struct PermanentBottomSheet: View {
                 currentDetent = .small
                 dragOffset = 0
             }
+            mapVM.currentSheetDetent = 0.15
         }
         // Tab "Liste" → Sheet gross (kein Rück-Post — ContentView hat bereits gesetzt)
         .onReceive(NotificationCenter.default.publisher(for: .setSheetLarge)) { _ in
@@ -169,6 +227,7 @@ struct PermanentBottomSheet: View {
                 currentDetent = .large
                 dragOffset = 0
             }
+            mapVM.currentSheetDetent = 1.0
         }
     }
 
@@ -225,41 +284,17 @@ struct PermanentBottomSheet: View {
                     .fill(Color.secondary.opacity(0.4))
                     .frame(width: 36, height: 5)
                     .padding(.top, 8)
+                    .padding(.bottom, 8)
 
-                // Karte Button → Sheet auf medium
-                HStack {
-                    Spacer()
-
-                    Button {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                            currentDetent = .medium
-                        }
-                        NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "map")
-                                .font(.system(size: 13))
-                            Text(LocalizedStringKey("tab.map"))
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Color(.systemGray6)))
-                    }
-                    .padding(.trailing, 16)
-                }
-                .padding(.vertical, 8)
-
-                // ── CategoryChipBar ──────────────────────────────
+                // ── CategoryChipBar direkt unter Handle ──────────
                 CategoryChipBar(
                     filterVM: filterVM,
                     activities: activityVM.activities,
                     language: currentLanguage
                 )
-                .padding(.bottom, 4)
 
                 Divider()
+                    .padding(.top, 4)
             }
             .background(Color(.systemBackground))
 
@@ -325,7 +360,7 @@ struct PermanentBottomSheet: View {
             if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
                let location = activity.location {
                 mapVM.selectedLocation = location
-                let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span)
+                let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span, sheetDetent: mapVM.currentSheetDetent)
                 withAnimation(.easeInOut(duration: 0.4)) {
                     mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
                 }
