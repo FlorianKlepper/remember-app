@@ -40,7 +40,8 @@ final class GeocodeManager {
 extension GeocodeManager {
 
     /// Ermittelt Adressinformationen für eine Koordinate via Reverse Geocoding.
-    /// Bei Cache-Treffer wird `completion` synchron auf dem Main Thread aufgerufen.
+    /// Bei Cache-Treffer wird `completion` sync
+    /// hron auf dem Main Thread aufgerufen.
     /// Bei Cache-Miss startet Geocoding im Hintergrund — `completion` kommt auf dem Main Thread an.
     /// - Parameters:
     ///   - coordinate: Die aufzulösende GPS-Koordinate.

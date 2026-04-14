@@ -56,7 +56,7 @@ struct PermanentBottomSheet: View {
         GeometryReader { geometry in
             let screen  = geometry.size.height
             let baseH   = heightFor(currentDetent, screen)
-            let minH    = screen * 0.13
+            let minH    = screen * 0.15
             let displayH = max(baseH + dragOffset, minH)
 
             VStack(spacing: 0) {
@@ -98,7 +98,7 @@ struct PermanentBottomSheet: View {
                         let screen      = UIScreen.main.bounds.height
                         let base        = heightFor(currentDetent, screen)
                         let newH        = base - translation
-                        let minH        = screen * 0.13
+                        let minH        = screen * 0.15
                         dragOffset = newH < minH ? minH - base : -translation
                     }
                     .onEnded { value in
@@ -226,19 +226,15 @@ struct PermanentBottomSheet: View {
                     .frame(width: 36, height: 5)
                     .padding(.top, 8)
 
-                // Titel-Zeile
+                // Karte Button → Sheet auf medium
                 HStack {
-                    Text(LocalizedStringKey("list.title"))
-                        .font(.headline)
-                        .padding(.leading, 16)
-
                     Spacer()
 
-                    // Karte Button → Sheet schließen auf small
                     Button {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            currentDetent = .small
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            currentDetent = .medium
                         }
+                        NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "map")
@@ -415,7 +411,7 @@ struct PermanentBottomSheet: View {
 
     private func heightFor(_ detent: SheetDetent, _ screen: CGFloat) -> CGFloat {
         switch detent {
-        case .small:  return screen * 0.13
+        case .small:  return screen * 0.15
         case .medium: return screen * 0.5
         case .large:
             let topSafeArea = UIApplication.shared

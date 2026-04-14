@@ -32,7 +32,7 @@ struct AppTabBar: View {
                     (!isSheetLarge && selectedTab <= 1) ? Color.blue : Color(.systemGray2)
                 )
                 .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 10)
             }
             .buttonStyle(.plain)
 
@@ -48,7 +48,7 @@ struct AppTabBar: View {
                     isSheetLarge ? Color.blue : Color(.systemGray2)
                 )
                 .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 10)
             }
             .buttonStyle(.plain)
 
@@ -65,7 +65,7 @@ struct AppTabBar: View {
                         )
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 10)
             }
             .buttonStyle(.plain)
 
@@ -81,14 +81,14 @@ struct AppTabBar: View {
                     selectedTab == 3 ? Color.blue : Color(.systemGray2)
                 )
                 .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 10)
             }
             .buttonStyle(.plain)
         }
-        .frame(height: 49)
+        .frame(height: 62)
         .background(
             RoundedRectangle(cornerRadius: 26)
-                .fill(Color(.systemBackground))
+                .fill(.ultraThinMaterial)
                 .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
         )
         .padding(.horizontal, 16)
@@ -120,34 +120,35 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
 
-            // ── Content je nach aktivem Tab ──────────────────────────
-            Group {
-                switch selectedTab {
-                case 0, 1:
-                    MapScreen(isListMode: selectedTab == 1)
-                case 2:
-                    PlusScreen()
-                        .ignoresSafeArea()
-                case 3:
-                    StatsScreen()
-                        .ignoresSafeArea()
-                default:
-                    MapScreen(isListMode: false)
-                }
+            // ━━━ 1. Content — unterste Ebene ━━━
+            switch selectedTab {
+            case 0, 1:
+                MapScreen(isListMode: selectedTab == 1)
+                    .ignoresSafeArea()
+            case 2:
+                PlusScreen()
+                    .ignoresSafeArea()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case 3:
+                StatsScreen()
+                    .ignoresSafeArea()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            default:
+                MapScreen(isListMode: false)
+                    .ignoresSafeArea()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
 
-            // ── FloatingPlusButton — nur auf Map/Liste ────────────────
-            if selectedTab <= 1 {
+            // ━━━ 2. FloatingPlusButton — nur auf Map/Liste ━━━
+            if selectedTab == 0 || selectedTab == 1 {
                 FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
-                    .padding(.trailing, 8)
-                    .padding(.bottom, tabBarHeight + 4)
+                    .padding(.trailing, 4)
+                    .padding(.bottom, 90)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     .zIndex(999)
                     .allowsHitTesting(true)
             }
 
-            // ── Floating Tab Bar ──────────────────────────────────────
+            // ━━━ 3. Tab Bar — oberste Ebene ━━━
             AppTabBar(
                 isSheetLarge: $isSheetLarge,
                 selectedTab:  $selectedTab,
@@ -166,11 +167,13 @@ struct ContentView: View {
                 onPlus: {
                     isSheetLarge = false
                     selectedTab = 2
+                    NotificationCenter.default.post(name: .setSheetSmall, object: nil)
                     HapticManager.selectionChanged()
                 },
                 onStatistik: {
                     isSheetLarge = false
                     selectedTab = 3
+                    NotificationCenter.default.post(name: .setSheetSmall, object: nil)
                     HapticManager.selectionChanged()
                 }
             )
@@ -185,16 +188,13 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()
-                .presentationDetents([.large])
         }
         // Sheet-Drag → isSheetLarge + Tab Bar Farbe sync
         .onReceive(NotificationCenter.default.publisher(for: .sheetBecameLarge)) { _ in
             isSheetLarge = true
-            selectedTab = 1
         }
         .onReceive(NotificationCenter.default.publisher(for: .sheetBecameSmall)) { _ in
             isSheetLarge = false
-            selectedTab = 0
         }
     }
 

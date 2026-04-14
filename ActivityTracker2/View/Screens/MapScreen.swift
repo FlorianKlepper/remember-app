@@ -61,43 +61,48 @@ struct MapScreen: View {
             mapLayer
                 .ignoresSafeArea()
 
-            // ── Oben: Blur-Material + ChipBar + Controls ──────────
+            // ── Oben: Blur nur über Notch, ChipBar + Controls klar auf Karte ──
             VStack(spacing: 0) {
 
-                // Milchiger Safe-Area-Bereich (Notch / Dynamic Island)
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .frame(height: topSafeArea)
-                    .ignoresSafeArea(edges: .top)
+                // Platzhalter — Höhe = Blur-Bereich (kein sichtbarer Inhalt)
+                Color.clear
+                    .frame(height: topSafeArea * 1.2)
 
-                // ChipBar + Zoom/GPS in einer Zeile
-                HStack(spacing: 0) {
-                    CategoryChipBar(
-                        filterVM: filterVM,
-                        activities: activityVM.activities,
-                        language: language
-                    )
-
-                    mapControlButtons
-                        .padding(.trailing, 12)
-                }
+                // ChipBar — direkt nach Safe Area, kein Blur-Hintergrund
+                CategoryChipBar(
+                    filterVM: filterVM,
+                    activities: activityVM.activities,
+                    language: language
+                )
                 .padding(.top, 8)
-                .padding(.bottom, 8)
-                .background(.ultraThinMaterial)
+                .padding(.bottom, 4)
 
-                // FilterStatusBanner — unter ChipBar, linksbündig
-                if filterVM.isFilterActive {
-                    HStack {
+                // Zoom/GPS rechts + FilterBanner links — unter ChipBar
+                HStack(alignment: .top) {
+                    if filterVM.isFilterActive {
                         FilterStatusBanner(filterVM: filterVM, language: language)
                             .padding(.leading, 12)
-                            .padding(.top, 6)
-                        Spacer()
+                            .transition(.move(edge: .leading).combined(with: .opacity))
                     }
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                    Spacer()
+                    mapControlButtons
+                        .padding(.trailing, 12)
+                        .padding(.top, 4)
                 }
 
                 Spacer()
             }
+            .background(
+                // Blur NUR über der Safe Area — nicht hinter ChipBar
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .frame(height: topSafeArea * 1.2)
+                        .ignoresSafeArea(edges: .top)
+                    Spacer()
+                },
+                alignment: .top
+            )
             .animation(.easeInOut(duration: AppConstants.animationStandard),
                        value: filterVM.isFilterActive)
 
