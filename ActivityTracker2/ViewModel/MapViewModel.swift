@@ -103,20 +103,14 @@ extension MapViewModel {
 
         let targetCenter = adjustedCenter(
             for: location.coordinate,
-            span: MKCoordinateSpan(
-                latitudeDelta: AppConstants.defaultMapSpan,
-                longitudeDelta: AppConstants.defaultMapSpan
-            ),
+            span: region.span,
             sheetDetent: currentSheetDetent
         )
 
         withAnimation(.easeInOut(duration: 0.6)) {
             region = MKCoordinateRegion(
                 center: targetCenter,
-                span: MKCoordinateSpan(
-                    latitudeDelta: AppConstants.defaultMapSpan,
-                    longitudeDelta: AppConstants.defaultMapSpan
-                )
+                span: region.span
             )
         }
 
@@ -140,11 +134,11 @@ extension MapViewModel {
         let atPin = displayedActivities.filter { $0.location?.id == location.id }
         highlightedActivityId = atPin.first?.id
 
-        let targetCenter = adjustedCenter(for: location.coordinate, span: defaultSpan, sheetDetent: currentSheetDetent)
+        let targetCenter = adjustedCenter(for: location.coordinate, span: region.span, sheetDetent: currentSheetDetent)
         withAnimation(.easeInOut(duration: 0.5)) {
             region = MKCoordinateRegion(
                 center: targetCenter,
-                span: defaultSpan
+                span: region.span
             )
         }
     }
@@ -170,18 +164,11 @@ extension MapViewModel {
 
     // MARK: Private
 
-    private var defaultSpan: MKCoordinateSpan {
-        MKCoordinateSpan(
-            latitudeDelta: AppConstants.defaultMapSpan,
-            longitudeDelta: AppConstants.defaultMapSpan
-        )
-    }
-
     /// Verschiebt den Kartenmittelpunkt abhängig vom Sheet-Detent.
     ///
     /// - Sheet klein (≤ 0.15):  kein Offset — Pin in echter Bildschirmmitte.
-    /// - Sheet mittel (≤ 0.5):  18 % Offset nach Süden — Pin im oberen Drittel.
-    /// - Sheet gross (> 0.5):   kein Offset — Map wird von Sheet überdeckt.
+    /// - Sheet mittel (≤ 0.45): 18 % Offset nach Süden — Pin im oberen Drittel.
+    /// - Sheet gross (> 0.45):  kein Offset — Map wird von Sheet überdeckt.
     ///
     /// - Parameters:
     ///   - coordinate: Ziel-Koordinate (Pin-Position).
@@ -195,7 +182,7 @@ extension MapViewModel {
         let offsetFactor: Double
         if sheetDetent <= 0.15 {
             offsetFactor = 0.0
-        } else if sheetDetent <= 0.5 {
+        } else if sheetDetent <= 0.45 {
             offsetFactor = 0.18
         } else {
             offsetFactor = 0.0

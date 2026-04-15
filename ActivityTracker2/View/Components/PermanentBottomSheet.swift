@@ -266,62 +266,98 @@ struct PermanentBottomSheet: View {
                     .foregroundStyle(.secondary)
                     .padding(16)
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(
-                            Array(mapVM.displayedActivities.enumerated()),
-                            id: \.element.id
-                        ) { index, activity in
-                            let showYearHeader: Bool = {
-                                if index == 0 { return true }
-                                return mapVM.displayedActivities[index - 1].yearInt != activity.yearInt
-                            }()
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(
+                                Array(mapVM.displayedActivities.enumerated()),
+                                id: \.element.id
+                            ) { index, activity in
+                                let showYearHeader: Bool = {
+                                    if index == 0 { return true }
+                                    return mapVM.displayedActivities[index - 1].yearInt != activity.yearInt
+                                }()
 
-                            if showYearHeader {
-                                HStack(spacing: 0) {
-                                    Text(String(format: "%d", activity.yearInt))
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundStyle(.secondary)
-                                        .padding(.leading, 16)
-                                        .padding(.vertical, 6)
-                                    Spacer()
-                                    Rectangle()
-                                        .fill(Color(.systemGray4))
-                                        .frame(height: 0.5)
-                                        .padding(.trailing, 16)
+                                if showYearHeader {
+                                    HStack(spacing: 0) {
+                                        Text(String(format: "%d", activity.yearInt))
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(.secondary)
+                                            .padding(.leading, 16)
+                                            .padding(.vertical, 6)
+                                        Spacer()
+                                        Rectangle()
+                                            .fill(Color(.systemGray4))
+                                            .frame(height: 0.5)
+                                            .padding(.trailing, 16)
+                                    }
+                                    .background(Color(.systemGray6).opacity(0.5))
                                 }
-                                .background(Color(.systemGray6).opacity(0.5))
+
+                                activityRow(
+                                    activity: activity,
+                                    isHighlighted: activity.id == mapVM.highlightedActivityId
+                                )
+                                .frame(minHeight: 72)
+                                .id(activity.id)
+
+                                Divider()
+                                    .padding(.leading, 16)
                             }
-
-                            activityRow(
-                                activity: activity,
-                                isHighlighted: activity.id == mapVM.highlightedActivityId
-                            )
-                            .id(activity.id)
-
-                            Divider()
-                                .padding(.leading, 16)
+                        }
+                        .scrollTargetLayout()
+                    }
+                    .scrollTargetBehavior(.viewAligned)
+                    .scrollPosition(id: $scrollPosition)
+                    .onChange(of: scrollPosition) { _, newId in
+                        guard let newId, newId != mapVM.highlightedActivityId else { return }
+                        mapVM.highlightedActivityId = newId
+                        if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                           let location = activity.location {
+                            mapVM.selectedLocation = location
+                            let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span, sheetDetent: mapVM.currentSheetDetent)
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                            }
                         }
                     }
-                    .scrollTargetLayout()
-                }
-                .scrollTargetBehavior(.viewAligned)
-                .scrollPosition(id: $scrollPosition)
-                .onChange(of: scrollPosition) { _, newId in
-                    guard let newId, newId != mapVM.highlightedActivityId else { return }
-                    mapVM.highlightedActivityId = newId
-                    if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                       let location = activity.location {
-                        mapVM.selectedLocation = location
-                        let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span, sheetDetent: mapVM.currentSheetDetent)
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                    .onChange(of: mapVM.highlightedActivityId) { _, newId in
+                        guard let newId else { return }
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(newId, anchor: .top)
                         }
                     }
-                }
-                .onAppear {
-                    if scrollPosition == nil {
-                        scrollPosition = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
+                    .onAppear {
+                        if scrollPosition == nil {
+                            scrollPosition = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
+                        }
+                        if let id = mapVM.highlightedActivityId {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                proxy.scrollTo(id, anchor: .top)
+                            }
+                        }
+                    }
+                    .onChange(of: mapVM.displayedActivities.first?.id) { _, _ in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            if let id = mapVM.highlightedActivityId {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    proxy.scrollTo(id, anchor: .top)
+                                }
+                            } else if let first = mapVM.displayedActivities.first {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    proxy.scrollTo(first.id, anchor: .top)
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: filterVM.selectedCategoryId) { _, _ in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            if let first = mapVM.displayedActivities.first {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    proxy.scrollTo(first.id, anchor: .top)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -394,6 +430,7 @@ struct PermanentBottomSheet: View {
 
                                 let isHighlighted = activity.id == mapVM.highlightedActivityId
                                 activityRow(activity: activity, isHighlighted: isHighlighted)
+                                    .frame(minHeight: 72)
                                     .id(activity.id)
                                 Divider()
                                     .padding(.leading, 16)
@@ -402,9 +439,37 @@ struct PermanentBottomSheet: View {
                     }
                 }
                 .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                    if let newId {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            proxy.scrollTo(newId, anchor: .center)
+                    guard let newId else { return }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        proxy.scrollTo(newId, anchor: .top)
+                    }
+                }
+                .onAppear {
+                    if let id = mapVM.highlightedActivityId {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            proxy.scrollTo(id, anchor: .top)
+                        }
+                    }
+                }
+                .onChange(of: displayedActivities.first?.id) { _, _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        if let id = mapVM.highlightedActivityId {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                proxy.scrollTo(id, anchor: .top)
+                            }
+                        } else if let first = displayedActivities.first {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                proxy.scrollTo(first.id, anchor: .top)
+                            }
+                        }
+                    }
+                }
+                .onChange(of: filterVM.selectedCategoryId) { _, _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        if let first = displayedActivities.first {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                proxy.scrollTo(first.id, anchor: .top)
+                            }
                         }
                     }
                 }

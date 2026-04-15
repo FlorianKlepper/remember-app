@@ -1,6 +1,6 @@
 // PreviewDataHelper.swift
 // ActivityTracker2 — Remember
-// Debug-Sample-Daten: 90 Aktivitäten auf 5 Kontinenten
+// Debug-Sample-Daten: 100 Aktivitäten — München + Umland + Deutschland + Welt
 
 #if DEBUG
 
@@ -9,14 +9,14 @@ import SwiftData
 
 // MARK: - PreviewDataHelper
 
-/// Fügt beim ersten App-Start im Debug-Modus 90 Sample-Activities in SwiftData ein.
+/// Fügt beim ersten App-Start im Debug-Modus Sample-Activities in SwiftData ein.
 /// Wird nur ausgeführt wenn der Store vollständig leer ist — keine Duplikate möglich.
 ///
 /// Aufruf: `PreviewDataHelper.insertSampleDataIfNeeded(context: modelContext)`
 /// — einmalig in `ActivityTracker2App.init()`, nach ModelContainer-Setup.
 enum PreviewDataHelper {
 
-    /// Prüft ob SwiftData leer ist und fügt ggf. 90 Sample-Activities ein.
+    /// Prüft ob SwiftData leer ist und fügt ggf. Sample-Activities ein.
     /// - Parameter context: Aktiver `ModelContext` aus `modelContainer.mainContext`.
     static func insertSampleDataIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Activity>()
@@ -31,431 +31,606 @@ enum PreviewDataHelper {
         try? context.save()
     }
 
-    // MARK: - Sample Activities (90)
+    // MARK: - Sample Activities
 
-    private static var sampleActivities: [Activity] {[
+    private static var sampleActivities: [Activity] { [
 
-        // ━━━ EUROPA (25) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ══════════════════════════════════════════════════
+        // 2026 — 40 Aktivitäten (.daysAgo 1–120)
+        // ══════════════════════════════════════════════════
 
-        Activity(categoryId: "photography", date: .daysAgo(2), title: "Sonnenaufgang am Marienplatz",
-            text: "Um 6 Uhr morgens fast allein auf dem Platz. Das goldene Licht auf dem Rathaus war unbeschreiblich schön.",
+        // ── München Stadt (28) ────────────────────────────
+
+        Activity(categoryId: "running", date: .daysAgo(2),
+            title: "Lauf im Englischen Garten",
+            text: "10km durch den Park bei Sonnenaufgang. Die Isar glitzert, die Stadt schläft noch. Perfekter Start in den Tag.",
+            isFavorite: true,
+            location: Location(latitude: 48.1642, longitude: 11.6054, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(4),
+            title: "Frühstück Viktualienmarkt",
+            text: "Frischer Obatzda, Brezen und ein Radler in der Sonne. München im Frühling ist unschlagbar.",
+            location: Location(latitude: 48.1351, longitude: 11.5761, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(6),
+            title: "Abendessen Marienplatz",
+            text: "Weisswurst zum Abendessen — eigentlich falsch aber so gut. Das Rathaus leuchtet golden.",
             isFavorite: true,
             location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "yoga", date: .daysAgo(3), title: "Yoga im Englischen Garten",
-            text: "Morgenyoga mit Blick auf den Monopteros. Die Stadt erwacht langsam, nur Vogelgezwitscher.",
+        Activity(categoryId: "yoga", date: .daysAgo(8),
+            title: "Yoga Westpark",
+            text: "Outdoor Yoga mit 20 anderen im Park. Vogelgezwitscher statt Musik. So sollte jeder Morgen sein.",
+            location: Location(latitude: 48.1098, longitude: 11.5023, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cinema", date: .daysAgo(10),
+            title: "Kino Mathäser",
+            text: "Neuer Film in der Dolby Atmos Suite. Der Sound hat mich von meinem Sitz gerissen. Grandios.",
+            location: Location(latitude: 48.1401, longitude: 11.5523, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cycling", date: .daysAgo(12),
+            title: "Radtour Isar entlang",
+            text: "30km flussaufwärts bis Wolfratshausen. Flaches Terrain, perfektes Wetter, Brotzeit am Ufer.",
+            isFavorite: true,
+            location: Location(latitude: 48.1334, longitude: 11.5667, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(14),
+            title: "Café Schwabing",
+            text: "Flat White und Zeitung lesen im Lieblingscafé. Die Stammgäste kennen meinen Namen inzwischen.",
+            location: Location(latitude: 48.1634, longitude: 11.5923, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "fitness", date: .daysAgo(16),
+            title: "Fitness Olympiapark",
+            text: "Outdoor Training mit Blick auf den Olympiaturm. 5 Uhr abends, goldenes Licht, perfekte Kulisse.",
+            location: Location(latitude: 48.1731, longitude: 11.5508, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "concert", date: .daysAgo(18),
+            title: "Konzert Olympiahalle",
+            text: "Coldplay Konzert mit 70.000 Menschen. Wristbands die im Takt leuchten. Unvergessliche Nacht.",
+            isFavorite: true,
+            location: Location(latitude: 48.1731, longitude: 11.5508, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "bar", date: .daysAgo(20),
+            title: "Hofbräuhaus Abend",
+            text: "Mit Freunden aus Hamburg die Stadt gezeigt. Hofbräu, Haxn und Blasmusik — München wie im Film.",
+            location: Location(latitude: 48.1376, longitude: 11.5800, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "museum", date: .daysAgo(22),
+            title: "Museum Deutsches Museum",
+            text: "Ausstellung über Raumfahrt — Apollo 11 Kapsel hautnah. Technik kann auch Poesie sein.",
+            location: Location(latitude: 48.1299, longitude: 11.5834, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "swimming", date: .daysAgo(25),
+            title: "Schwimmen Freibad Dantebad",
+            text: "Erster Freibadtag des Jahres. Noch nicht warm genug aber der Sprung ins Wasser war befreiend.",
+            location: Location(latitude: 48.1623, longitude: 11.5123, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "theater", date: .daysAgo(28),
+            title: "Theater Residenztheater",
+            text: "Faust I — 4 Stunden aber keine Minute zu lang. Das Ensemble war atemberaubend.",
+            isFavorite: true,
+            location: Location(latitude: 48.1412, longitude: 11.5798, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(30),
+            title: "Wandern Olympiahügel",
+            text: "Runde um den Olympiasee, Hügel rauf und runter. Klein aber fein — mitten in der Stadt wandern.",
+            location: Location(latitude: 48.1731, longitude: 11.5508, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "photography", date: .daysAgo(33),
+            title: "Fotografie Maxvorstadt",
+            text: "Straßenfotografie durch die Maxvorstadt. Alte Architektur, neue Menschen, hundert gute Bilder.",
+            isFavorite: true,
+            location: Location(latitude: 48.1489, longitude: 11.5712, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(36),
+            title: "Restaurant Haidhausen",
+            text: "Neues Thai-Restaurant im Franzosenviertel. Grünes Curry das mich an Bangkok erinnert hat.",
+            location: Location(latitude: 48.1289, longitude: 11.5967, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "journal", date: .daysAgo(40),
+            title: "Tagebuch Isarpromenade",
+            text: "Eine Stunde auf einem Stein sitzen und schreiben. Die Isar rauscht, die Gedanken fliessen.",
+            location: Location(latitude: 48.1334, longitude: 11.5667, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(44),
+            title: "Café Glockenbachviertel",
+            text: "Sonntagmorgen, Zeitung, Cappuccino. Das Viertel erwacht langsam. So muss Sonntag sein.",
+            location: Location(latitude: 48.1298, longitude: 11.5634, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "running", date: .daysAgo(48),
+            title: "Laufen Nymphenburg",
+            text: "8km durch den Schlosspark. Schwäne auf dem Kanal, Jogger auf den Wegen, Frieden im Kopf.",
+            isFavorite: true,
+            location: Location(latitude: 48.1567, longitude: 11.4998, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "bar", date: .daysAgo(52),
+            title: "Bar Schumann's",
+            text: "Cocktails bei Schumann's. Die Bar ist eine Institution. Der Barkeeper kennt jeden beim Namen.",
+            location: Location(latitude: 48.1423, longitude: 11.5856, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "festival", date: .daysAgo(56),
+            title: "Festival Streetlife",
+            text: "Streetlife Festival auf der Leopoldstrasse. Essen aus aller Welt, Live-Musik, Sonne satt.",
+            isFavorite: true,
+            location: Location(latitude: 48.1623, longitude: 11.5867, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "fitness", date: .daysAgo(60),
+            title: "Fitness Bogenhausen",
+            text: "Crossfit Session im neuen Box in Bogenhausen. Erst gelitten, dann Endorphine. Immer wieder.",
+            location: Location(latitude: 48.1534, longitude: 11.6123, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "wine_tasting", date: .daysAgo(65),
+            title: "Weinprobe Lehel",
+            text: "6 Weine aus der Pfalz, kompetente Beratung, schöner Keller. Deutschen Wein neu entdeckt.",
+            location: Location(latitude: 48.1423, longitude: 11.5912, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "museum", date: .daysAgo(70),
+            title: "Pinakothek der Moderne",
+            text: "Ausstellung zeitgenössischer Fotografie. Bilder die man nicht mehr vergisst. Stark.",
+            isFavorite: true,
+            location: Location(latitude: 48.1489, longitude: 11.5712, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "swimming", date: .daysAgo(75),
+            title: "Schwimmen Müllersches Volksbad",
+            text: "Art Nouveau Hallenbad aus 1901. Schwimmen als Zeitreise. Das schönste Bad Münchens.",
+            isFavorite: true,
+            location: Location(latitude: 48.1289, longitude: 11.5834, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(80),
+            title: "Restaurant Neuhausen",
+            text: "Kleines Trattoria versteckt in einer Seitenstrasse. Hausgemachte Pasta, kein Tourismus.",
+            location: Location(latitude: 48.1567, longitude: 11.5234, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(85),
+            title: "Theresienwiese spazieren",
+            text: "Ohne Oktoberfest ein riesiger ruhiger Platz. Kinder spielen, Hunde toben, Ruhe pur.",
+            location: Location(latitude: 48.1312, longitude: 11.5490, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "concert", date: .daysAgo(90),
+            title: "Konzert Muffatwerk",
+            text: "Indie-Konzert im Muffatwerk. 500 Leute, perfekte Akustik, Band zum ersten Mal live gesehen.",
+            location: Location(latitude: 48.1289, longitude: 11.5834, city: "München", region: "Bayern", country: "Deutschland")),
+
+        // ── München Umland (8) ────────────────────────────
+
+        Activity(categoryId: "hiking", date: .daysAgo(15),
+            title: "Wanderung Starnberger See",
+            text: "12km Rundwanderung um den See. Schneebedeckte Alpen spiegeln sich im Wasser. Traumhaft.",
+            isFavorite: true,
+            location: Location(latitude: 47.9967, longitude: 11.3398, city: "Starnberg", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "swimming", date: .daysAgo(35),
+            title: "Schwimmen Ammersee",
+            text: "Erster Badetag am Ammersee. Kaltes Wasser, Berge im Hintergrund. Bayern im Sommer ist perfekt.",
+            location: Location(latitude: 48.0023, longitude: 11.1234, city: "Herrsching", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(45),
+            title: "Café Tegernsee",
+            text: "Kaffee und Kuchen mit Seeblick. Die Bayern-Klischees stimmen alle — und das ist gut so.",
+            location: Location(latitude: 47.7123, longitude: 11.7523, city: "Tegernsee", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "skiing", date: .daysAgo(55),
+            title: "Skifahren Zugspitze",
+            text: "Skifahren auf fast 3000m. Oben Sonne, unten Wolken. Deutschland von seiner schönsten Seite.",
+            isFavorite: true,
+            location: Location(latitude: 47.4211, longitude: 10.9850, city: "Zugspitze", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(95),
+            title: "Wanderung Schliersee",
+            text: "Schlierseer Bergpfad mit Blick auf den See. 4 Stunden, 600 Höhenmeter, absolute Stille.",
+            isFavorite: true,
+            location: Location(latitude: 47.7334, longitude: 11.8567, city: "Schliersee", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "festival", date: .daysAgo(100),
+            title: "Chiemsee Segeln",
+            text: "Zum ersten Mal auf einem Segelboot. Wind, Wellen, Frauenchiemsee am Horizont.",
+            location: Location(latitude: 47.8712, longitude: 12.4234, city: "Chiemsee", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(105),
+            title: "Restaurant Bad Tölz",
+            text: "Traditionelle bayerische Küche in einer Wirtschaft seit 1890. Schmalznudeln und Weissbier.",
+            location: Location(latitude: 47.7601, longitude: 11.5567, city: "Bad Tölz", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(110),
+            title: "Garmisch Wanderung",
+            text: "Partnachklamm bei Eis und Schnee. Die Schlucht donnert und sprüht. Natur at its best.",
+            isFavorite: true,
+            location: Location(latitude: 47.4912, longitude: 11.0956, city: "Garmisch", region: "Bayern", country: "Deutschland")),
+
+        // ── Deutschland (2) ───────────────────────────────
+
+        Activity(categoryId: "museum", date: .daysAgo(50),
+            title: "Berlin Museumsinsel",
+            text: "Pergamonaltar, Nofretete, Neues Museum. Berlin ist eine Weltstadt der Kultur.",
+            isFavorite: true,
+            location: Location(latitude: 52.5200, longitude: 13.4050, city: "Berlin", region: "Berlin", country: "Deutschland")),
+
+        Activity(categoryId: "festival", date: .daysAgo(75),
+            title: "Hamburg Fischmarkt",
+            text: "Um 5 Uhr morgens am Fischmarkt. Ausrufer, frischer Fisch, Seemöwen. Echter Hamburg-Vibe.",
+            location: Location(latitude: 53.5511, longitude: 9.9937, city: "Hamburg", region: "Hamburg", country: "Deutschland")),
+
+        // ── Welt (2) ──────────────────────────────────────
+
+        Activity(categoryId: "museum", date: .daysAgo(20),
+            title: "Tokyo Teamlab",
+            text: "Digital Art Installation in Odaiba. Licht, Wasser, Spiegelräume. Kunst die man körperlich spürt.",
+            isFavorite: true,
+            location: Location(latitude: 35.6762, longitude: 139.6503, city: "Tokyo", region: "Tokyo", country: "Japan")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(88),
+            title: "Barcelona Tapas",
+            text: "Tapas-Crawl durch El Born. Patatas bravas, Jamón, Cava. Barcelona versteht Lebensqualität.",
+            isFavorite: true,
+            location: Location(latitude: 41.3851, longitude: 2.1734, city: "Barcelona", region: "Katalonien", country: "Spanien")),
+
+        // ══════════════════════════════════════════════════
+        // 2025 — 30 Aktivitäten (.daysAgo 121–485)
+        // ══════════════════════════════════════════════════
+
+        // ── München Stadt (17) ────────────────────────────
+
+        Activity(categoryId: "festival", date: .daysAgo(200),
+            title: "Oktoberfest Theresienwiese",
+            text: "Erstes Mal auf der Wiesn mit ausländischen Freunden. Tracht, Bier, Blasmusik — sie waren begeistert.",
+            isFavorite: true,
+            location: Location(latitude: 48.1312, longitude: 11.5490, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "running", date: .daysAgo(220),
+            title: "Marathon München",
+            text: "Erster Halbmarathon — 21km durch die Stadt. Bei km 18 wollte ich aufhören. Gut dass ich es nicht tat.",
+            isFavorite: true,
+            location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "festival", date: .daysAgo(240),
+            title: "Christkindlmarkt Marienplatz",
+            text: "Glühwein, Lebkuchen, Punsch. Der Marienplatz im Dezember ist Magie pur.",
+            isFavorite: true,
+            location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "bar", date: .daysAgo(260),
+            title: "Sommer Biergarten Englischer Garten",
+            text: "Chinesischer Turm Biergarten, Masskrug, Sonnenschein. 5000 Menschen, alle glücklich.",
             location: Location(latitude: 48.1642, longitude: 11.6054, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "cafe", date: .daysAgo(8), title: "Frühstück im Café de Flore",
-            text: "Croissant, Café au lait und die Pariser Morgenluft. So muss das Leben sein.",
+        Activity(categoryId: "fitness", date: .daysAgo(280),
+            title: "Pilates Schwabing",
+            text: "Pilates Kurs, 10 Einheiten. Mein Rücken dankt es mir täglich. Hätte früher anfangen sollen.",
+            location: Location(latitude: 48.1634, longitude: 11.5923, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "concert", date: .daysAgo(300),
+            title: "Konzert BMW Welt",
+            text: "Jazz Konzert in der BMW Welt. Ungewöhnlicher Ort, perfekte Akustik, toller Abend.",
+            location: Location(latitude: 48.1768, longitude: 11.5590, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "swimming", date: .daysAgo(320),
+            title: "Surfwelle Eisbach",
+            text: "Zugeschaut wie die Surfer die stehende Welle reiten. Im Englischen Garten surfen — absurd und cool.",
             isFavorite: true,
-            location: Location(latitude: 48.8539, longitude: 2.3329, city: "Paris", region: "Île-de-France", country: "Frankreich")),
+            location: Location(latitude: 48.1434, longitude: 11.5867, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "museum", date: .daysAgo(9), title: "Louvre bei Nacht",
-            text: "Die Pyramide leuchtet golden. Mona Lisa fast allein betrachten nach Museumsschluss — unvergesslich.",
+        Activity(categoryId: "cafe", date: .daysAgo(340),
+            title: "Café Maxvorstadt",
+            text: "Arbeitscafé für einen Tag. Flat White nach dem anderen, 6 Stunden konzentriert geschrieben.",
+            location: Location(latitude: 48.1489, longitude: 11.5712, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(360),
+            title: "Wanderung Isar Schlucht",
+            text: "Isarschluchtwanderung südlich von München. Wildes Bayern, Stromschnellen, Falken.",
             isFavorite: true,
-            location: Location(latitude: 48.8606, longitude: 2.3376, city: "Paris", region: "Île-de-France", country: "Frankreich")),
+            location: Location(latitude: 48.1198, longitude: 11.5834, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "museum", date: .daysAgo(15), title: "Sagrada Família bei Sonnenuntergang",
-            text: "Die Farben durch die Buntglasfenster haben mich sprachlos gemacht. Gaudís Genie ist zeitlos.",
+        Activity(categoryId: "restaurant", date: .daysAgo(380),
+            title: "Restaurant Au",
+            text: "Griechisches Restaurant im Herzen der Au. Souvlaki, Tzatziki, Retsina. Urlaub ohne Flug.",
+            location: Location(latitude: 48.1198, longitude: 11.5834, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "museum", date: .daysAgo(400),
+            title: "Museum Haus der Kunst",
+            text: "Retrospektive eines zeitgenössischen Künstlers. Verstanden habe ich nicht alles, bewegt hat es mich.",
+            location: Location(latitude: 48.1423, longitude: 11.5912, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "yoga", date: .daysAgo(420),
+            title: "Yoga Nymphenburg",
+            text: "Outdoor Yoga im Schlosspark. Ein Pfau ist durch die Reihen spaziert. Unvergesslich.",
             isFavorite: true,
-            location: Location(latitude: 41.4036, longitude: 2.1744, city: "Barcelona", region: "Katalonien", country: "Spanien")),
+            location: Location(latitude: 48.1567, longitude: 11.4998, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "restaurant", date: .daysAgo(17), title: "Tapas-Bar in El Born",
-            text: "Patatas bravas, Gambas al ajillo, Cava. Barcelona lebt und isst auf der Strasse.",
-            location: Location(latitude: 41.3851, longitude: 2.1834, city: "Barcelona", region: "Katalonien", country: "Spanien")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(22), title: "Pasta bei Nonna Rosa",
-            text: "Hausgemachte Tagliatelle al ragù. Die beste Pasta meines Lebens, in einer kleinen Trattoria versteckt.",
-            location: Location(latitude: 41.9028, longitude: 12.4964, city: "Rom", region: "Latium", country: "Italien")),
-
-        Activity(categoryId: "hiking", date: .daysAgo(24), title: "Borghese-Gärten Rom",
-            text: "Zwei Stunden durch den grössten Park Roms. Pinien, Brunnen, Stille — mitten in der ewigen Stadt.",
-            location: Location(latitude: 41.9149, longitude: 12.4922, city: "Rom", region: "Latium", country: "Italien")),
-
-        Activity(categoryId: "travel", date: .daysAgo(30), title: "Grachtenfahrt Amsterdam",
-            text: "Mit dem Hausboot durch die Kanäle. Die Spiegelungen der alten Häuser im Wasser sind magisch.",
-            location: Location(latitude: 52.3676, longitude: 4.9041, city: "Amsterdam", region: "Noord-Holland", country: "Niederlande")),
-
-        Activity(categoryId: "cycling", date: .daysAgo(31), title: "Radeln entlang der Amstel",
-            text: "30km entlang des Flusses bis nach Ouderkerk. Flaches Land, Windmühlen, Käsebauernhöfe — Holland pur.",
-            location: Location(latitude: 52.3105, longitude: 4.9138, city: "Amsterdam", region: "Noord-Holland", country: "Niederlande")),
-
-        Activity(categoryId: "concert", date: .daysAgo(35), title: "Wiener Philharmoniker",
-            text: "Beethoven im Musikverein. Der Klang in diesem Saal ist einmalig — Gänsehaut von Anfang bis Ende.",
+        Activity(categoryId: "photography", date: .daysAgo(440),
+            title: "Fotografie Englischer Garten",
+            text: "Herbst im Englischen Garten. Goldene Blätter, Nebel, der Monopteros als Silhouette.",
             isFavorite: true,
-            location: Location(latitude: 48.2002, longitude: 16.3726, city: "Wien", region: "Wien", country: "Österreich")),
+            location: Location(latitude: 48.1642, longitude: 11.6054, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "cafe", date: .daysAgo(36), title: "Café Central Wien",
-            text: "Melange und Apfelstrudel wie vor 100 Jahren. Die hohen Decken, die Marmortische — pure Nostalgie.",
-            location: Location(latitude: 48.2093, longitude: 16.3658, city: "Wien", region: "Wien", country: "Österreich")),
+        Activity(categoryId: "theater", date: .daysAgo(460),
+            title: "Theater Kammerspiele",
+            text: "Experimentelles Theater — eine Frau, ein Stuhl, 90 Minuten Text. Hypnotisch.",
+            location: Location(latitude: 48.1389, longitude: 11.5778, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "restaurant", date: .daysAgo(37), title: "Wiener Schnitzel beim Figlmüller",
-            text: "Teller-übergreifendes Schnitzel, Erdäpfelsalat, Grüner Veltliner. Wien auf dem Teller.",
+        Activity(categoryId: "cycling", date: .daysAgo(470),
+            title: "Cycling Olympiapark",
+            text: "Runde um das Olympiagelände. Abends wenn alles leer ist gehört einem der Park allein.",
+            location: Location(latitude: 48.1731, longitude: 11.5508, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "wine_tasting", date: .daysAgo(480),
+            title: "Weinbar Isarvorstadt",
+            text: "Naturwein-Bar im Glockenbach. Biodynamischer Riesling, Keramiktassen, Holzhocker. Hipster pur.",
+            location: Location(latitude: 48.1334, longitude: 11.5667, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(485),
+            title: "Kaffee Sendlinger Tor",
+            text: "Neues Specialty Coffee Shop direkt am Tor. Die Bohnen kommen aus Äthiopien. Komplex und fruchtig.",
+            location: Location(latitude: 48.1334, longitude: 11.5645, city: "München", region: "Bayern", country: "Deutschland")),
+
+        // ── München Umland (8) ────────────────────────────
+
+        Activity(categoryId: "hiking", date: .daysAgo(210),
+            title: "Wanderung Zugspitze",
+            text: "Reintalangerhütte und zurück. 28km, 1800 Höhenmeter. Härteste Wanderung meines Lebens.",
+            isFavorite: true,
+            location: Location(latitude: 47.4211, longitude: 10.9850, city: "Garmisch", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cycling", date: .daysAgo(250),
+            title: "Ammersee Radtour",
+            text: "55km Seerunde. Herrschinger Promenade, Diessen, Utting. Flach, schön, Brotzeit mit Seeblick.",
+            isFavorite: true,
+            location: Location(latitude: 48.0023, longitude: 11.1234, city: "Herrsching", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(290),
+            title: "Tegernsee Wanderung",
+            text: "Hirschberg Gipfel, 1600m. Blick auf 5 Seen gleichzeitig. Bayern ist unglaublich schön.",
+            isFavorite: true,
+            location: Location(latitude: 47.7123, longitude: 11.7523, city: "Tegernsee", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "festival", date: .daysAgo(310),
+            title: "Ingolstadt Shopping",
+            text: "Designer Outlet Ingolstadt. 3 Stunden, 5 Tüten, ein leeres Konto. Bereue nichts.",
+            location: Location(latitude: 48.7667, longitude: 11.4234, city: "Ingolstadt", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "bar", date: .daysAgo(330),
+            title: "Freising Weihenstephan",
+            text: "Älteste Brauerei der Welt. Das Bier schmeckt hier anders — vielleicht liegt es an den 1000 Jahren.",
+            location: Location(latitude: 48.4023, longitude: 11.7456, city: "Freising", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "skiing", date: .daysAgo(350),
+            title: "Skifahren Spitzingsee",
+            text: "Tagesticket Spitzingsee. Pisten leer, Schnee perfekt, Hütteneinkehr mit Germknödel.",
+            location: Location(latitude: 47.6712, longitude: 11.8834, city: "Spitzingsee", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "running", date: .daysAgo(370),
+            title: "Rosenheim Stadtlauf",
+            text: "10km Stadtlauf Rosenheim. Erste Teilnahme an einem organisierten Lauf. Nie wieder... bis zum nächsten.",
+            location: Location(latitude: 47.8567, longitude: 12.1234, city: "Rosenheim", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "photography", date: .daysAgo(450),
+            title: "Landsberg am Lech",
+            text: "Historische Altstadt, Lechfall, Rathaus. Perle zwischen München und Augsburg.",
+            location: Location(latitude: 48.0523, longitude: 10.8712, city: "Landsberg", region: "Bayern", country: "Deutschland")),
+
+        // ── Deutschland (3) ───────────────────────────────
+
+        Activity(categoryId: "museum", date: .daysAgo(230),
+            title: "Köln Kölner Dom",
+            text: "760 Jahre Bauzeit. Auf dem Turm stehen und die Stadt überblicken. Geschichte zum Anfassen.",
+            isFavorite: true,
+            location: Location(latitude: 50.9333, longitude: 6.9500, city: "Köln", region: "NRW", country: "Deutschland")),
+
+        Activity(categoryId: "concert", date: .daysAgo(410),
+            title: "Dresden Semperoper",
+            text: "Staatsoper Dresden. Die Akustik, die Architektur, das Ensemble. Eine der schönsten Opern weltweit.",
+            isFavorite: true,
+            location: Location(latitude: 51.0504, longitude: 13.7373, city: "Dresden", region: "Sachsen", country: "Deutschland")),
+
+        Activity(categoryId: "viewpoint", date: .daysAgo(475),
+            title: "Heidelberg Schloss",
+            text: "Sonnenuntergang vom Schloss. Die Altstadt liegt orange und rosa im Abendlicht. Deutschland kann romantisch.",
+            isFavorite: true,
+            location: Location(latitude: 49.3988, longitude: 8.6724, city: "Heidelberg", region: "Baden-Württemberg", country: "Deutschland")),
+
+        // ── Welt (2) ──────────────────────────────────────
+
+        Activity(categoryId: "cafe", date: .daysAgo(270),
+            title: "Wien Kaffeehauskultur",
+            text: "Melange im Café Central. Zeitungen lesen wie vor 100 Jahren. Wien erfindet Entschleunigung.",
             isFavorite: true,
             location: Location(latitude: 48.2082, longitude: 16.3738, city: "Wien", region: "Wien", country: "Österreich")),
 
-        Activity(categoryId: "hiking", date: .daysAgo(40), title: "Wanderung auf dem Rigi",
-            text: "4 Stunden Aufstieg, Wolken unter uns, Stille über uns. Dieser Ausblick macht jeden Schritt wert.",
+        Activity(categoryId: "museum", date: .daysAgo(390),
+            title: "Amsterdam Rijksmuseum",
+            text: "Rembrandt, Vermeer, Van Gogh. 3 Stunden und nur die Hälfte gesehen. Wiederkommen ist Pflicht.",
+            location: Location(latitude: 52.3676, longitude: 4.9041, city: "Amsterdam", region: "Noord-Holland", country: "Niederlande")),
+
+        // ══════════════════════════════════════════════════
+        // 2024 — 20 Aktivitäten (.daysAgo 486–850)
+        // ══════════════════════════════════════════════════
+
+        // ── München Stadt (10) ────────────────────────────
+
+        Activity(categoryId: "running", date: .daysAgo(490),
+            title: "Silvesterlauf München",
+            text: "5km Lauf am 31. Dezember. 2024 sportlich beenden, 2025 sportlich beginnen. Plan aufgegangen.",
+            location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "cinema", date: .daysAgo(550),
+            title: "Sommer Kino Olympiapark",
+            text: "Open Air Kino unter Sternen. Film auf Grossleinwand, Decke dabei, Sommernacht. Perfekt.",
             isFavorite: true,
-            location: Location(latitude: 47.0557, longitude: 8.4842, city: "Rigi", region: "Schwyz", country: "Schweiz")),
+            location: Location(latitude: 48.1731, longitude: 11.5508, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "cafe", date: .daysAgo(42), title: "Café Schober Zürich",
-            text: "Hot Chocolate im ältesten Café Zürichs. Samtene Wände, Goldrahmen, Stille — wie aus einer anderen Zeit.",
-            location: Location(latitude: 47.3724, longitude: 8.5422, city: "Zürich", region: "Zürich", country: "Schweiz")),
-
-        Activity(categoryId: "skiing", date: .daysAgo(43), title: "Tiefschnee in Verbier",
-            text: "Unberührter Powder auf dem Mont-Fort-Gletscher. Schweizer Skifahren auf höchstem Niveau.",
+        Activity(categoryId: "swimming", date: .daysAgo(600),
+            title: "Surfen Eisbach lernen",
+            text: "Erste Surfstunde auf der Eisbachwelle. 45 Minuten geübt, 3 Sekunden gestanden. Süchtig.",
             isFavorite: true,
-            location: Location(latitude: 46.0966, longitude: 7.2287, city: "Verbier", region: "Wallis", country: "Schweiz")),
+            location: Location(latitude: 48.1434, longitude: 11.5867, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "restaurant", date: .daysAgo(45), title: "Borough Market London",
-            text: "Käse, frisches Brot, Austern und Craft Beer. London ist eine Foodie-Stadt par excellence.",
-            location: Location(latitude: 51.5055, longitude: -0.0910, city: "London", region: "England", country: "Grossbritannien")),
+        Activity(categoryId: "running", date: .daysAgo(650),
+            title: "Stadtlauf Schwabing",
+            text: "Spontaner 15km Lauf durch Schwabing, Maxvorstadt und zurück. Kopfhörer rein, Stadt erkunden.",
+            location: Location(latitude: 48.1634, longitude: 11.5923, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "hiking", date: .daysAgo(47), title: "Hampstead Heath Sonnenaufgang",
-            text: "Auf dem Parliament Hill bei Sonnenaufgang. London liegt unter einem roségoldenen Himmel.",
-            location: Location(latitude: 51.5608, longitude: -0.1617, city: "London", region: "England", country: "Grossbritannien")),
-
-        Activity(categoryId: "cycling", date: .daysAgo(50), title: "Radtour durch die Provence",
-            text: "Lavendelfelder so weit das Auge reicht. 60km, Rückenwind, Rosé am Ziel.",
+        Activity(categoryId: "concert", date: .daysAgo(700),
+            title: "Konzert Backstage",
+            text: "Indie Band aus Portland — erster Deutschlandauftritt. 200 Leute, 100% Energie. Entdeckung.",
             isFavorite: true,
-            location: Location(latitude: 43.9493, longitude: 5.1175, city: "Valensole", region: "Provence", country: "Frankreich")),
+            location: Location(latitude: 48.1489, longitude: 11.5234, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "skiing", date: .daysAgo(60), title: "Après-Ski in Lech",
-            text: "Perfekter Pulverschnee am Morgen, Hüttengaudi am Nachmittag. So muss Skifahren sein.",
+        Activity(categoryId: "yoga", date: .daysAgo(750),
+            title: "Yogakurs Neuhausen",
+            text: "8-Wochen Kurs, jeden Dienstag. Der Körper hat sich verändert. Die Ruhe auch.",
+            location: Location(latitude: 48.1567, longitude: 11.5234, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "photography", date: .daysAgo(780),
+            title: "Fotokurs Englischer Garten",
+            text: "Workshop Streetfotografie. Blende, Verschluss, Komposition. Plötzlich sehe ich alles anders.",
             isFavorite: true,
-            location: Location(latitude: 47.2137, longitude: 10.1443, city: "Lech", region: "Vorarlberg", country: "Österreich")),
+            location: Location(latitude: 48.1642, longitude: 11.6054, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "concert", date: .daysAgo(70), title: "Flamenco Show in Sevilla",
-            text: "Echte Flamenco-Künstler in einem kleinen Tablao. Leidenschaft pur — Tränen in den Augen.",
+        Activity(categoryId: "theater", date: .daysAgo(800),
+            title: "Theater an der Isar",
+            text: "Experimentelles Stück über Einsamkeit in der Stadt. Sehr unbequem. Sehr wichtig.",
+            location: Location(latitude: 48.1289, longitude: 11.5834, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "bar", date: .daysAgo(820),
+            title: "Biergarten Flaucher",
+            text: "Flaucher Biergarten an der Isar. Selbst mitgebrachtes Essen erlaubt. Bayerische Demokratie.",
+            location: Location(latitude: 48.1023, longitude: 11.5567, city: "München", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "museum", date: .daysAgo(840),
+            title: "Pinakothek moderne",
+            text: "Design Ausstellung Braun und Apple. Wie Dieter Rams Steve Jobs beeinflusst hat. Faszinierend.",
+            location: Location(latitude: 48.1489, longitude: 11.5712, city: "München", region: "Bayern", country: "Deutschland")),
+
+        // ── München Umland (5) ────────────────────────────
+
+        Activity(categoryId: "skiing", date: .daysAgo(510),
+            title: "Skitouren Zugspitzplatt",
+            text: "Erste Skitour überhaupt. 800 Höhenmeter rauf, 3 Minuten runter. Das Verhältnis stimmt trotzdem.",
             isFavorite: true,
-            location: Location(latitude: 37.3886, longitude: -5.9823, city: "Sevilla", region: "Andalusien", country: "Spanien")),
+            location: Location(latitude: 47.4211, longitude: 10.9850, city: "Zugspitze", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "swimming", date: .daysAgo(75), title: "Schwimmen im Gardasee",
-            text: "Kristallklares Wasser, 24 Grad, Berge ringsum. Der Gardasee ist wie ein Traum.",
-            location: Location(latitude: 45.6389, longitude: 10.7102, city: "Riva del Garda", region: "Trentino", country: "Italien")),
-
-        Activity(categoryId: "festival", date: .daysAgo(78), title: "Oktoberfest München",
-            text: "Wiesn-Opening: Tracht, Zelt, Mass Bier, Oompah-Band. Jedes Mal anders, jedes Mal gleich schön.",
+        Activity(categoryId: "cycling", date: .daysAgo(580),
+            title: "Mountainbike Lenggries",
+            text: "Singletrail von der Brauneck-Alm runter. Technisch, schnell, adrenalinreich. Wiederkommen.",
             isFavorite: true,
-            location: Location(latitude: 48.1320, longitude: 11.5498, city: "München", region: "Bayern", country: "Deutschland")),
+            location: Location(latitude: 47.6834, longitude: 11.5789, city: "Lenggries", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "hiking", date: .daysAgo(82), title: "Zugspitze Gipfelsteig",
-            text: "Deutschlands höchster Punkt. Der Aufstieg war hart, der Blick auf drei Länder der beste Lohn.",
+        Activity(categoryId: "hiking", date: .daysAgo(640),
+            title: "Wanderung Benediktenwand",
+            text: "Technisch anspruchsvoller Aufstieg, 1800m. Oben allein mit den Wolken. Absoluter Favorit.",
             isFavorite: true,
-            location: Location(latitude: 47.4211, longitude: 10.9853, city: "Garmisch-Partenkirchen", region: "Bayern", country: "Deutschland")),
+            location: Location(latitude: 47.6523, longitude: 11.4667, city: "Benediktbeuern", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "restaurant", date: .daysAgo(85), title: "Pintxos in San Sebastián",
-            text: "Bar-Hopping durch die Altstadt. Jede Bar, zwei Pintxos — das beste Essen der Welt kostet hier 2 Euro.",
+        Activity(categoryId: "festival", date: .daysAgo(720),
+            title: "Starnberg Segeln lernen",
+            text: "Segelkurs am Starnberger See. Wind lesen lernen. Das Boot gehorcht wenn man es versteht.",
+            location: Location(latitude: 47.9967, longitude: 11.3398, city: "Starnberg", region: "Bayern", country: "Deutschland")),
+
+        Activity(categoryId: "swimming", date: .daysAgo(810),
+            title: "Erding Therme",
+            text: "Weltweit grösste Therme. 5 Stunden Wasser, Sauna, Dampfbad. Völlig regeneriert danach.",
+            location: Location(latitude: 48.3067, longitude: 11.9067, city: "Erding", region: "Bayern", country: "Deutschland")),
+
+        // ── Deutschland (3) ───────────────────────────────
+
+        Activity(categoryId: "museum", date: .daysAgo(530),
+            title: "Frankfurt Städel Museum",
+            text: "700 Jahre europäische Kunst. Botticelli bis Bacon. Frankfurt überrascht kulturell immer wieder.",
+            location: Location(latitude: 50.1109, longitude: 8.6821, city: "Frankfurt", region: "Hessen", country: "Deutschland")),
+
+        Activity(categoryId: "concert", date: .daysAgo(660),
+            title: "Leipzig Bachfest",
+            text: "Bach in seiner Heimatstadt. Die Thomaskirche als Konzertsaal. Musik die 300 Jahre überdauert.",
             isFavorite: true,
-            location: Location(latitude: 43.3213, longitude: -1.9856, city: "San Sebastián", region: "Baskenland", country: "Spanien")),
+            location: Location(latitude: 51.3397, longitude: 12.3731, city: "Leipzig", region: "Sachsen", country: "Deutschland")),
 
-        // ━━━ ASIEN (20) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        Activity(categoryId: "museum", date: .daysAgo(830),
+            title: "Stuttgart Mercedes Museum",
+            text: "150 Jahre Automobilgeschichte. Das erste Auto der Welt. Technik als Kulturgeschichte.",
+            location: Location(latitude: 48.7758, longitude: 9.1829, city: "Stuttgart", region: "Baden-Württemberg", country: "Deutschland")),
 
-        Activity(categoryId: "hiking", date: .daysAgo(92), title: "Bambuswald Arashiyama",
-            text: "Früh morgens fast allein zwischen den Bambusstämmen. Das Licht, die Stille — meditativ.",
+        // ── Welt (2) ──────────────────────────────────────
+
+        Activity(categoryId: "running", date: .daysAgo(560),
+            title: "New York Central Park",
+            text: "Laufen im Central Park — 10km Runde. New York von seiner ruhigsten Seite. Morgens um 6.",
             isFavorite: true,
-            location: Location(latitude: 35.0094, longitude: 135.6694, city: "Kyoto", region: "Kyoto", country: "Japan")),
-
-        Activity(categoryId: "hiking", date: .daysAgo(93), title: "Fushimi Inari Torii-Tore",
-            text: "3000 rote Torii-Tore den Berg hinauf. Bei Sonnenaufgang fast allein — spirituell und magisch.",
-            isFavorite: true,
-            location: Location(latitude: 34.9671, longitude: 135.7727, city: "Kyoto", region: "Kyoto", country: "Japan")),
-
-        Activity(categoryId: "festival", date: .daysAgo(94), title: "Kirschblüte Maruyama Park",
-            text: "Hanami unter blühenden Kirschbäumen. Sakeflaschen, Lachen, rosa Blüten überall. Japan at its best.",
-            isFavorite: true,
-            location: Location(latitude: 35.0039, longitude: 135.7817, city: "Kyoto", region: "Kyoto", country: "Japan")),
-
-        Activity(categoryId: "photography", date: .daysAgo(95), title: "Sonnenuntergang Ubud",
-            text: "Rote Reisfelder im Abendlicht, Gamelan-Musik aus dem Tempel. Bali hat mein Herz gestohlen.",
-            isFavorite: true,
-            location: Location(latitude: -8.5069, longitude: 115.2625, city: "Ubud", region: "Bali", country: "Indonesien")),
-
-        Activity(categoryId: "yoga", date: .daysAgo(96), title: "Yoga Retreat Bali",
-            text: "7 Tage Yoga, Meditation und Stille in den Reisfeldern. Zurück zu mir selbst gefunden.",
-            isFavorite: true,
-            location: Location(latitude: -8.5069, longitude: 115.2625, city: "Ubud", region: "Bali", country: "Indonesien")),
-
-        Activity(categoryId: "swimming", date: .daysAgo(97), title: "Surfen Kuta Beach",
-            text: "Erste Surfstunde, 10 Mal gefallen, einmal gestanden. Das Stehen war es wert.",
-            location: Location(latitude: -8.7215, longitude: 115.1685, city: "Kuta", region: "Bali", country: "Indonesien")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(100), title: "Streetfood Khao San Road",
-            text: "Pad Thai für 1 Euro, Mango Sticky Rice als Dessert. Bangkok ist eine Streetfood-Stadt.",
-            location: Location(latitude: 13.7584, longitude: 100.4979, city: "Bangkok", region: "Bangkok", country: "Thailand")),
-
-        Activity(categoryId: "cafe", date: .daysAgo(101), title: "Coffeeshop Thong Lo Bangkok",
-            text: "Specialty Coffee in einem alten Shophouse. Die Baristas sind echte Künstler.",
-            location: Location(latitude: 13.7310, longitude: 100.5836, city: "Bangkok", region: "Bangkok", country: "Thailand")),
-
-        Activity(categoryId: "hiking", date: .daysAgo(103), title: "Doi Suthep Tempel",
-            text: "300 Nagas-Treppenstufen hinauf, Blick über Chiang Mai. Der Tempel leuchtet gold in der Abendsonne.",
-            location: Location(latitude: 18.8047, longitude: 98.9218, city: "Chiang Mai", region: "Chiang Mai", country: "Thailand")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(111), title: "Nachtmarkt Singapur",
-            text: "Hawker Centre Lau Pa Sat — Satay, Laksa, Chili Crab. Alle Kulturen in einem Markt.",
-            location: Location(latitude: 1.2803, longitude: 103.8503, city: "Singapur", region: "Singapur", country: "Singapur")),
-
-        Activity(categoryId: "swimming", date: .daysAgo(110), title: "Marina Bay Sands Rooftop",
-            text: "Infinity Pool über dem Singapur Skyline. Eine der verrücktesten Erfahrungen meines Lebens.",
-            isFavorite: true,
-            location: Location(latitude: 1.2838, longitude: 103.8607, city: "Singapur", region: "Singapur", country: "Singapur")),
-
-        Activity(categoryId: "travel", date: .daysAgo(112), title: "Shinkansen Tokyo–Kyoto",
-            text: "320 km/h, Fuji durchs Fenster, Bento in der Hand. Der Shinkansen ist japanische Perfektion.",
-            isFavorite: true,
-            location: Location(latitude: 35.6812, longitude: 139.7671, city: "Tokyo", region: "Tokyo", country: "Japan")),
-
-        Activity(categoryId: "concert", date: .daysAgo(115), title: "K-Pop Konzert Seoul",
-            text: "40.000 Fans, perfekte Choreografie, Lightsticks soweit das Auge reicht. Energie pur.",
-            isFavorite: true,
-            location: Location(latitude: 37.5665, longitude: 126.9780, city: "Seoul", region: "Seoul", country: "Südkorea")),
-
-        Activity(categoryId: "cafe", date: .daysAgo(116), title: "Kaffeezeremonie Seoul",
-            text: "Traditionelle koreanische Teezeremonie in einem Hanok-Haus. Langsamkeit als Kunst.",
-            location: Location(latitude: 37.5796, longitude: 126.9830, city: "Seoul", region: "Seoul", country: "Südkorea")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(90), title: "Tsukiji Frühstück Tokyo",
-            text: "Frischester Thunfisch um 5 Uhr morgens. Die Atmosphäre auf dem Markt ist einzigartig.",
-            isFavorite: true,
-            location: Location(latitude: 35.6654, longitude: 139.7707, city: "Tokyo", region: "Tokyo", country: "Japan")),
-
-        Activity(categoryId: "bar", date: .daysAgo(90), title: "Sake-Bar Shinjuku",
-            text: "Golden Gai — winzige Bars, 6 Sitzplätze, echter japanischer Sake. So unvergesslich.",
-            isFavorite: true,
-            location: Location(latitude: 35.6938, longitude: 139.7036, city: "Tokyo", region: "Tokyo", country: "Japan")),
-
-        Activity(categoryId: "museum", date: .daysAgo(91), title: "Teamlab Planets Tokyo",
-            text: "Digital Art, Spiegelräume, Licht und Wasser. Kunst die man nicht nur sieht sondern fühlt.",
-            location: Location(latitude: 35.6467, longitude: 139.7838, city: "Tokyo", region: "Tokyo", country: "Japan")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(91), title: "Ramen-Bar Fuunji Tokyo",
-            text: "Tsukemen-Ramen — dicker Brühe-Dip, frische Nudeln. 45 Minuten angestanden, kein Bereuen.",
-            isFavorite: true,
-            location: Location(latitude: 35.6897, longitude: 139.6983, city: "Tokyo", region: "Tokyo", country: "Japan")),
-
-        Activity(categoryId: "photography", date: .daysAgo(120), title: "Sonnenaufgang Angkor Wat",
-            text: "Um 4 Uhr aufgestanden, 45 Minuten Fahrrad durch den Dschungel. Dieser Sonnenaufgang — keine Worte.",
-            isFavorite: true,
-            location: Location(latitude: 13.4125, longitude: 103.8670, city: "Siem Reap", region: "Siem Reap", country: "Kambodscha")),
-
-        Activity(categoryId: "hiking", date: .daysAgo(125), title: "Wandern auf Lantau Island",
-            text: "Der Lantau Trail über den Sunset Peak. Hongkong unten im Dunst, Stille oben — surreal.",
-            location: Location(latitude: 22.2552, longitude: 113.9444, city: "Hongkong", region: "Lantau", country: "Hongkong")),
-
-        // ━━━ NORD- & SÜDAMERIKA (20) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        Activity(categoryId: "hiking", date: .daysAgo(130), title: "Central Park Morning Run",
-            text: "6km durch den Park bei Sonnenaufgang. New York schläft noch, nur die Jogger sind wach.",
             location: Location(latitude: 40.7851, longitude: -73.9683, city: "New York", region: "New York", country: "USA")),
 
-        Activity(categoryId: "concert", date: .daysAgo(131), title: "Jazz im Village Vanguard",
-            text: "Legendärer Jazzclub in Greenwich Village. Miles Davis hat hier gespielt — man spürt die Geschichte.",
+        Activity(categoryId: "photography", date: .daysAgo(760),
+            title: "Bali Reisterrassen",
+            text: "Tegallalang Reisterrassen bei Sonnenaufgang. Grüne Stufen bis zum Horizont. Unwirklich schön.",
             isFavorite: true,
-            location: Location(latitude: 40.7335, longitude: -74.0027, city: "New York", region: "New York", country: "USA")),
+            location: Location(latitude: -8.4095, longitude: 115.1889, city: "Ubud", region: "Bali", country: "Indonesien")),
 
-        Activity(categoryId: "cafe", date: .daysAgo(132), title: "Kaffee in Brooklyn",
-            text: "Intelligentsia Coffee, Flat White, MacBook und die beste People-Watching-Terrasse New Yorks.",
-            location: Location(latitude: 40.6892, longitude: -73.9442, city: "Brooklyn", region: "New York", country: "USA")),
+        // ══════════════════════════════════════════════════
+        // 2023 — 5 Aktivitäten (.daysAgo 851–1100)
+        // ══════════════════════════════════════════════════
 
-        Activity(categoryId: "photography", date: .daysAgo(133), title: "Highline New York",
-            text: "Der alte Güterzug-Viadukt als Park — Kunst, Pflanzen, Hudson River View. New York kann alles.",
-            location: Location(latitude: 40.7480, longitude: -74.0048, city: "New York", region: "New York", country: "USA")),
-
-        Activity(categoryId: "museum", date: .daysAgo(134), title: "Metropolitan Museum of Art",
-            text: "Ägyptische Mumien, impressionistische Gemälde, japanische Schwerter. Das Met ist endlos.",
+        Activity(categoryId: "running", date: .daysAgo(900),
+            title: "Erster Halbmarathon",
+            text: "21km München City Run. Training seit 4 Monaten. Bei km 19 geweint vor Erschöpfung und Stolz.",
             isFavorite: true,
-            location: Location(latitude: 40.7794, longitude: -73.9632, city: "New York", region: "New York", country: "USA")),
+            location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "concert", date: .daysAgo(140), title: "Tango in Buenos Aires",
-            text: "Milonga in San Telmo um Mitternacht. Fremde Menschen, eine Musik, eine Sprache.",
-            isFavorite: true,
-            location: Location(latitude: -34.6214, longitude: -58.3731, city: "Buenos Aires", region: "Buenos Aires", country: "Argentinien")),
-
-        Activity(categoryId: "bar", date: .daysAgo(141), title: "Bar-Crawl Buenos Aires",
-            text: "Palermo Soho bei Nacht — von Bar zu Bar, Malbec und Mate, neue Freunde aus aller Welt.",
-            location: Location(latitude: -34.5875, longitude: -58.4318, city: "Buenos Aires", region: "Buenos Aires", country: "Argentinien")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(142), title: "Parrilla La Brigada",
-            text: "Bestes Steak meines Lebens. Asado am offenen Feuer, Malbec aus Mendoza. Argentinien.",
-            isFavorite: true,
-            location: Location(latitude: -34.6218, longitude: -58.3712, city: "Buenos Aires", region: "Buenos Aires", country: "Argentinien")),
-
-        Activity(categoryId: "festival", date: .daysAgo(143), title: "Boca Juniors im La Bombonera",
-            text: "Argentinischer Fussball ist eine Religion. Die Stimmung im Stadion — unbeschreiblich.",
-            isFavorite: true,
-            location: Location(latitude: -34.6354, longitude: -58.3644, city: "Buenos Aires", region: "Buenos Aires", country: "Argentinien")),
-
-        Activity(categoryId: "beach", date: .daysAgo(145), title: "Copacabana Strand",
-            text: "Volleyball, Caipirinhas, Samba aus der Ferne. Rio de Janeiro lebt und atmet am Strand.",
-            isFavorite: true,
-            location: Location(latitude: -22.9714, longitude: -43.1823, city: "Rio de Janeiro", region: "Rio de Janeiro", country: "Brasilien")),
-
-        Activity(categoryId: "viewpoint", date: .daysAgo(146), title: "Cristo Redentor",
-            text: "Wolken um den Kopf der Statue, die Stadt unter uns. Rio von oben ist atemberaubend.",
-            isFavorite: true,
-            location: Location(latitude: -22.9519, longitude: -43.2105, city: "Rio de Janeiro", region: "Rio de Janeiro", country: "Brasilien")),
-
-        Activity(categoryId: "festival", date: .daysAgo(147), title: "Carnaval Rio de Janeiro",
-            text: "Samba-Schule, Kostüme, Trommeln die man im Brustkorb fühlt. Der grösste Strassenkarneval der Welt.",
-            isFavorite: true,
-            location: Location(latitude: -22.9035, longitude: -43.1752, city: "Rio de Janeiro", region: "Rio de Janeiro", country: "Brasilien")),
-
-        Activity(categoryId: "hiking", date: .daysAgo(150), title: "Wanderung Grouse Mountain",
-            text: "Der Grind — 2.9km straight up. Oben Blick auf Vancouver und den Pazifik. Schweissgebadet und glücklich.",
-            location: Location(latitude: 49.3732, longitude: -123.0788, city: "Vancouver", region: "British Columbia", country: "Kanada")),
-
-        Activity(categoryId: "yoga", date: .daysAgo(151), title: "Yoga Sunset Vancouver",
-            text: "Outdoor Yoga im Jericho Beach Park mit Blick auf die Berge. Frieden pur.",
-            location: Location(latitude: 49.2734, longitude: -123.1988, city: "Vancouver", region: "British Columbia", country: "Kanada")),
-
-        Activity(categoryId: "skiing", date: .daysAgo(155), title: "Ski Whistler Blackcomb",
-            text: "Nordamerikas grösstes Skigebiet. Powder auf dem Blackcomb Glacier — unvergesslich.",
-            isFavorite: true,
-            location: Location(latitude: 50.1163, longitude: -122.9574, city: "Whistler", region: "British Columbia", country: "Kanada")),
-
-        Activity(categoryId: "cafe", date: .daysAgo(156), title: "Kafka's Coffee Vancouver",
-            text: "Bester Filter-Kaffee der Stadt, in einem kleinen Laden im Commercial Drive. Regen draussen, warm drinnen.",
-            location: Location(latitude: 49.2611, longitude: -123.0693, city: "Vancouver", region: "British Columbia", country: "Kanada")),
-
-        Activity(categoryId: "museum", date: .daysAgo(160), title: "Frida Kahlo Museum",
-            text: "Das Blaue Haus in Coyoacán. Fridahos Schmerz und Stärke in jedem Pinselstrich spürbar.",
-            isFavorite: true,
-            location: Location(latitude: 19.3554, longitude: -99.1627, city: "Mexico City", region: "CDMX", country: "Mexiko")),
-
-        Activity(categoryId: "restaurant", date: .daysAgo(161), title: "Mercado de San Juan",
-            text: "Chapulines, Mezcal, frischer Käse. Mexico City ist eine der grossen Foodie-Städte der Welt.",
-            location: Location(latitude: 19.4326, longitude: -99.1332, city: "Mexico City", region: "CDMX", country: "Mexiko")),
-
-        Activity(categoryId: "festival", date: .daysAgo(170), title: "Lollapalooza Chicago",
-            text: "3 Tage, 8 Bühnen, 100 Acts. Chicago im August — Musik, Sonne und 100.000 Menschen.",
-            isFavorite: true,
-            location: Location(latitude: 41.8719, longitude: -87.6278, city: "Chicago", region: "Illinois", country: "USA")),
-
-        Activity(categoryId: "travel", date: .daysAgo(175), title: "Route 66 Road Trip",
-            text: "Chicago bis Santa Monica — 3940km, 14 Tage, unzählige Diners. Amerika pur.",
-            isFavorite: true,
-            location: Location(latitude: 34.0195, longitude: -118.4912, city: "Santa Monica", region: "Kalifornien", country: "USA")),
-
-        // ━━━ AFRIKA (15) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        Activity(categoryId: "hiking", date: .daysAgo(180), title: "Tafelberg Wanderung",
-            text: "3 Stunden Aufstieg, oben liegt Kapstadt zu unseren Füssen und beide Ozeane treffen sich.",
+        Activity(categoryId: "hiking", date: .daysAgo(950),
+            title: "Kapstadt Tafelberg",
+            text: "Seilbahn hoch, zu Fuss runter. Die Küste von oben — wo Atlantik und Indischer Ozean sich treffen.",
             isFavorite: true,
             location: Location(latitude: -33.9628, longitude: 18.4098, city: "Kapstadt", region: "Westkap", country: "Südafrika")),
 
-        Activity(categoryId: "beach", date: .daysAgo(181), title: "Camps Bay Strand",
-            text: "Weisser Sand, Tafelberg als Kulisse, Atlantik-Wellen. Kapstadt hat die schönste Lage der Welt.",
+        Activity(categoryId: "skiing", date: .daysAgo(1000),
+            title: "Erstes Mal Skifahren",
+            text: "Skikurs in Sölden. Tag 1: 20x gefallen. Tag 3: Blaue Piste alleine. Tag 5: Rot. Süchtig.",
             isFavorite: true,
-            location: Location(latitude: -33.9494, longitude: 18.3753, city: "Kapstadt", region: "Westkap", country: "Südafrika")),
+            location: Location(latitude: 46.9523, longitude: 11.0034, city: "Sölden", region: "Tirol", country: "Österreich")),
 
-        Activity(categoryId: "concert", date: .daysAgo(183), title: "Township Jazz Kapstadt",
-            text: "Live Jazz in Langa Township. Echte Musiker, echte Gemeinschaft — das wahre Kapstadt.",
+        Activity(categoryId: "photography", date: .daysAgo(1050),
+            title: "Paris Montmartre",
+            text: "Sacré-Coeur bei Nacht. Künstler auf dem Platz, Lichter der Stadt darunter. Klischee und trotzdem wahr.",
             isFavorite: true,
-            location: Location(latitude: -33.9432, longitude: 18.5266, city: "Langa", region: "Westkap", country: "Südafrika")),
+            location: Location(latitude: 48.8867, longitude: 2.3431, city: "Paris", region: "Île-de-France", country: "Frankreich")),
 
-        Activity(categoryId: "bar", date: .daysAgo(182), title: "V&A Waterfront Kapstadt",
-            text: "Craft Beer mit Blick auf den Hafen. Die Atmosphäre ist einzigartig — Afrika meets Europa.",
-            location: Location(latitude: -33.9042, longitude: 18.4197, city: "Kapstadt", region: "Westkap", country: "Südafrika")),
+        Activity(categoryId: "festival", date: .daysAgo(1100),
+            title: "Nürnberg Christkindlesmarkt",
+            text: "Der Ur-Weihnachtsmarkt. Nürnberger Bratwurst, Zwetschgenmännle, Glühwein im Becher.",
+            location: Location(latitude: 49.4521, longitude: 11.0767, city: "Nürnberg", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "cafe", date: .daysAgo(184), title: "Mintea Café Marrakesch",
-            text: "Frischer Pfefferminztee auf der Dachterrasse. Unter uns das Gewirr der Medina.",
-            location: Location(latitude: 31.6295, longitude: -7.9811, city: "Marrakesch", region: "Marrakesh-Safi", country: "Marokko")),
+        // ══════════════════════════════════════════════════
+        // 2022 — 3 Aktivitäten (.daysAgo 1101–1300)
+        // ══════════════════════════════════════════════════
 
-        Activity(categoryId: "restaurant", date: .daysAgo(185), title: "Dîner in Jemaa el-Fna",
-            text: "Tajine unter freiem Himmel, Schlangenbeschwörer und Gnawa-Musik. Marrakesch betäubt alle Sinne.",
+        Activity(categoryId: "museum", date: .daysAgo(1150),
+            title: "Bangkok Wat Pho",
+            text: "Liegender Buddha, 46m lang, goldene Fusssohlen. Stille inmitten der lärmenden Stadt. Frieden.",
             isFavorite: true,
-            location: Location(latitude: 31.6260, longitude: -7.9890, city: "Marrakesch", region: "Marrakesh-Safi", country: "Marokko")),
+            location: Location(latitude: 13.7563, longitude: 100.5018, city: "Bangkok", region: "Bangkok", country: "Thailand")),
 
-        Activity(categoryId: "yoga", date: .daysAgo(186), title: "Hammam in Fès",
-            text: "Traditionelles Bad in einem 500 Jahre alten Hammam. Dampf, Arganöl, absolute Entspannung.",
-            location: Location(latitude: 34.0601, longitude: -4.9936, city: "Fès", region: "Fès-Meknès", country: "Marokko")),
+        Activity(categoryId: "running", date: .daysAgo(1250),
+            title: "München Lockdown Laufen",
+            text: "Jeden Tag 5km durch leere Strassen. Die Stadt gehörte uns Läufern. Seltsam schöne Zeit.",
+            location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "viewpoint", date: .daysAgo(188), title: "Sonnenuntergang Sahara",
-            text: "Auf einer Sanddüne sitzend, oranges Licht, absolute Stille. Die Sahara verändert einen.",
+        Activity(categoryId: "concert", date: .daysAgo(1300),
+            title: "Sydney Oper",
+            text: "Konzert im Sydney Opera House. Die Muscheln leuchten, der Hafen glitzert. Bucket List erledigt.",
             isFavorite: true,
-            location: Location(latitude: 31.0609, longitude: -4.0127, city: "Merzouga", region: "Drâa-Tafilalet", country: "Marokko")),
+            location: Location(latitude: -33.8568, longitude: 151.2153, city: "Sydney", region: "NSW", country: "Australien")),
 
-        Activity(categoryId: "swimming", date: .daysAgo(190), title: "Schnorcheln Sansibar",
-            text: "Korallen, Schildkröten, bunte Fische — das klarste Wasser meines Lebens.",
+        // ══════════════════════════════════════════════════
+        // 2021 — 2 Aktivitäten (.daysAgo 1301–1500)
+        // ══════════════════════════════════════════════════
+
+        Activity(categoryId: "hiking", date: .daysAgo(1400),
+            title: "Erste Wanderung Alpen",
+            text: "Mit 25 zum ersten Mal in den Bergen. Karwendel, 2000m, Adler über uns. Alles hat sich verändert.",
             isFavorite: true,
-            location: Location(latitude: -6.1659, longitude: 39.2026, city: "Sansibar", region: "Sansibar", country: "Tansania")),
+            location: Location(latitude: 47.4523, longitude: 11.4234, city: "Mittenwald", region: "Bayern", country: "Deutschland")),
 
-        Activity(categoryId: "festival", date: .daysAgo(191), title: "Zanzibar Beach Party",
-            text: "Sundowner am Nungwi Beach mit Einheimischen und Reisenden. Trommelrhythmen bis Mitternacht.",
-            location: Location(latitude: -5.7272, longitude: 39.2985, city: "Nungwi", region: "Sansibar", country: "Tansania")),
-
-        Activity(categoryId: "photography", date: .daysAgo(192), title: "Stone Town Sansibar",
-            text: "Durch die engen Gassen der Altstadt — arabische Architektur, Gewürzgerüche, Geschichte.",
-            location: Location(latitude: -6.1630, longitude: 39.1894, city: "Stone Town", region: "Sansibar", country: "Tansania")),
-
-        Activity(categoryId: "yoga", date: .daysAgo(193), title: "Yoga Sonnenaufgang Sansibar",
-            text: "Strand-Yoga bei Sonnenaufgang, warmer Wind vom Indischen Ozean. Paradiesisch.",
-            location: Location(latitude: -6.1310, longitude: 39.3625, city: "Paje", region: "Sansibar", country: "Tansania")),
-
-        Activity(categoryId: "photography", date: .daysAgo(195), title: "Safari Masai Mara",
-            text: "Löwen bei Sonnenaufgang, Elefantenherde am Fluss, Millionen Gnus. Afrika pur.",
+        Activity(categoryId: "journal", date: .daysAgo(1480),
+            title: "Erstes Tagebuch",
+            text: "Angefangen ein Tagebuch zu führen. Erster Eintrag: heute war ein guter Tag. Mehr braucht es nicht.",
             isFavorite: true,
-            location: Location(latitude: -1.5050, longitude: 35.1437, city: "Masai Mara", region: "Narok", country: "Kenia")),
-
-        Activity(categoryId: "hiking", date: .daysAgo(196), title: "Uhuru Gardens Nairobi",
-            text: "Morgenspaziergang im Herzen Nairobis. Die Stadt erwacht mit Vogelgezwitscher und Chai.",
-            location: Location(latitude: -1.3031, longitude: 36.8176, city: "Nairobi", region: "Nairobi", country: "Kenia")),
-
-        Activity(categoryId: "museum", date: .daysAgo(197), title: "Nairobi National Museum",
-            text: "Geschichte Kenias und Ostafrikas. Die Fossilienabteilung mit Lucy ist weltklasse.",
-            location: Location(latitude: -1.2743, longitude: 36.8167, city: "Nairobi", region: "Nairobi", country: "Kenia")),
-
-        // ━━━ OZEANIEN (10) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        Activity(categoryId: "hiking", date: .daysAgo(200), title: "Bondi Beach Coastal Walk",
-            text: "5km von Bondi nach Coogee. Blauer Pazifik, weisser Sand, Tintenfischfelsen.",
-            isFavorite: true,
-            location: Location(latitude: -33.8908, longitude: 151.2743, city: "Sydney", region: "New South Wales", country: "Australien")),
-
-        Activity(categoryId: "photography", date: .daysAgo(201), title: "Harbour Bridge Climb",
-            text: "Auf die Sydney Harbour Bridge geklettert. Die Stadt liegt unter uns — unvergesslicher Ausblick.",
-            isFavorite: true,
-            location: Location(latitude: -33.8523, longitude: 151.2108, city: "Sydney", region: "New South Wales", country: "Australien")),
-
-        Activity(categoryId: "concert", date: .daysAgo(202), title: "Sydney Opera House",
-            text: "Beethoven 9. Symphonie im Opernhaus. Die Akustik, die Architektur — Australien kann Kultur.",
-            isFavorite: true,
-            location: Location(latitude: -33.8568, longitude: 151.2153, city: "Sydney", region: "New South Wales", country: "Australien")),
-
-        Activity(categoryId: "cafe", date: .daysAgo(205), title: "Café Skye Melbourne",
-            text: "Melbourne ist die Kaffeehauptstadt der Welt. Flat White im Laneway-Café — Perfektion.",
-            location: Location(latitude: -37.8136, longitude: 144.9631, city: "Melbourne", region: "Victoria", country: "Australien")),
-
-        Activity(categoryId: "beach", date: .daysAgo(206), title: "Great Ocean Road",
-            text: "12 Apostel bei Sonnenuntergang. Diese Felsnadeln im Meer — Natur als Kunst.",
-            isFavorite: true,
-            location: Location(latitude: -38.6627, longitude: 143.1051, city: "Port Campbell", region: "Victoria", country: "Australien")),
-
-        Activity(categoryId: "bar", date: .daysAgo(207), title: "Rooftop Bar Melbourne",
-            text: "Rooftop Bar im CBD, Skyline-Blick, Shiraz aus dem Barossa Valley. Melbourne bei Nacht.",
-            location: Location(latitude: -37.8136, longitude: 144.9631, city: "Melbourne", region: "Victoria", country: "Australien")),
-
-        Activity(categoryId: "travel", date: .daysAgo(210), title: "Milford Sound Fjord",
-            text: "Mit dem Boot durch den Fjord, Wasserfälle von allen Seiten. Neuseeland ist unwirklich schön.",
-            isFavorite: true,
-            location: Location(latitude: -44.6413, longitude: 167.8974, city: "Milford Sound", region: "Southland", country: "Neuseeland")),
-
-        Activity(categoryId: "travel", date: .daysAgo(211), title: "Hobbiton Neuseeland",
-            text: "Das echte Auenland. Grüne Hügel, runde Türen, das Green Dragon Pub. Magie pur.",
-            isFavorite: true,
-            location: Location(latitude: -37.8578, longitude: 175.6820, city: "Matamata", region: "Waikato", country: "Neuseeland")),
-
-        Activity(categoryId: "festival", date: .daysAgo(215), title: "Bluesfest Byron Bay",
-            text: "5 Tage Weltmusik unter freiem Himmel. Australien im Hippie-Modus.",
-            isFavorite: true,
-            location: Location(latitude: -28.6474, longitude: 153.6020, city: "Byron Bay", region: "New South Wales", country: "Australien")),
-
-        Activity(categoryId: "swimming", date: .daysAgo(216), title: "Surfen Byron Bay",
-            text: "Erste Surf-Session in Australien. Wellen, Sonne, Salzwasser — süchtig nach einer Stunde.",
-            location: Location(latitude: -28.6474, longitude: 153.6020, city: "Byron Bay", region: "New South Wales", country: "Australien")),
+            location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
     ]}
 }
 
