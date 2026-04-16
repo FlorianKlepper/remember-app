@@ -46,25 +46,35 @@ struct AddActivityTextScreen: View {
                 // ── Titelzeile ──────────────────────────────────────
                 TextField(
                     String(localized: "add.text.title.placeholder",
-                           defaultValue: "Titel (optional)"),
+                           defaultValue: "Titel"),
                     text: $vm.title
                 )
                 .font(.headline)
                 .focused($focusedField, equals: .title)
-                .submitLabel(.next)
+                .submitLabel(.return)
                 .onSubmit { focusedField = .text }
                 .padding(.horizontal)
-                .padding(.vertical, 12)
-
-                Divider().padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
 
                 // ── Freitext ────────────────────────────────────────
-                TextEditor(text: $vm.text)
-                    .font(.body)
-                    .focused($focusedField, equals: .text)
-                    .frame(minHeight: 220)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $vm.text)
+                        .font(.body)
+                        .focused($focusedField, equals: .text)
+                        .frame(minHeight: 220)
+
+                    if vm.text.isEmpty {
+                        Text(String(localized: "add.text.body.placeholder",
+                                    defaultValue: "Text"))
+                            .font(.body)
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .padding(.horizontal, 12)
 
                 // ── Fehler ──────────────────────────────────────────
                 if let error = saveError {
@@ -125,6 +135,9 @@ struct AddActivityTextScreen: View {
                 context: modelContext
             )
             addActivityVM.isSaved = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                NotificationCenter.default.post(name: .setSheetMedium, object: nil)
+            }
         } catch {
             saveError = String(
                 localized: "add.save.error",

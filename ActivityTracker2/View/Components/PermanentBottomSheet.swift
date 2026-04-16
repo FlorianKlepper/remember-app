@@ -229,6 +229,15 @@ struct PermanentBottomSheet: View {
             }
             mapVM.currentSheetDetent = 1.0
         }
+        // Nach Speichern einer Aktivität → Sheet auf medium
+        .onReceive(NotificationCenter.default.publisher(for: .setSheetMedium)) { _ in
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                currentDetent = .medium
+                dragOffset = 0
+            }
+            mapVM.currentSheetDetent = 0.45
+            NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
+        }
     }
 
     // MARK: Small Content (15 %)
@@ -322,7 +331,17 @@ struct PermanentBottomSheet: View {
                         }
                     }
                     .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                        guard let newId else { return }
+                        guard let newId,
+                              let newActivity = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                              let newLocation = newActivity.location
+                        else { return }
+                        let currentLocation = mapVM.displayedActivities
+                            .first(where: { $0.id == mapVM.previousHighlightedId })?.location
+                        mapVM.animateToPin(
+                            from: currentLocation,
+                            to: newLocation,
+                            currentSpan: mapVM.region.span
+                        )
                         withAnimation(.easeInOut(duration: 0.3)) {
                             proxy.scrollTo(newId, anchor: .top)
                         }
@@ -439,7 +458,17 @@ struct PermanentBottomSheet: View {
                     }
                 }
                 .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                    guard let newId else { return }
+                    guard let newId,
+                          let newActivity = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                          let newLocation = newActivity.location
+                    else { return }
+                    let currentLocation = mapVM.displayedActivities
+                        .first(where: { $0.id == mapVM.previousHighlightedId })?.location
+                    mapVM.animateToPin(
+                        from: currentLocation,
+                        to: newLocation,
+                        currentSpan: mapVM.region.span
+                    )
                     withAnimation(.easeInOut(duration: 0.3)) {
                         proxy.scrollTo(newId, anchor: .top)
                     }

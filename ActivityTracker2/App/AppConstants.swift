@@ -68,6 +68,8 @@ enum AppConstants {
 extension Notification.Name {
     /// ContentView → PermanentBottomSheet: Sheet auf small setzen (Tab-Tap).
     static let setSheetSmall = Notification.Name("setSheetSmall")
+    /// AddActivityTextScreen → PermanentBottomSheet: Sheet auf medium setzen (nach Speichern).
+    static let setSheetMedium = Notification.Name("setSheetMedium")
     /// ContentView → PermanentBottomSheet: Sheet auf large setzen (Tab-Tap).
     static let setSheetLarge = Notification.Name("setSheetLarge")
     /// PermanentBottomSheet → ContentView: User hat Sheet manuell auf large gezogen.

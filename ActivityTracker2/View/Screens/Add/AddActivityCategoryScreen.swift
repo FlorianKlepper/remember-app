@@ -19,8 +19,11 @@ struct AddActivityCategoryScreen: View {
 
     // MARK: State
 
-    /// NavigationPath für den 3-stufigen Add-Flow.
+    /// NavigationPath für den Step 2 → Step 3 Übergang innerhalb des Flows.
     @State private var navigationPath = NavigationPath()
+
+    /// Bool-gesteuerter Übergang zu Step 2 — verhindert Doppel-Navigation.
+    @State private var navigateToLocation = false
 
     // MARK: Private
 
@@ -31,11 +34,19 @@ struct AddActivityCategoryScreen: View {
     // MARK: Body
 
     var body: some View {
-        @Bindable var vm = addActivityVM
-
         NavigationStack(path: $navigationPath) {
             CategoryPickerGrid(
-                selectedCategoryId: $vm.selectedCategoryId,
+                selectedCategoryId: Binding(
+                    get: { addActivityVM.selectedCategoryId },
+                    set: { newId in
+                        addActivityVM.selectedCategoryId = newId
+                        if newId != nil, !navigateToLocation {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                navigateToLocation = true
+                            }
+                        }
+                    }
+                ),
                 userSettings: userSettings,
                 language: language
             )
@@ -43,31 +54,24 @@ struct AddActivityCategoryScreen: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(String(localized: "button.cancel", defaultValue: "Abbrechen")) {
+                    Button {
                         addActivityVM.reset()
                         dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.primary)
                     }
                 }
             }
-            .navigationDestination(for: Int.self) { step in
-                if step == 2 {
-                    AddActivityLocationScreen(navigationPath: $navigationPath)
-                } else if step == 3 {
-                    AddActivityTextScreen()
-                }
+            // Navigation zu Step 2 via Bool — nie doppelt
+            .navigationDestination(isPresented: $navigateToLocation) {
+                AddActivityLocationScreen(navigationPath: $navigationPath)
             }
         }
-        // Kategorie ausgewählt → zu Schritt 2 (Ort) navigieren
-        .onChange(of: addActivityVM.selectedCategoryId) { _, newValue in
-            guard newValue != nil else { return }
-            // Nur pushen wenn noch nicht auf LocationScreen
-            if navigationPath.count == 0 {
-                navigationPath.append(2)
-            }
-        }
-        // User ist von LocationScreen zurückgekehrt → Auswahl zurücksetzen für Neu-Auswahl
-        .onChange(of: navigationPath.count) { oldCount, newCount in
-            if oldCount > 0 && newCount == 0 {
+        // LocationScreen dismissed → Auswahl zurücksetzen für Neu-Auswahl
+        .onChange(of: navigateToLocation) { _, isActive in
+            if !isActive {
                 addActivityVM.selectedCategoryId = nil
             }
         }

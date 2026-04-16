@@ -199,6 +199,11 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .sheetBecameSmall)) { _ in
             isSheetLarge = false
         }
+        // Nach Speichern → zurück auf Karte (Tab 0), Sheet auf medium
+        .onReceive(NotificationCenter.default.publisher(for: .setSheetMedium)) { _ in
+            isSheetLarge = false
+            selectedTab = 0
+        }
     }
 
     // MARK: Private Helpers

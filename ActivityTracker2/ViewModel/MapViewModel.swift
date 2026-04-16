@@ -41,7 +41,13 @@ final class MapViewModel {
     var displayedActivities: [Activity] = []
 
     /// ID der hervorgehobenen Activity — steuert Highlight-Zeile und Map-Zentrierung.
-    var highlightedActivityId: UUID? = nil
+    /// Speichert beim Setzen den alten Wert in `previousHighlightedId`.
+    var highlightedActivityId: UUID? = nil {
+        didSet { previousHighlightedId = oldValue }
+    }
+
+    /// ID der zuletzt hervorgehobenen Activity — Ausgangspunkt für `animateToPin`.
+    var previousHighlightedId: Activity.ID? = nil
 
     /// Aktueller Sheet-Detent — steuert Offset-Logik in `adjustedCenter`.
     /// 0.15 = klein, 0.5 = mittel, 1.0 = gross.
@@ -157,6 +163,58 @@ extension MapViewModel {
                 region = MKCoordinateRegion(
                     center: targetCenter,
                     span: region.span
+                )
+            }
+        }
+    }
+
+    /// Flüssige 3-Phasen Transition zwischen zwei Pins: rauszoomen → rüberfahren → reinzoomen.
+    ///
+    /// - Phase 1 (0–0.35s): Rauszoomen auf 3× + Fahrt zur Mitte zwischen altem und neuem Pin.
+    /// - Phase 2 (0.35–0.70s): Reinzoomen auf ursprünglichen Span, zentriert auf neuen Pin.
+    ///
+    /// - Parameters:
+    ///   - currentLocation: Aktuell hervorgehobene Location (Startpunkt). `nil` = kein Offset.
+    ///   - newLocation: Ziel-Location (neuer Pin).
+    ///   - currentSpan: Span der Region vor der Transition — wird am Ende wiederhergestellt.
+    func animateToPin(
+        from currentLocation: Location?,
+        to newLocation: Location,
+        currentSpan: MKCoordinateSpan
+    ) {
+        let zoomedOutSpan = MKCoordinateSpan(
+            latitudeDelta:  currentSpan.latitudeDelta  * 3.0,
+            longitudeDelta: currentSpan.longitudeDelta * 3.0
+        )
+
+        let midCenter: CLLocationCoordinate2D
+        if let current = currentLocation {
+            midCenter = CLLocationCoordinate2D(
+                latitude:  (current.coordinate.latitude  + newLocation.coordinate.latitude)  / 2,
+                longitude: (current.coordinate.longitude + newLocation.coordinate.longitude) / 2
+            )
+        } else {
+            midCenter = newLocation.coordinate
+        }
+
+        // Phase 1: Rauszoomen + zur Mitte fahren
+        withAnimation(.easeIn(duration: 0.35)) {
+            region = MKCoordinateRegion(
+                center: adjustedCenter(for: midCenter, span: zoomedOutSpan, sheetDetent: currentSheetDetent),
+                span: zoomedOutSpan
+            )
+        }
+
+        // Phase 2: Reinzoomen auf neuen Pin
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            withAnimation(.easeOut(duration: 0.35)) {
+                self.region = MKCoordinateRegion(
+                    center: self.adjustedCenter(
+                        for: newLocation.coordinate,
+                        span: currentSpan,
+                        sheetDetent: self.currentSheetDetent
+                    ),
+                    span: currentSpan
                 )
             }
         }

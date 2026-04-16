@@ -19,6 +19,14 @@ import CoreLocation
 @Observable
 final class UserSettings {
 
+    // MARK: Init
+
+    /// Lädt `hasCompletedOnboarding` aus UserDefaults — alle anderen Properties
+    /// werden via @AppStorage automatisch synchronisiert.
+    init() {
+        hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    }
+
     // MARK: Home Location
 
     /// Gespeicherte Heimat-Latitude. Sentinel `-999.0` bedeutet: nicht gesetzt.
@@ -55,8 +63,11 @@ final class UserSettings {
     // MARK: Onboarding & Paywall
 
     /// `true` wenn der User das Onboarding abgeschlossen hat.
-    @ObservationIgnored
-    @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
+    /// Kein @ObservationIgnored — muss @Observable-tracked sein damit
+    /// ActivityTracker2App.body beim Wechsel OnboardingScreen → ContentView re-rendert.
+    var hasCompletedOnboarding: Bool = false {
+        didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
+    }
 
     /// `true` wenn die Paywall dem User bereits mindestens einmal angezeigt wurde.
     @ObservationIgnored
