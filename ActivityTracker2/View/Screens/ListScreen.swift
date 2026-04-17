@@ -107,7 +107,11 @@ struct ListScreen: View {
                     Button {
                         selectedActivity = activity
                     } label: {
-                        ActivityRowView(activity: activity)
+                        ActivityRowView(activity: activity) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                filterVM.setFilter(categoryId: activity.categoryId)
+                            }
+                        }
                     }
                     .buttonStyle(.plain)
 

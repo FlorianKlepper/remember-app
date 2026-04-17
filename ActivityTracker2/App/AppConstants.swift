@@ -80,4 +80,6 @@ extension Notification.Name {
     static let sheetBecameLarge = Notification.Name("sheetBecameLarge")
     /// PermanentBottomSheet → ContentView: Sheet ist nach Drag-Ende auf small/medium.
     static let sheetBecameSmall = Notification.Name("sheetBecameSmall")
+    /// ActivityRow → CategoryChipBar: Kategorie-Filter wurde über Icon-Tap gesetzt.
+    static let categoryFilterChanged = Notification.Name("categoryFilterChanged")
 }

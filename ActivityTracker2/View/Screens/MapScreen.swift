@@ -25,10 +25,12 @@ struct MapScreen: View {
     @Environment(FilterViewModel.self)   private var filterVM
     @Environment(ActivityViewModel.self) private var activityVM
     @Environment(LocationManager.self)   private var locationManager
+    @Environment(UserSettings.self)      private var userSettings
 
     // MARK: State
 
     @State private var cameraPosition: MapCameraPosition = .automatic
+    @State private var showSettings = false
 
     // MARK: Private
 
@@ -177,7 +179,14 @@ struct MapScreen: View {
                 }
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        .mapStyle(
+            userSettings.mapStyle == "satellite" ? .imagery :
+            userSettings.mapStyle == "hybrid"    ? .hybrid  :
+            .standard(pointsOfInterest: .excludingAll)
+        )
+        .sheet(isPresented: $showSettings) {
+            SettingsScreen()
+        }
     }
 
     // MARK: Map Control Buttons (rechts oben, fix)
@@ -185,6 +194,18 @@ struct MapScreen: View {
     @ViewBuilder
     private var mapControlButtons: some View {
         VStack(spacing: 0) {
+
+            // Einstellungen
+            Button { showSettings = true } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 36, height: 36)
+            }
+
+            Color(.systemGray4)
+                .frame(width: 36, height: 0.5)
+                .padding(.vertical, 4)
 
             // Zoom In
             Button { zoomIn() } label: {

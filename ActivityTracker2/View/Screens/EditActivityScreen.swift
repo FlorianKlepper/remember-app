@@ -27,7 +27,6 @@ struct EditActivityScreen: View {
     @State private var editTitle:       String
     @State private var editText:        String
     @State private var editDate:        Date
-    @State private var editIsFavorite:  Bool
     @State private var editStarRating:  Int
 
     @FocusState private var focusedField: Field?
@@ -46,7 +45,6 @@ struct EditActivityScreen: View {
         _editTitle      = State(initialValue: activity.title ?? "")
         _editText       = State(initialValue: activity.text ?? "")
         _editDate       = State(initialValue: activity.date)
-        _editIsFavorite = State(initialValue: activity.isFavorite)
         _editStarRating = State(initialValue: activity.starRating)
     }
 
@@ -111,16 +109,6 @@ struct EditActivityScreen: View {
                     StarRatingView(rating: $editStarRating, isEditable: true)
                         .padding(.top, 12)
 
-                    Divider().padding(.horizontal)
-
-                    // ── Favorit ──────────────────────────────────────
-                    Toggle(
-                        String(localized: "edit.favorite.label",
-                               defaultValue: "Favorit"),
-                        isOn: $editIsFavorite
-                    )
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
                 }
             }
             .navigationTitle(String(localized: "edit.title", defaultValue: "Bearbeiten"))
@@ -152,7 +140,6 @@ struct EditActivityScreen: View {
         activity.title      = editTitle.isBlank ? nil : editTitle
         activity.text       = editText.isBlank  ? nil : editText
         activity.date       = editDate
-        activity.isFavorite = editIsFavorite
         activity.starRating = editStarRating
         activityVM.updateActivity(activity, context: modelContext)
         dismiss()

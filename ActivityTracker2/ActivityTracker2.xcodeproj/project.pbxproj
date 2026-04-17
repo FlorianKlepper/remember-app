@@ -54,6 +54,7 @@
 		15388C382F8CF02F000A024E /* AddActivityTextScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C312F8CF028000A024E /* AddActivityTextScreen.swift */; };
 		15388C392F8CF030000A024E /* ActivityDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C322F8CF029000A024E /* ActivityDetailScreen.swift */; };
 		15388C3A2F8CF031000A024E /* EditActivityScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C332F8CF02A000A024E /* EditActivityScreen.swift */; };
+		15388C5D2F8CF053000A024E /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C5C2F8CF052000A024E /* SettingsScreen.swift */; };
 		15388C3B2F8CF032000A024E /* OnboardingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C342F8CF02B000A024E /* OnboardingScreen.swift */; };
 		15388C3C2F8CF033000A024E /* LocationPermissionDeniedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */; };
 		15388C3E2F8CF035000A024E /* PreviewDataHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */; };
@@ -110,6 +111,7 @@
 		15388C312F8CF028000A024E /* AddActivityTextScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddActivityTextScreen.swift; sourceTree = "<group>"; };
 		15388C322F8CF029000A024E /* ActivityDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailScreen.swift; sourceTree = "<group>"; };
 		15388C332F8CF02A000A024E /* EditActivityScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditActivityScreen.swift; sourceTree = "<group>"; };
+		15388C5C2F8CF052000A024E /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		15388C342F8CF02B000A024E /* OnboardingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreen.swift; sourceTree = "<group>"; };
 		15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionDeniedScreen.swift; sourceTree = "<group>"; };
 		15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDataHelper.swift; sourceTree = "<group>"; };
@@ -230,6 +232,7 @@
 				15388C292F8CF024000A024E /* PlusScreen.swift */,
 				15388C322F8CF029000A024E /* ActivityDetailScreen.swift */,
 				15388C332F8CF02A000A024E /* EditActivityScreen.swift */,
+				15388C5C2F8CF052000A024E /* SettingsScreen.swift */,
 				15388C342F8CF02B000A024E /* OnboardingScreen.swift */,
 				15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */,
 				15388BB62F8C9D95000A024E /* Add */,
@@ -390,6 +393,7 @@
 				15388C382F8CF02F000A024E /* AddActivityTextScreen.swift in Sources */,
 				15388C392F8CF030000A024E /* ActivityDetailScreen.swift in Sources */,
 				15388C3A2F8CF031000A024E /* EditActivityScreen.swift in Sources */,
+				15388C5D2F8CF053000A024E /* SettingsScreen.swift in Sources */,
 				15388C3B2F8CF032000A024E /* OnboardingScreen.swift in Sources */,
 				15388C3C2F8CF033000A024E /* LocationPermissionDeniedScreen.swift in Sources */,
 				15388C3E2F8CF035000A024E /* PreviewDataHelper.swift in Sources */,

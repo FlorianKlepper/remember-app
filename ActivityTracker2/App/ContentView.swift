@@ -88,8 +88,8 @@ struct AppTabBar: View {
         .frame(height: 62)
         .background(
             RoundedRectangle(cornerRadius: 26)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 4)
+                .fill(Color(.systemGray5).opacity(0.95))
+                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: -4)
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
@@ -217,14 +217,6 @@ struct ContentView: View {
         return Color(hex: category.colorHex)
     }
 
-    /// Höhe der Tab Bar inkl. Safe Area — für FAB-Positionierung.
-    private var tabBarHeight: CGFloat {
-        let safeArea = UIApplication.shared
-            .connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first?.windows.first?.safeAreaInsets.bottom ?? 34
-        return 49 + safeArea + 4
-    }
 }
 
 // MARK: - Preview

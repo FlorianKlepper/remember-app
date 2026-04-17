@@ -60,6 +60,16 @@ final class UserSettings {
     @ObservationIgnored
     @AppStorage("selectedLanguage") var selectedLanguage: String = "system"
 
+    // MARK: Darstellung
+
+    /// App-weites Farbschema. Werte: `"system"`, `"light"`, `"dark"`.
+    @ObservationIgnored
+    @AppStorage("colorScheme") var colorScheme: String = "system"
+
+    /// Karten-Stil. Werte: `"standard"`, `"satellite"`, `"hybrid"`.
+    @ObservationIgnored
+    @AppStorage("mapStyle") var mapStyle: String = "standard"
+
     // MARK: Onboarding & Paywall
 
     /// `true` wenn der User das Onboarding abgeschlossen hat.

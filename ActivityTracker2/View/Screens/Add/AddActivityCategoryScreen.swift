@@ -66,7 +66,7 @@ struct AddActivityCategoryScreen: View {
             }
             // Navigation zu Step 2 via Bool — nie doppelt
             .navigationDestination(isPresented: $navigateToLocation) {
-                AddActivityLocationScreen(navigationPath: $navigationPath)
+                AddActivityLocationScreen()
             }
         }
         // LocationScreen dismissed → Auswahl zurücksetzen für Neu-Auswahl

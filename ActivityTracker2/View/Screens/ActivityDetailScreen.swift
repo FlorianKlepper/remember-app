@@ -34,7 +34,7 @@ struct ActivityDetailScreen: View {
 
                 // ── 1. Karte ────────────────────────────────────────
                 if let location = activity.location {
-                    MiniMapView(coordinate: location.coordinate)
+                    MiniMapView(coordinate: location.coordinate, categoryId: activity.categoryId)
                         .frame(height: 110)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .padding(.horizontal, 16)

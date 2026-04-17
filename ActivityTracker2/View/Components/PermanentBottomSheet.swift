@@ -299,18 +299,12 @@ struct PermanentBottomSheet: View {
             .scrollPosition(id: $scrollPosition)
             .onChange(of: scrollPosition) { _, newId in
                 guard let newId, newId != mapVM.highlightedActivityId else { return }
+                // Nur highlightedActivityId setzen —
+                // animateToPin wird durch onChange(of: highlightedActivityId) ausgelöst
                 mapVM.highlightedActivityId = newId
                 if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
                    let location = activity.location {
                     mapVM.selectedLocation = location
-                    let center = mapVM.adjustedCenter(
-                        for: location.coordinate,
-                        span: mapVM.region.span,
-                        sheetDetent: mapVM.currentSheetDetent
-                    )
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
-                    }
                 }
             }
             .onChange(of: mapVM.highlightedActivityId) { _, newId in
@@ -497,10 +491,10 @@ struct PermanentBottomSheet: View {
                 // ── Datum links ──────────────────────────────────
                 VStack(alignment: .center, spacing: 0) {
                     Text(activity.dayString)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.primary)
                     Text(activity.monthString)
-                        .font(.system(size: 13, weight: .regular))
+                        .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
                 .frame(width: 40)
@@ -508,7 +502,8 @@ struct PermanentBottomSheet: View {
                 // ── Titel + Ort + Text mitte ─────────────────────
                 VStack(alignment: .leading, spacing: 2) {
                     Text(activity.displayTitle)
-                        .font(.headline)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                         .lineLimit(1)
 
                     if let city = activity.location?.city, !city.isBlank {
@@ -527,10 +522,12 @@ struct PermanentBottomSheet: View {
                     }
                 }
 
-                Spacer()
+                Spacer(minLength: 4)
 
-                // ── Sterne + Kategorie Icon rechts ───────────────
-                VStack(alignment: .trailing, spacing: 4) {
+                // ── Sterne + Kategorie Icon nebeneinander ────────
+                HStack(alignment: .center, spacing: 6) {
+
+                    // Sterne links vom Icon
                     if activity.starRating > 0 {
                         HStack(spacing: 2) {
                             ForEach(1...activity.starRating, id: \.self) { _ in
@@ -540,11 +537,30 @@ struct PermanentBottomSheet: View {
                             }
                         }
                     }
-                    CategoryIconView(categoryId: activity.categoryId, size: 36)
+
+                    // Icon rechts (tippbar → Kategorie-Filter)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            filterVM.setFilter(categoryId: activity.categoryId)
+                        }
+                        mapVM.highlightedActivityId = activity.id
+                        if let location = activity.location {
+                            mapVM.animateToPin(
+                                from: mapVM.selectedLocation,
+                                to: location,
+                                currentSpan: mapVM.region.span
+                            )
+                            mapVM.selectedLocation = location
+                        }
+                        HapticManager.selectionChanged()
+                    } label: {
+                        CategoryIconView(categoryId: activity.categoryId, size: 30)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
-            .padding(.vertical, 12)
+            .padding(.vertical, 8)
         }
         .background(isHighlighted ? Color(.systemGray6) : Color.clear)
         .contentShape(Rectangle())

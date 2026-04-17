@@ -13,6 +13,7 @@ struct ActivityRowView: View {
     // MARK: Parameter
 
     let activity: Activity
+    var onCategoryTap: (() -> Void)? = nil
 
     // MARK: Body
 
@@ -52,17 +53,36 @@ struct ActivityRowView: View {
                         .truncationMode(.tail)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
-            // ── Favorit-Stern ────────────────────────────────────
-            if activity.isFavorite {
-                Image(systemName: "star.fill")
-                    .font(.caption)
-                    .foregroundStyle(Color(.systemYellow))
+            Spacer(minLength: 4)
+
+            // ── Sterne + Icon nebeneinander ──────────────────────
+            HStack(alignment: .center, spacing: 6) {
+
+                // Sterne links vom Icon
+                if activity.starRating > 0 {
+                    HStack(spacing: 2) {
+                        ForEach(1...activity.starRating, id: \.self) { _ in
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 9))
+                                .foregroundStyle(Color(hex: "#FFD700"))
+                        }
+                    }
+                }
+
+                // Icon rechts (tippbar wenn Callback vorhanden)
+                if let onCategoryTap {
+                    Button {
+                        onCategoryTap()
+                        HapticManager.selectionChanged()
+                    } label: {
+                        CategoryIconView(categoryId: activity.categoryId, size: 36)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    CategoryIconView(categoryId: activity.categoryId, size: 36)
+                }
             }
-
-            // ── Kategorie Icon rechts ────────────────────────────
-            CategoryIconView(categoryId: activity.categoryId, size: 36)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

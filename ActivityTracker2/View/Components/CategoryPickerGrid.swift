@@ -58,9 +58,13 @@ struct CategoryPickerGrid: View {
         }
     }
 
+    private var journalCategories: [Category] {
+        Category.mvpCategories.filter { $0.id == "journal" }
+    }
+
     private var kreativCategories: [Category] {
         Category.mvpCategories.filter {
-            ["journal", "photography"].contains($0.id)
+            ["photography"].contains($0.id)
         }
     }
 
@@ -79,18 +83,26 @@ struct CategoryPickerGrid: View {
                 if !usedCategories.isEmpty {
                     categorySection(
                         title: String(localized: "category.section.used",
-                                     defaultValue: "Verwendet"),
+                                     defaultValue: "Verwendete Kategorien"),
                         subtitle: nil,
                         categories: usedCategories
                     )
                 }
 
                 categorySection(
-                    title: String(localized: "category.section.outdoor",
-                                  defaultValue: "Outdoor"),
-                    subtitle: String(localized: "category.section.outdoor.subtitle",
-                                     defaultValue: "Natur & Abenteuer"),
-                    categories: outdoorCategories
+                    title: String(localized: "category.section.journal",
+                                  defaultValue: "Tagebuch"),
+                    subtitle: String(localized: "category.section.journal.subtitle",
+                                     defaultValue: "Persönliche Einträge"),
+                    categories: journalCategories
+                )
+
+                categorySection(
+                    title: String(localized: "category.section.food",
+                                  defaultValue: "Essen & Trinken"),
+                    subtitle: String(localized: "category.section.food.subtitle",
+                                     defaultValue: "Restaurants, Cafés & Bars"),
+                    categories: foodCategories
                 )
 
                 categorySection(
@@ -102,11 +114,11 @@ struct CategoryPickerGrid: View {
                 )
 
                 categorySection(
-                    title: String(localized: "category.section.food",
-                                  defaultValue: "Essen & Trinken"),
-                    subtitle: String(localized: "category.section.food.subtitle",
-                                     defaultValue: "Restaurants, Cafés & Bars"),
-                    categories: foodCategories
+                    title: String(localized: "category.section.outdoor",
+                                  defaultValue: "Outdoor"),
+                    subtitle: String(localized: "category.section.outdoor.subtitle",
+                                     defaultValue: "Natur & Abenteuer"),
+                    categories: outdoorCategories
                 )
 
                 categorySection(
@@ -121,7 +133,7 @@ struct CategoryPickerGrid: View {
                     title: String(localized: "category.section.kreativ",
                                   defaultValue: "Kreativ"),
                     subtitle: String(localized: "category.section.kreativ.subtitle",
-                                     defaultValue: "Kunst, Fotografie & mehr"),
+                                     defaultValue: "Fotografie & mehr"),
                     categories: kreativCategories
                 )
 
