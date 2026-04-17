@@ -54,9 +54,9 @@ struct PermanentBottomSheet: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let screen  = geometry.size.height
-            let baseH   = heightFor(currentDetent, screen)
-            let minH    = screen * 0.15
+            let screen   = geometry.size.height
+            let baseH    = heightFor(currentDetent, screen)
+            let minH     = screen * 0.15
             let displayH = max(baseH + dragOffset, minH)
 
             VStack(spacing: 0) {
@@ -83,116 +83,26 @@ struct PermanentBottomSheet: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: displayH)
-            .background(Color(.systemBackground))
-            .clipShape(
+            .background(
                 UnevenRoundedRectangle(
-                    topLeadingRadius: 16,
+                    topLeadingRadius: 28,
                     bottomLeadingRadius: 0,
                     bottomTrailingRadius: 0,
-                    topTrailingRadius: 16
+                    topTrailingRadius: 28
+                )
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -2)
+            )
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 28,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 28
                 )
             )
-            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -2)
             .offset(y: screen - displayH)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        // translation.height positiv = nach unten = Sheet wird kleiner
-                        let translation = value.translation.height
-                        let screen      = UIScreen.main.bounds.height
-                        let base        = heightFor(currentDetent, screen)
-                        let newH        = base - translation
-                        let minH        = screen * 0.15
-                        dragOffset = newH < minH ? minH - base : -translation
-                    }
-                    .onEnded { value in
-                        let velocity = value.predictedEndTranslation.height
-
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            if velocity > 0 {
-                                // Nach unten gewischt → eine Stufe tiefer
-                                // .large → .medium (NIE direkt zu .small)
-                                switch currentDetent {
-                                case .large:  currentDetent = .medium
-                                case .medium: currentDetent = .small
-                                case .small:  currentDetent = .small
-                                }
-                            } else {
-                                // Nach oben gewischt → eine Stufe höher
-                                switch currentDetent {
-                                case .small:  currentDetent = .medium
-                                case .medium: currentDetent = .large
-                                case .large:  currentDetent = .large
-                                }
-                            }
-                            dragOffset = 0
-                        }
-
-                        // MapViewModel: Sheet-Detent synchronisieren + Map neu zentrieren
-                        let detentAfterDrag = currentDetent
-                        switch currentDetent {
-
-                        case .small:
-                            mapVM.currentSheetDetent = 0.15
-                            // Nach Sheet-Animation neu zentrieren — kein Offset (echte Mitte)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                if let activity = mapVM.displayedActivities
-                                    .first(where: { $0.id == mapVM.highlightedActivityId }),
-                                   let location = activity.location {
-                                    let center = mapVM.adjustedCenter(
-                                        for: location.coordinate,
-                                        span: mapVM.region.span,
-                                        sheetDetent: 0.15
-                                    )
-                                    withAnimation(.easeInOut(duration: 0.4)) {
-                                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
-                                    }
-                                }
-                            }
-
-                        case .medium:
-                            mapVM.currentSheetDetent = 0.5
-                            // Nach Sheet-Animation neu zentrieren — 0.18 Offset (Pin oben)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                if let location = mapVM.selectedLocation,
-                                   mapVM.displayedActivities.contains(where: { $0.location?.id == location.id }) {
-                                    let center = mapVM.adjustedCenter(
-                                        for: location.coordinate,
-                                        span: mapVM.region.span,
-                                        sheetDetent: 0.5
-                                    )
-                                    withAnimation(.easeInOut(duration: 0.4)) {
-                                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
-                                    }
-                                } else if let highlighted = mapVM.highlightedActivityId,
-                                          let activity = mapVM.displayedActivities.first(where: { $0.id == highlighted }),
-                                          let location = activity.location {
-                                    let center = mapVM.adjustedCenter(
-                                        for: location.coordinate,
-                                        span: mapVM.region.span,
-                                        sheetDetent: 0.5
-                                    )
-                                    withAnimation(.easeInOut(duration: 0.4)) {
-                                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
-                                    }
-                                }
-                            }
-
-                        case .large:
-                            mapVM.currentSheetDetent = 1.0
-                        }
-
-                        // Drag-Notification an ContentView — NUR wenn User selbst wischt
-                        // asyncAfter 0.1s: Animation läuft zuerst, dann State-Sync
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            if detentAfterDrag == .large {
-                                NotificationCenter.default.post(name: .sheetBecameLarge, object: nil)
-                            } else {
-                                NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
-                            }
-                        }
-                    }
-            )
+            .gesture(dragGesture)
         }
         .ignoresSafeArea(edges: .bottom)
         .sheet(item: $selectedActivity) { activity in
@@ -213,7 +123,7 @@ struct PermanentBottomSheet: View {
                 }
             }
         }
-        // Tab "Karte" → Sheet klein (kein Rück-Post — ContentView hat bereits gesetzt)
+        // Tab "Karte" → Sheet klein
         .onReceive(NotificationCenter.default.publisher(for: .setSheetSmall)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .small
@@ -221,7 +131,7 @@ struct PermanentBottomSheet: View {
             }
             mapVM.currentSheetDetent = 0.15
         }
-        // Tab "Liste" → Sheet gross (kein Rück-Post — ContentView hat bereits gesetzt)
+        // Tab "Liste" → Sheet gross
         .onReceive(NotificationCenter.default.publisher(for: .setSheetLarge)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .large
@@ -240,6 +150,98 @@ struct PermanentBottomSheet: View {
         }
     }
 
+    // MARK: Drag Gesture
+
+    private var dragGesture: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                let translation = value.translation.height
+                let screen      = UIScreen.main.bounds.height
+                let base        = heightFor(currentDetent, screen)
+                let newH        = base - translation
+                let minH        = screen * 0.15
+                dragOffset = newH < minH ? minH - base : -translation
+            }
+            .onEnded { value in
+                let velocity = value.predictedEndTranslation.height
+
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    if velocity > 0 {
+                        switch currentDetent {
+                        case .large:  currentDetent = .medium
+                        case .medium: currentDetent = .small
+                        case .small:  currentDetent = .small
+                        }
+                    } else {
+                        switch currentDetent {
+                        case .small:  currentDetent = .medium
+                        case .medium: currentDetent = .large
+                        case .large:  currentDetent = .large
+                        }
+                    }
+                    dragOffset = 0
+                }
+
+                let detentAfterDrag = currentDetent
+                syncMapAfterDrag(detent: currentDetent)
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if detentAfterDrag == .large {
+                        NotificationCenter.default.post(name: .sheetBecameLarge, object: nil)
+                    } else {
+                        NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
+                    }
+                }
+            }
+    }
+
+    /// Karte nach Drag-Ende neu zentrieren.
+    private func syncMapAfterDrag(detent: SheetDetent) {
+        switch detent {
+        case .small:
+            mapVM.currentSheetDetent = 0.15
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                guard let activity = mapVM.displayedActivities
+                    .first(where: { $0.id == mapVM.highlightedActivityId }),
+                      let location = activity.location else { return }
+                let center = mapVM.adjustedCenter(
+                    for: location.coordinate,
+                    span: mapVM.region.span,
+                    sheetDetent: 0.15
+                )
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                }
+            }
+        case .medium:
+            mapVM.currentSheetDetent = 0.5
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                let location: Location? = {
+                    if let sel = mapVM.selectedLocation,
+                       mapVM.displayedActivities.contains(where: { $0.location?.id == sel.id }) {
+                        return sel
+                    }
+                    if let id = mapVM.highlightedActivityId,
+                       let act = mapVM.displayedActivities.first(where: { $0.id == id }) {
+                        return act.location
+                    }
+                    return nil
+                }()
+                guard let location else { return }
+                let center = mapVM.adjustedCenter(
+                    for: location.coordinate,
+                    span: mapVM.region.span,
+                    sheetDetent: 0.5
+                )
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                }
+            }
+        case .large:
+            mapVM.currentSheetDetent = 1.0
+        }
+    }
+
     // MARK: Small Content (15 %)
 
     private var smallContent: some View {
@@ -250,133 +252,99 @@ struct PermanentBottomSheet: View {
 
     private var mediumContent: some View {
         VStack(alignment: .leading, spacing: 0) {
-
-            // ── Count-Header ─────────────────────────────────────
-            if !mapVM.displayedActivities.isEmpty {
-                let count = mapVM.displayedActivities.count
-                let label = count == 1
-                    ? String(localized: "bottomsheet.activities.count.few")
-                    : String(localized: "bottomsheet.activities")
-                HStack {
-                    Text("\(count) \(label)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-            }
-
+            mediumCountHeader
             Divider()
-
             if mapVM.displayedActivities.isEmpty {
                 Text(LocalizedStringKey("bottomsheet.tap.pin"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(16)
             } else {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(spacing: 0) {
-                            ForEach(
-                                Array(mapVM.displayedActivities.enumerated()),
-                                id: \.element.id
-                            ) { index, activity in
-                                let showYearHeader: Bool = {
-                                    if index == 0 { return true }
-                                    return mapVM.displayedActivities[index - 1].yearInt != activity.yearInt
-                                }()
+                mediumScrollView
+            }
+        }
+    }
 
-                                if showYearHeader {
-                                    HStack(spacing: 0) {
-                                        Text(String(format: "%d", activity.yearInt))
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundStyle(.secondary)
-                                            .padding(.leading, 16)
-                                            .padding(.vertical, 6)
-                                        Spacer()
-                                        Rectangle()
-                                            .fill(Color(.systemGray4))
-                                            .frame(height: 0.5)
-                                            .padding(.trailing, 16)
-                                    }
-                                    .background(Color(.systemGray6).opacity(0.5))
-                                }
+    @ViewBuilder
+    private var mediumCountHeader: some View {
+        if !mapVM.displayedActivities.isEmpty {
+            let count = mapVM.displayedActivities.count
+            let label = count == 1
+                ? String(localized: "bottomsheet.activities.count.few")
+                : String(localized: "bottomsheet.activities")
+            HStack {
+                Text("\(count) \(label)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        }
+    }
 
-                                activityRow(
-                                    activity: activity,
-                                    isHighlighted: activity.id == mapVM.highlightedActivityId
-                                )
-                                .frame(minHeight: 72)
-                                .id(activity.id)
-
-                                Divider()
-                                    .padding(.leading, 16)
-                            }
-                        }
-                        .scrollTargetLayout()
+    private var mediumScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(spacing: 0) {
+                    activityListItems(
+                        activities: mapVM.displayedActivities,
+                        highlighted: mapVM.highlightedActivityId
+                    )
+                }
+                .padding(.bottom, UIScreen.main.bounds.height * 0.35)
+                .scrollTargetLayout()
+            }
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $scrollPosition)
+            .onChange(of: scrollPosition) { _, newId in
+                guard let newId, newId != mapVM.highlightedActivityId else { return }
+                mapVM.highlightedActivityId = newId
+                if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                   let location = activity.location {
+                    mapVM.selectedLocation = location
+                    let center = mapVM.adjustedCenter(
+                        for: location.coordinate,
+                        span: mapVM.region.span,
+                        sheetDetent: mapVM.currentSheetDetent
+                    )
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
                     }
-                    .scrollTargetBehavior(.viewAligned)
-                    .scrollPosition(id: $scrollPosition)
-                    .onChange(of: scrollPosition) { _, newId in
-                        guard let newId, newId != mapVM.highlightedActivityId else { return }
-                        mapVM.highlightedActivityId = newId
-                        if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                           let location = activity.location {
-                            mapVM.selectedLocation = location
-                            let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span, sheetDetent: mapVM.currentSheetDetent)
-                            withAnimation(.easeInOut(duration: 0.4)) {
-                                mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
-                            }
-                        }
+                }
+            }
+            .onChange(of: mapVM.highlightedActivityId) { _, newId in
+                guard let newId,
+                      let newActivity  = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                      let newLocation  = newActivity.location
+                else { return }
+                let currentLocation = mapVM.displayedActivities
+                    .first(where: { $0.id == mapVM.previousHighlightedId })?.location
+                mapVM.animateToPin(from: currentLocation, to: newLocation, currentSpan: mapVM.region.span)
+                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(newId, anchor: UnitPoint.top) }
+            }
+            .onAppear {
+                if scrollPosition == nil {
+                    scrollPosition = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
+                }
+                if let id = mapVM.highlightedActivityId {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        proxy.scrollTo(id, anchor: UnitPoint.top)
                     }
-                    .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                        guard let newId,
-                              let newActivity = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                              let newLocation = newActivity.location
-                        else { return }
-                        let currentLocation = mapVM.displayedActivities
-                            .first(where: { $0.id == mapVM.previousHighlightedId })?.location
-                        mapVM.animateToPin(
-                            from: currentLocation,
-                            to: newLocation,
-                            currentSpan: mapVM.region.span
-                        )
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            proxy.scrollTo(newId, anchor: .top)
-                        }
+                }
+            }
+            .onChange(of: mapVM.displayedActivities.first?.id) { _, _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    let target = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
+                    if let id = target {
+                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: UnitPoint.top) }
                     }
-                    .onAppear {
-                        if scrollPosition == nil {
-                            scrollPosition = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
-                        }
-                        if let id = mapVM.highlightedActivityId {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                proxy.scrollTo(id, anchor: .top)
-                            }
-                        }
-                    }
-                    .onChange(of: mapVM.displayedActivities.first?.id) { _, _ in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            if let id = mapVM.highlightedActivityId {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    proxy.scrollTo(id, anchor: .top)
-                                }
-                            } else if let first = mapVM.displayedActivities.first {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    proxy.scrollTo(first.id, anchor: .top)
-                                }
-                            }
-                        }
-                    }
-                    .onChange(of: filterVM.selectedCategoryId) { _, _ in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            if let first = mapVM.displayedActivities.first {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    proxy.scrollTo(first.id, anchor: .top)
-                                }
-                            }
-                        }
+                }
+            }
+            .onChange(of: filterVM.selectedCategoryId) { _, _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    if let first = mapVM.displayedActivities.first {
+                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(first.id, anchor: UnitPoint.top) }
                     }
                 }
             }
@@ -387,168 +355,123 @@ struct PermanentBottomSheet: View {
 
     private var largeContent: some View {
         VStack(spacing: 0) {
+            largeListHeader
+            largeScrollView
+        }
+    }
 
-            // ── Sticky Header ────────────────────────────────────
-            VStack(spacing: 0) {
+    @ViewBuilder
+    private var largeListHeader: some View {
+        VStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color.secondary.opacity(0.4))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
 
-                // Drag Handle
-                RoundedRectangle(cornerRadius: 2.5)
-                    .fill(Color.secondary.opacity(0.4))
-                    .frame(width: 36, height: 5)
-                    .padding(.top, 8)
-                    .padding(.bottom, 8)
+            CategoryChipBar(
+                filterVM: filterVM,
+                activities: activityVM.activities,
+                language: currentLanguage
+            )
 
-                // ── CategoryChipBar direkt unter Handle ──────────
-                CategoryChipBar(
-                    filterVM: filterVM,
-                    activities: activityVM.activities,
-                    language: currentLanguage
-                )
+            Divider()
+                .padding(.top, 4)
+        }
+        .background(Color(.systemBackground))
+    }
 
-                Divider()
-                    .padding(.top, 4)
+    private var largeScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(spacing: 0) {
+                    if displayedActivities.isEmpty {
+                        EmptyStateView(
+                            config: filterVM.isFilterActive
+                                ? .filteredNoResults
+                                : .noActivities
+                        )
+                        .padding(.top, 40)
+                    } else {
+                        activityListItems(
+                            activities: displayedActivities,
+                            highlighted: mapVM.highlightedActivityId
+                        )
+                    }
+                }
+                .padding(.bottom, UIScreen.main.bounds.height * 0.35)
             }
-            .background(Color(.systemBackground))
-
-            // ── Liste mit aktivem Filter ─────────────────────────
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        if displayedActivities.isEmpty {
-                            EmptyStateView(
-                                config: filterVM.isFilterActive
-                                    ? .filteredNoResults
-                                    : .noActivities
-                            )
-                            .padding(.top, 40)
-                        } else {
-                            ForEach(
-                                Array(displayedActivities.enumerated()),
-                                id: \.element.id
-                            ) { index, activity in
-                                let showYearHeader: Bool = {
-                                    if index == 0 { return true }
-                                    return displayedActivities[index - 1].yearInt != activity.yearInt
-                                }()
-
-                                if showYearHeader {
-                                    HStack(spacing: 0) {
-                                        Text(String(format: "%d", activity.yearInt))
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundStyle(.secondary)
-                                            .padding(.leading, 16)
-                                            .padding(.vertical, 6)
-                                        Spacer()
-                                        Rectangle()
-                                            .fill(Color(.systemGray4))
-                                            .frame(height: 0.5)
-                                            .padding(.trailing, 16)
-                                    }
-                                    .background(Color(.systemGray6).opacity(0.5))
-                                }
-
-                                let isHighlighted = activity.id == mapVM.highlightedActivityId
-                                activityRow(activity: activity, isHighlighted: isHighlighted)
-                                    .frame(minHeight: 72)
-                                    .id(activity.id)
-                                Divider()
-                                    .padding(.leading, 16)
-                            }
-                        }
+            .onChange(of: mapVM.highlightedActivityId) { _, newId in
+                guard let newId,
+                      let newActivity  = mapVM.displayedActivities.first(where: { $0.id == newId }),
+                      let newLocation  = newActivity.location
+                else { return }
+                let currentLocation = mapVM.displayedActivities
+                    .first(where: { $0.id == mapVM.previousHighlightedId })?.location
+                mapVM.animateToPin(from: currentLocation, to: newLocation, currentSpan: mapVM.region.span)
+                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(newId, anchor: UnitPoint.top) }
+            }
+            .onAppear {
+                if let id = mapVM.highlightedActivityId {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        proxy.scrollTo(id, anchor: UnitPoint.top)
                     }
                 }
-                .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                    guard let newId,
-                          let newActivity = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                          let newLocation = newActivity.location
-                    else { return }
-                    let currentLocation = mapVM.displayedActivities
-                        .first(where: { $0.id == mapVM.previousHighlightedId })?.location
-                    mapVM.animateToPin(
-                        from: currentLocation,
-                        to: newLocation,
-                        currentSpan: mapVM.region.span
-                    )
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        proxy.scrollTo(newId, anchor: .top)
+            }
+            .onChange(of: displayedActivities.first?.id) { _, _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    let target = mapVM.highlightedActivityId ?? displayedActivities.first?.id
+                    if let id = target {
+                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: UnitPoint.top) }
                     }
                 }
-                .onAppear {
-                    if let id = mapVM.highlightedActivityId {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            proxy.scrollTo(id, anchor: .top)
-                        }
-                    }
-                }
-                .onChange(of: displayedActivities.first?.id) { _, _ in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                        if let id = mapVM.highlightedActivityId {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                proxy.scrollTo(id, anchor: .top)
-                            }
-                        } else if let first = displayedActivities.first {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                proxy.scrollTo(first.id, anchor: .top)
-                            }
-                        }
-                    }
-                }
-                .onChange(of: filterVM.selectedCategoryId) { _, _ in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        if let first = displayedActivities.first {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                proxy.scrollTo(first.id, anchor: .top)
-                            }
-                        }
+            }
+            .onChange(of: filterVM.selectedCategoryId) { _, _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    if let first = displayedActivities.first {
+                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(first.id, anchor: UnitPoint.top) }
                     }
                 }
             }
         }
     }
 
-    // MARK: Shared Scroll View mit Snap
+    // MARK: Shared List Items
 
-    /// Gemeinsame scrollbare Liste für medium und large — mit Snap-Verhalten.
-    /// Jede Row ist ein Snap-Punkt; beim Landen folgt die Map dem Pin.
-    private var activityScrollView: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 0) {
-                ForEach(mapVM.displayedActivities) { activity in
-                    VStack(spacing: 0) {
-                        activityRow(
-                            activity: activity,
-                            isHighlighted: activity.id == mapVM.highlightedActivityId
-                        )
-                        .frame(height: rowHeight(for: activity))
-                        Divider()
-                    }
-                    .id(activity.id)
-                }
+    /// Gemeinsame Listeinhalte für medium und large — Jahr-Header + Zeilen + Divider.
+    @ViewBuilder
+    private func activityListItems(
+        activities: [Activity],
+        highlighted: Activity.ID?
+    ) -> some View {
+        ForEach(Array(activities.enumerated()), id: \.element.id) { index, activity in
+            if index == 0 || activities[index - 1].yearInt != activity.yearInt {
+                yearSeparator(yearInt: activity.yearInt)
             }
-            .scrollTargetLayout()
+            activityRow(activity: activity, isHighlighted: activity.id == highlighted)
+                .frame(minHeight: 72)
+                .id(activity.id)
+            Divider()
+                .padding(.leading, 16)
         }
-        .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $scrollPosition)
-        // Scroll-Snap → Map nachführen
-        .onChange(of: scrollPosition) { _, newId in
-            guard let newId, newId != mapVM.highlightedActivityId else { return }
-            mapVM.highlightedActivityId = newId
-            if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
-               let location = activity.location {
-                mapVM.selectedLocation = location
-                let center = mapVM.adjustedCenter(for: location.coordinate, span: mapVM.region.span, sheetDetent: mapVM.currentSheetDetent)
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
-                }
-            }
+    }
+
+    /// Jahr-Trennzeile.
+    @ViewBuilder
+    private func yearSeparator(yearInt: Int) -> some View {
+        HStack(spacing: 0) {
+            Text(String(format: "%d", yearInt))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .padding(.leading, 16)
+                .padding(.vertical, 6)
+            Spacer()
+            Rectangle()
+                .fill(Color(.systemGray4))
+                .frame(height: 0.5)
+                .padding(.trailing, 16)
         }
-        // Initiale Scroll-Position beim Erscheinen der Liste
-        .onAppear {
-            if scrollPosition == nil {
-                scrollPosition = mapVM.highlightedActivityId
-                    ?? mapVM.displayedActivities.first?.id
-            }
-        }
+        .background(Color(.systemGray6).opacity(0.5))
     }
 
     // MARK: Row Helper
@@ -606,8 +529,19 @@ struct PermanentBottomSheet: View {
 
                 Spacer()
 
-                // ── Kategorie Icon rechts ────────────────────────
-                CategoryIconView(categoryId: activity.categoryId, size: 36)
+                // ── Sterne + Kategorie Icon rechts ───────────────
+                VStack(alignment: .trailing, spacing: 4) {
+                    if activity.starRating > 0 {
+                        HStack(spacing: 2) {
+                            ForEach(1...activity.starRating, id: \.self) { _ in
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(Color(hex: "#FFD700"))
+                            }
+                        }
+                    }
+                    CategoryIconView(categoryId: activity.categoryId, size: 36)
+                }
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
             .padding(.vertical, 12)
@@ -622,13 +556,6 @@ struct PermanentBottomSheet: View {
 
     // MARK: Helpers
 
-    /// Fixe Zeilenhöhe für sauberes Snap-Verhalten.
-    /// Mit Text-Vorschau: 72 pt — ohne: 52 pt.
-    private func rowHeight(for activity: Activity) -> CGFloat {
-        let hasText = activity.text?.isBlank == false
-        return hasText ? 72 : 52
-    }
-
     private func heightFor(_ detent: SheetDetent, _ screen: CGFloat) -> CGFloat {
         switch detent {
         case .small:  return screen * 0.15
@@ -641,16 +568,15 @@ struct PermanentBottomSheet: View {
             return screen - topSafeArea - 8
         }
     }
-
 }
 
 // MARK: - Preview
 
 #Preview("Permanent Bottom Sheet — medium") {
-    let analytics   = AnalyticsManager()
-    let mapVM       = MapViewModel()
-    let filterVM    = FilterViewModel()
-    let activityVM  = ActivityViewModel(analytics: analytics)
+    let analytics       = AnalyticsManager()
+    let mapVM           = MapViewModel()
+    let filterVM        = FilterViewModel()
+    let activityVM      = ActivityViewModel(analytics: analytics)
     let languageManager = LanguageManager()
 
     mapVM.displayedActivities   = Array(Activity.samples.prefix(5))

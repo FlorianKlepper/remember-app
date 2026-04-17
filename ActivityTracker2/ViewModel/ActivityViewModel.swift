@@ -72,6 +72,7 @@ extension ActivityViewModel {
         categoryId: String,
         location: Location,
         date: Date,
+        starRating: Int = 0,
         context: ModelContext
     ) async throws {
         let normalizedTitle = title.flatMap { $0.isBlank ? nil : $0 }
@@ -82,6 +83,7 @@ extension ActivityViewModel {
             date: date,
             title: normalizedTitle,
             text: normalizedText,
+            starRating: starRating,
             location: location
         )
 

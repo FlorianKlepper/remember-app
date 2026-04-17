@@ -3,6 +3,7 @@
 // 3-seitiger Onboarding-Flow: App-Wert → Datenschutz → Standort-Berechtigung
 
 import SwiftUI
+import CoreLocation
 
 // MARK: - OnboardingScreen
 
@@ -152,12 +153,17 @@ struct OnboardingScreen: View {
             Button {
                 Task {
                     await onboardingVM.requestLocationPermission(manager: locationManager)
-                    onboardingVM.completeOnboarding(
-                        settings: userSettings,
-                        language: selectedLanguage
-                    )
-                    languageManager.selectedLanguage = selectedLanguage
-                    analyticsManager.track(.onboardingCompleted)
+                    let status = locationManager.authorizationStatus
+                    if status == .denied || status == .restricted {
+                        showDeniedScreen = true
+                    } else {
+                        onboardingVM.completeOnboarding(
+                            settings: userSettings,
+                            language: selectedLanguage
+                        )
+                        languageManager.selectedLanguage = selectedLanguage
+                        analyticsManager.track(.onboardingCompleted)
+                    }
                 }
             } label: {
                 Group {
@@ -179,17 +185,6 @@ struct OnboardingScreen: View {
             }
             .disabled(onboardingVM.isRequestingPermission)
             .padding(.horizontal, 32)
-
-            // ── Sekundärer Link: Sackgassen-Screen ────────────────
-            // Kein "Überspringen" — wer den Link tippt landet im
-            // LocationPermissionDeniedScreen ohne Weiterkommen-Option.
-            Button {
-                showDeniedScreen = true
-            } label: {
-                Text("onboarding.screen3.skip")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
         }
         .padding(.bottom, 56)
     }

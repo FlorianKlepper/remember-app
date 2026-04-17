@@ -28,6 +28,7 @@ struct EditActivityScreen: View {
     @State private var editText:        String
     @State private var editDate:        Date
     @State private var editIsFavorite:  Bool
+    @State private var editStarRating:  Int
 
     @FocusState private var focusedField: Field?
 
@@ -46,6 +47,7 @@ struct EditActivityScreen: View {
         _editText       = State(initialValue: activity.text ?? "")
         _editDate       = State(initialValue: activity.date)
         _editIsFavorite = State(initialValue: activity.isFavorite)
+        _editStarRating = State(initialValue: activity.starRating)
     }
 
     // MARK: Body
@@ -105,6 +107,12 @@ struct EditActivityScreen: View {
 
                     Divider().padding(.horizontal)
 
+                    // ── Sterne-Bewertung ─────────────────────────────
+                    StarRatingView(rating: $editStarRating, isEditable: true)
+                        .padding(.top, 12)
+
+                    Divider().padding(.horizontal)
+
                     // ── Favorit ──────────────────────────────────────
                     Toggle(
                         String(localized: "edit.favorite.label",
@@ -117,10 +125,15 @@ struct EditActivityScreen: View {
             }
             .navigationTitle(String(localized: "edit.title", defaultValue: "Bearbeiten"))
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(String(localized: "button.cancel", defaultValue: "Abbrechen")) {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.primary)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -140,6 +153,7 @@ struct EditActivityScreen: View {
         activity.text       = editText.isBlank  ? nil : editText
         activity.date       = editDate
         activity.isFavorite = editIsFavorite
+        activity.starRating = editStarRating
         activityVM.updateActivity(activity, context: modelContext)
         dismiss()
     }

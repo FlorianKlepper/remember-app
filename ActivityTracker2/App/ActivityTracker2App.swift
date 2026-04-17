@@ -118,6 +118,7 @@ struct ActivityTracker2App: App {
             .onAppear {
                 analyticsManager.track(.appOpened)
                 languageManager.applyLanguage(userSettings.selectedLanguage)
+                locationManager.startUpdating()
             }
         }
     }

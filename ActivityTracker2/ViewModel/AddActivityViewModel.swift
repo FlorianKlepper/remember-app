@@ -45,6 +45,9 @@ final class AddActivityViewModel {
     /// Datum des Erlebnisses — Default: jetzt.
     var selectedDate: Date = .now
 
+    /// Sterne-Bewertung: 0 = keine, 1–3 Sterne.
+    var starRating: Int = 0
+
     // MARK: Loading
 
     /// Wird während SwiftData-Operationen auf `true` gesetzt.
@@ -171,6 +174,7 @@ extension AddActivityViewModel {
             categoryId: categoryId,
             location: location,
             date: selectedDate,
+            starRating: starRating,
             context: context
         )
     }
@@ -190,6 +194,7 @@ extension AddActivityViewModel {
         title = ""
         text = ""
         selectedDate = .now
+        starRating = 0
         isLoading = false
         isSaved = false
     }

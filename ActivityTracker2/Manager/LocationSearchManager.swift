@@ -1,72 +1,86 @@
 // LocationSearchManager.swift
 // ActivityTracker2 — Remember
-// MKLocalSearchCompleter-Wrapper für Echtzeit-Ortssuchvorschläge
+// MKLocalSearchCompleter-Wrapper mit Debounce für Echtzeit-Ortssuchvorschläge
 
-import MapKit
+@preconcurrency import MapKit
 import Foundation
+import CoreLocation
 
 // MARK: - LocationSearchManager
 
 /// Verwaltet `MKLocalSearchCompleter` für Echtzeit-Suchvorschläge.
-/// Setze `searchText` — Vorschläge erscheinen automatisch in `suggestions`.
-/// `selectSuggestion(_:completion:)` löst einen Vorschlag in eine Koordinate auf.
+/// Debounce: wartet 0.4 s nach dem letzten Tastendruck, bevor die Suche startet.
+/// Max. 6 Ergebnisse — alle UI-Updates auf dem Main Thread via @MainActor.
 @Observable
-class LocationSearchManager: NSObject, MKLocalSearchCompleterDelegate {
+@MainActor
+final class LocationSearchManager: NSObject, MKLocalSearchCompleterDelegate {
 
     // MARK: Properties
 
-    /// Eingabetext — jede Änderung triggert eine neue Completer-Suche.
-    var searchText: String = "" {
-        didSet {
-            if searchText.isEmpty {
-                suggestions = []
-            } else {
-                completer.queryFragment = searchText
-            }
-        }
-    }
-
-    /// Aktuelle Vorschläge vom `MKLocalSearchCompleter`.
+    var searchText: String = ""
     var suggestions: [MKLocalSearchCompletion] = []
-
-    /// `true` während eine Suche läuft.
     var isSearching: Bool = false
 
     // MARK: Private
 
     private let completer = MKLocalSearchCompleter()
+    private var searchWorkItem: DispatchWorkItem?
 
     // MARK: Init
 
     override init() {
         super.init()
         completer.delegate = self
-        completer.resultTypes = [
-            .address,
-            .pointOfInterest,
-            .query
-        ]
+        completer.resultTypes = [.address, .pointOfInterest]
+    }
+
+    // MARK: Search
+
+    /// Startet eine neue Suche mit 400 ms Debounce.
+    /// Vorherige WorkItems werden gecancelt — kein unnötiger MapKit-Overhead.
+    func search(_ text: String) {
+        searchWorkItem?.cancel()
+
+        guard !text.isEmpty else {
+            suggestions = []
+            isSearching = false
+            return
+        }
+
+        isSearching = true
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.completer.queryFragment = text
+        }
+
+        searchWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem)
     }
 
     // MARK: MKLocalSearchCompleterDelegate
 
-    func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
-        suggestions = completer.results
+    nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
+        let results = completer.results.prefix(6).map { $0 }
+        DispatchQueue.main.async { [weak self] in
+            self?.suggestions = Array(results)
+            self?.isSearching = false
+        }
     }
 
-    func completer(
+    nonisolated func completer(
         _ completer: MKLocalSearchCompleter,
         didFailWithError error: Error
     ) {
-        suggestions = []
+        DispatchQueue.main.async { [weak self] in
+            self?.suggestions = []
+            self?.isSearching = false
+        }
     }
 
     // MARK: Public Methods
 
     /// Löst einen Vorschlag in Koordinate + Ortsinformationen auf via `MKLocalSearch`.
-    /// - Parameters:
-    ///   - suggestion: Ausgewählter `MKLocalSearchCompletion`.
-    ///   - completion: Callback mit `(coordinate, name, city, country)` — alle optional.
     func selectSuggestion(
         _ suggestion: MKLocalSearchCompletion,
         completion: @escaping (
@@ -77,17 +91,21 @@ class LocationSearchManager: NSObject, MKLocalSearchCompleterDelegate {
         let request = MKLocalSearch.Request(completion: suggestion)
         let search  = MKLocalSearch(request: request)
 
-        search.start { response, _ in
-            guard let item = response?.mapItems.first else {
-                completion(nil, nil, nil, nil)
-                return
+        search.start { response, error in
+            DispatchQueue.main.async {
+                guard error == nil,
+                      let item = response?.mapItems.first
+                else {
+                    completion(nil, nil, nil, nil)
+                    return
+                }
+                completion(
+                    item.placemark.coordinate,
+                    item.name ?? suggestion.title,
+                    item.placemark.locality,
+                    item.placemark.country
+                )
             }
-            completion(
-                item.placemark.coordinate,
-                item.name,
-                item.placemark.locality,
-                item.placemark.country
-            )
         }
     }
 }

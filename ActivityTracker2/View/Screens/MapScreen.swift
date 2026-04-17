@@ -177,7 +177,7 @@ struct MapScreen: View {
                 }
             }
         }
-        .mapStyle(.standard)
+        .mapStyle(.standard(pointsOfInterest: .excludingAll))
     }
 
     // MARK: Map Control Buttons (rechts oben, fix)
@@ -238,7 +238,8 @@ struct MapScreen: View {
                 latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.002),
                 longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.002)
             )
-            mapVM.region = MKCoordinateRegion(center: mapVM.region.center, span: span)
+            mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
+            cameraPosition = .region(mapVM.region)
         }
     }
 
@@ -248,7 +249,8 @@ struct MapScreen: View {
                 latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 50.0),
                 longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 50.0)
             )
-            mapVM.region = MKCoordinateRegion(center: mapVM.region.center, span: span)
+            mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
+            cameraPosition = .region(mapVM.region)
         }
     }
 

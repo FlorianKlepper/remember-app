@@ -37,6 +37,9 @@ final class Activity {
     /// Gibt an, ob die Activity als Favorit markiert ist.
     var isFavorite: Bool
 
+    /// Sterne-Bewertung: 0 = keine, 1–3 Sterne.
+    var starRating: Int
+
     // MARK: Relation
 
     /// Verknüpfter Ort. Wird nach dem Speichern asynchron via Reverse Geocoding befüllt.
@@ -53,6 +56,7 @@ final class Activity {
         title: String? = nil,
         text: String? = nil,
         isFavorite: Bool = false,
+        starRating: Int = 0,
         location: Location? = nil
     ) {
         self.id = id
@@ -62,6 +66,7 @@ final class Activity {
         self.title = title
         self.text = text
         self.isFavorite = isFavorite
+        self.starRating = starRating
         self.location = location
     }
 }

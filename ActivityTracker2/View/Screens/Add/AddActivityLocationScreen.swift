@@ -4,16 +4,26 @@
 
 import SwiftUI
 import MapKit
+import CoreLocation
+
+// MARK: - NearbyPlace
+
+/// Nahegelegener POI aus MKLocalSearch.
+private struct NearbyPlace: Identifiable {
+    let id = UUID()
+    let name: String
+    let distance: Double               // Meter
+    let coordinate: CLLocationCoordinate2D
+}
 
 // MARK: - AddActivityLocationScreen
 
 /// Screen 2 des Add-Flows mit zwei Modi:
 ///
-/// **Normal** (nicht fokussiert): Suchfeld + "Aktueller Standort"-Karte mit Mini Map.
-/// **Suche** (fokussiert): Suchfeld + Abbrechen-Button + kompakte Standort-Zeile + Vorschläge.
+/// **Normal** (nicht fokussiert): Mini Map + Aktueller-Standort-Button + Nearby Places.
+/// **Suche** (fokussiert): Suchfeld + Abbrechen + kompakte Standort-Zeile + Vorschläge.
 ///
-/// Journal-Sonderfall: Bei Journal-Kategorie + gespeicherter Heimat-Location
-/// erscheint ein zusätzlicher "Zuhause"-Button.
+/// Kein eigener NavigationStack — läuft innerhalb des NavigationStack von AddActivityCategoryScreen.
 struct AddActivityLocationScreen: View {
 
     // MARK: Environment
@@ -26,6 +36,7 @@ struct AddActivityLocationScreen: View {
     // MARK: Navigation
 
     @Binding var navigationPath: NavigationPath
+    @State private var navigateToText = false
 
     // MARK: State
 
@@ -33,34 +44,48 @@ struct AddActivityLocationScreen: View {
     @State private var locationName      = ""
     @State private var isLoadingLocation = false
     @State private var locationError: String? = nil
+    @State private var nearbyPlaces: [NearbyPlace] = []
     @FocusState private var searchFocused: Bool
+
+    // MARK: Private
+
+    /// Farbe der gewählten Kategorie — für Button + Icons.
+    private var categoryColor: Color {
+        let allCats = Category.mvpCategories + Category.plusCategories
+        guard let id  = addActivityVM.selectedCategoryId,
+              let cat = allCats.first(where: { $0.id == id })
+        else { return Color(hex: "#E8593C") }
+        return Color(hex: cat.colorHex)
+    }
 
     // MARK: Body
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
 
-                searchBar
+            searchBar
 
-                Divider()
+            Divider()
 
-                if searchFocused {
-                    searchModeContent
-                } else {
-                    normalModeContent
-                }
+            if searchFocused {
+                searchModeContent
+            } else {
+                normalModeContent
             }
-            .animation(.easeInOut(duration: 0.2), value: searchFocused)
-            .navigationTitle(String(localized: "add.step2.title", defaultValue: "Ort"))
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                guard addActivityVM.pendingCoordinate == nil else {
-                    fetchLocationName()
-                    return
-                }
-                Task { await fetchLocation() }
+        }
+        .animation(.easeInOut(duration: 0.2), value: searchFocused)
+        .navigationTitle(String(localized: "add.step2.title", defaultValue: "Ort"))
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $navigateToText) {
+            AddActivityTextScreen()
+        }
+        .onAppear {
+            guard addActivityVM.pendingCoordinate == nil else {
+                fetchLocationName()
+                return
             }
+            Task { await fetchLocation() }
+            loadNearbyPlaces()
         }
     }
 
@@ -77,12 +102,16 @@ struct AddActivityLocationScreen: View {
                     String(localized: "add.location.search", defaultValue: "Ort suchen..."),
                     text: Binding(
                         get: { searchManager.searchText },
-                        set: { searchManager.searchText = $0 }
+                        set: { newValue in
+                            searchManager.searchText = newValue
+                            searchManager.search(newValue)
+                        }
                     )
                 )
                 .focused($searchFocused)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
+                .keyboardType(.default)
                 .onSubmit { searchFocused = false }
 
                 if !searchManager.searchText.isEmpty {
@@ -114,7 +143,7 @@ struct AddActivityLocationScreen: View {
         .animation(.easeInOut(duration: 0.2), value: searchFocused)
     }
 
-    // MARK: Normal Mode — Mini Map sichtbar
+    // MARK: Normal Mode
 
     private var normalModeContent: some View {
         ScrollView {
@@ -125,14 +154,21 @@ struct AddActivityLocationScreen: View {
                     homeButton
                 }
 
-                // Aktueller Standort-Karte
+                // Mini Map + Standort-Button
                 currentLocationCard
+
+                // Nearby Places
+                if !nearbyPlaces.isEmpty {
+                    nearbySection
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 20)
-            .padding(.bottom, 16)
+            .padding(.bottom, 24)
         }
     }
+
+    // MARK: Current Location Card
 
     @ViewBuilder
     private var currentLocationCard: some View {
@@ -140,7 +176,7 @@ struct AddActivityLocationScreen: View {
 
             // Header-Zeile
             HStack(spacing: 12) {
-                locationIcon(systemName: "location.fill", color: Color(hex: "#E8593C"))
+                locationIcon(systemName: "location.fill", color: categoryColor)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(LocalizedStringKey("add.location.current"))
                         .font(.body)
@@ -184,9 +220,8 @@ struct AddActivityLocationScreen: View {
                         }
                         .buttonStyle(.bordered)
 
-                        // Simulator-Fallback: GPS nicht verfügbar im Simulator
                         Button("München (Demo)") {
-                            addActivityVM.pendingCoordinate = CLLocationCoordinate2D(
+                            addActivityVM.pendingCoordinate   = CLLocationCoordinate2D(
                                 latitude:  AppConstants.defaultLatitude,
                                 longitude: AppConstants.defaultLongitude
                             )
@@ -206,22 +241,95 @@ struct AddActivityLocationScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
-            // Verwenden-Button
+            // ── Kleiner Capsule-Button in Kategorie-Farbe ──────────
             Button {
                 navigateToTextScreen()
             } label: {
-                Text(LocalizedStringKey("add.location.use"))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                HStack(spacing: 8) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 14))
+                    Text(String(localized: "add.location.use",
+                                defaultValue: "Aktuellen Standort verwenden"))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(Capsule().fill(categoryColor))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color(hex: "#E8593C"))
+            .buttonStyle(.plain)
             .disabled(addActivityVM.pendingCoordinate == nil)
+            .opacity(addActivityVM.pendingCoordinate == nil ? 0.4 : 1.0)
         }
     }
 
-    // MARK: Search Mode — Vorschläge sichtbar
+    // MARK: Nearby Section
+
+    private var nearbySection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            Text(String(localized: "add.location.nearby", defaultValue: "In der Nähe"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+
+            VStack(spacing: 0) {
+                ForEach(nearbyPlaces) { place in
+                    Button {
+                        addActivityVM.pendingCoordinate   = place.coordinate
+                        addActivityVM.pendingLocationName = place.name
+                        geocodeManager.geocode(place.coordinate) { result in
+                            let parts = [result.city, result.region, result.country].compactMap { $0 }
+                            if !parts.isEmpty {
+                                addActivityVM.pendingLocationName = parts.joined(separator: ", ")
+                            }
+                        }
+                        navigateToTextScreen()
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(categoryColor.opacity(0.12))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "mappin")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(categoryColor)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(place.name)
+                                    .font(.body)
+                                    .foregroundStyle(.primary)
+                                    .lineLimit(1)
+                                Text(formatDistance(place.distance))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.plain)
+
+                    if place.id != nearbyPlaces.last?.id {
+                        Divider().padding(.leading, 64)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 1)
+            )
+        }
+    }
+
+    // MARK: Search Mode
 
     private var searchModeContent: some View {
         ScrollView {
@@ -235,7 +343,7 @@ struct AddActivityLocationScreen: View {
                     } label: {
                         compactRow(
                             icon: "house.fill",
-                            iconColor: Color(hex: "#E8593C"),
+                            iconColor: categoryColor,
                             title: String(localized: "add.location.home",
                                          defaultValue: "Zuhause verwenden"),
                             subtitle: userSettings.homeLocationName.isBlank
@@ -252,7 +360,7 @@ struct AddActivityLocationScreen: View {
                 } label: {
                     compactRow(
                         icon: "location.fill",
-                        iconColor: Color(hex: "#E8593C"),
+                        iconColor: categoryColor,
                         title: String(localized: "add.location.current",
                                      defaultValue: "Aktueller Standort"),
                         subtitle: locationName.isEmpty ? nil : locationName
@@ -279,6 +387,7 @@ struct AddActivityLocationScreen: View {
                     } else {
                         ForEach(searchManager.suggestions, id: \.self) { suggestion in
                             Button {
+                                guard !suggestion.title.isEmpty else { return }
                                 selectSuggestion(suggestion)
                             } label: {
                                 HStack(spacing: 12) {
@@ -339,10 +448,9 @@ struct AddActivityLocationScreen: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.bordered)
-        .tint(Color(hex: "#E8593C"))
+        .tint(categoryColor)
     }
 
-    /// Kompakte Zeile für den Suchmodus (Aktueller Standort, Zuhause).
     private func compactRow(
         icon: String,
         iconColor: Color,
@@ -371,7 +479,6 @@ struct AddActivityLocationScreen: View {
         .padding(.vertical, 12)
     }
 
-    /// Farbiger Kreis-Icon für Standort-Zeilen.
     private func locationIcon(systemName: String, color: Color) -> some View {
         ZStack {
             Circle()
@@ -385,7 +492,6 @@ struct AddActivityLocationScreen: View {
 
     // MARK: Private Logic
 
-    /// GPS-Koordinate async holen und Mini Map befüllen.
     private func fetchLocation() async {
         isLoadingLocation = true
         defer { isLoadingLocation = false }
@@ -403,7 +509,6 @@ struct AddActivityLocationScreen: View {
         }
     }
 
-    /// Nur Ortsname aus bereits gesetzter Koordinate laden (bei Back-Navigation).
     private func fetchLocationName() {
         guard let coord = addActivityVM.pendingCoordinate else { return }
         geocodeManager.geocode(coord) { result in
@@ -411,7 +516,6 @@ struct AddActivityLocationScreen: View {
         }
     }
 
-    /// GPS-Standort als Aktivitäts-Ort übernehmen und zu Step 3 navigieren.
     private func useCurrentLocation() {
         guard let coord = locationManager.currentLocation else { return }
         addActivityVM.pendingCoordinate   = coord
@@ -423,19 +527,61 @@ struct AddActivityLocationScreen: View {
         navigateToTextScreen()
     }
 
-    /// Suchvorschlag auflösen, ViewModel befüllen, zu Step 3 navigieren.
     private func selectSuggestion(_ suggestion: MKLocalSearchCompletion) {
         searchManager.selectSuggestion(suggestion) { coord, name, city, country in
             guard let coord else { return }
-            addActivityVM.pendingCoordinate = coord
-            let parts = [name, city, country].compactMap { $0?.isEmpty == false ? $0 : nil }
-            addActivityVM.pendingLocationName = parts.isEmpty ? suggestion.title : parts.joined(separator: ", ")
-            navigateToTextScreen()
+            DispatchQueue.main.async {
+                addActivityVM.pendingCoordinate = coord
+                let parts = [name, city, country].compactMap { $0?.isEmpty == false ? $0 : nil }
+                addActivityVM.pendingLocationName = parts.isEmpty ? suggestion.title : parts.joined(separator: ", ")
+                navigateToTextScreen()
+            }
         }
     }
 
     private func navigateToTextScreen() {
-        navigationPath.append(3)
+        navigateToText = true
+    }
+
+    /// Lädt bis zu 5 nahegelegene POIs via MKLocalSearch.
+    private func loadNearbyPlaces() {
+        guard let coord = locationManager.currentLocation else { return }
+
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = "points of interest"
+        request.region = MKCoordinateRegion(
+            center: coord,
+            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+        request.resultTypes = .pointOfInterest
+
+        let search = MKLocalSearch(request: request)
+        let userLocation = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+
+        search.start { response, _ in
+            guard let items = response?.mapItems else { return }
+            let places = items
+                .prefix(5)
+                .compactMap { item -> NearbyPlace? in
+                    guard let name = item.name else { return nil }
+                    let itemCoord = item.placemark.coordinate
+                    let dist = userLocation.distance(
+                        from: CLLocation(latitude: itemCoord.latitude, longitude: itemCoord.longitude)
+                    )
+                    return NearbyPlace(name: name, distance: dist, coordinate: itemCoord)
+                }
+                .sorted { $0.distance < $1.distance }
+
+            DispatchQueue.main.async {
+                nearbyPlaces = places
+            }
+        }
+    }
+
+    private func formatDistance(_ meters: Double) -> String {
+        meters < 1000
+            ? "\(Int(meters)) m"
+            : String(format: "%.1f km", meters / 1000)
     }
 
     // MARK: Private Helpers
@@ -472,6 +618,7 @@ struct AddActivityLocationScreen: View {
     let geocodeMgr  = GeocodeManager()
     let settings    = UserSettings()
 
+    addVM.selectedCategoryId  = "hiking"
     addVM.pendingCoordinate   = CLLocationCoordinate2D(
         latitude:  AppConstants.defaultLatitude,
         longitude: AppConstants.defaultLongitude

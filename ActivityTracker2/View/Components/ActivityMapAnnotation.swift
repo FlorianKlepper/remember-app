@@ -8,9 +8,8 @@ import MapKit
 // MARK: - ActivityMapAnnotation
 
 /// Custom Kartennadel für Map-Pins.
-/// Aufbau von oben nach unten:
-/// 1. Gefüllter Kreis mit weißem Rand + SF Symbol (weiß)
-/// 2. Dreieck (gleiche Farbe) als Spitze nach unten
+/// Normal: weißer Kreis + farbiger Rand + farbiges Icon
+/// Aktiv: weißer Kreis + goldener Rand + goldener Glow + farbiges Icon (größer)
 struct ActivityMapAnnotation: View {
 
     // MARK: Parameter
@@ -30,6 +29,10 @@ struct ActivityMapAnnotation: View {
 
     private var pinColor: Color {
         Color(hex: category?.colorHex ?? "#8E8E93")
+    }
+
+    private var iconName: String {
+        category?.iconName ?? "mappin"
     }
 
     private let goldColor = Color(hex: "#FFD700")
@@ -61,45 +64,43 @@ struct ActivityMapAnnotation: View {
     private var normalPin: some View {
         ZStack {
             Circle()
-                .fill(pinColor)
+                .fill(.white)
+                .frame(width: 36, height: 36)
                 .overlay(
                     Circle()
-                        .stroke(.white, lineWidth: 2)
+                        .strokeBorder(pinColor, lineWidth: 2.5)
                 )
-            Image(systemName: category?.iconName ?? "mappin")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
+
+            Image(systemName: iconName)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(pinColor)
         }
-        .frame(width: 28, height: 28)
     }
 
     // MARK: Selected Pin
 
     private var selectedPin: some View {
         ZStack {
-            // Dezenter goldener Halo
+            // Äußerer Gold-Halo
             Circle()
                 .fill(goldColor.opacity(0.20))
-                .frame(width: 46, height: 46)
+                .frame(width: 52, height: 52)
 
-            // Haupt-Kreis mit goldenem Rahmen
+            // Weißer Kreis mit goldenem Rand
             Circle()
-                .fill(pinColor)
-                .frame(width: 36, height: 36)
+                .fill(.white)
+                .frame(width: 42, height: 42)
                 .overlay(
                     Circle()
-                        .stroke(goldColor, lineWidth: 2.5)
+                        .strokeBorder(goldColor, lineWidth: 3.5)
                 )
-                .shadow(
-                    color: goldColor.opacity(0.5),
-                    radius: 5,
-                    x: 0,
-                    y: 0
-                )
+                .shadow(color: goldColor.opacity(0.5), radius: 6, x: 0, y: 0)
 
-            Image(systemName: category?.iconName ?? "mappin")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
+            // Icon in Kategorie-Farbe (größer)
+            Image(systemName: iconName)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(pinColor)
         }
     }
 }
@@ -127,7 +128,7 @@ private struct DownwardTriangle: Shape {
     )
 
     HStack(spacing: 32) {
-        VStack {
+        VStack(spacing: 8) {
             Text("Normal")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -139,30 +140,30 @@ private struct DownwardTriangle: Shape {
             )
         }
 
-        VStack {
-            Text("Ausgewählt")
+        VStack(spacing: 8) {
+            Text("Aktiv")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             ActivityMapAnnotation(
                 location: munich,
-                dominantCategoryId: "restaurant",
+                dominantCategoryId: "hiking",
                 isSelected: true,
                 onTap: {}
             )
         }
 
-        VStack {
-            Text("Kein Typ")
+        VStack(spacing: 8) {
+            Text("Restaurant")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             ActivityMapAnnotation(
                 location: munich,
-                dominantCategoryId: nil,
+                dominantCategoryId: "restaurant",
                 isSelected: false,
                 onTap: {}
             )
         }
     }
     .padding(40)
-    .background(Color(.systemGray6))
+    .background(Color(.systemGray5))
 }

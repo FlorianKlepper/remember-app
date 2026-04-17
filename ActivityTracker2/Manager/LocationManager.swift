@@ -49,6 +49,17 @@ extension LocationManager {
         locationManager.requestWhenInUseAuthorization()
     }
 
+    /// Startet kontinuierliche Standort-Updates — hält `currentLocation` aktuell.
+    /// Muss beim App-Start aufgerufen werden, damit `currentLocation` befüllt ist.
+    func startUpdating() {
+        locationManager.startUpdatingLocation()
+    }
+
+    /// Stoppt kontinuierliche Standort-Updates.
+    func stopUpdating() {
+        locationManager.stopUpdatingLocation()
+    }
+
     /// Liefert die aktuelle GPS-Position asynchron.
     /// - Throws: `AppError.locationDenied` bei fehlender Berechtigung,
     ///           `AppError.locationUnavailable` bei Hardware- oder Netzwerkfehler.

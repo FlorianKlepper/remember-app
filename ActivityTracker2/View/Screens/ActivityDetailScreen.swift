@@ -74,6 +74,17 @@ struct ActivityDetailScreen: View {
                         .padding(.horizontal, 16)
                 }
 
+                // ── 4. Sterne-Bewertung (nur wenn > 0) ──────────────
+                if activity.starRating > 0 {
+                    StarRatingView(
+                        rating: Binding(
+                            get: { activity.starRating },
+                            set: { _ in }
+                        ),
+                        isEditable: false
+                    )
+                }
+
                 Spacer(minLength: 40)
             }
             .padding(.top, 16)

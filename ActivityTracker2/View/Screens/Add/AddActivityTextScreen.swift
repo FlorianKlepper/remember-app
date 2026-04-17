@@ -76,6 +76,16 @@ struct AddActivityTextScreen: View {
                 }
                 .padding(.horizontal, 12)
 
+                // ── Sterne-Bewertung ────────────────────────────────
+                StarRatingView(
+                    rating: Binding(
+                        get: { addActivityVM.starRating },
+                        set: { addActivityVM.starRating = $0 }
+                    ),
+                    isEditable: true
+                )
+                .padding(.top, 16)
+
                 // ── Fehler ──────────────────────────────────────────
                 if let error = saveError {
                     Text(error)

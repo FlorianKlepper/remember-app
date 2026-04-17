@@ -42,6 +42,7 @@
 		15388C212F8CF018000A024E /* CategoryPickerGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFE2F8CDE83000A024E /* CategoryPickerGrid.swift */; };
 		15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFF2F8CDE83000A024E /* EmptyStateView.swift */; };
 		15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C012F8CDE83000A024E /* FloatingPlusButton.swift */; };
+		15388C5B2F8CF051000A024E /* StarRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C5A2F8CF050000A024E /* StarRatingView.swift */; };
 		15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C042F8CDE83000A024E /* StatsSummaryCard.swift */; };
 		15388C2A2F8CF01D000A024E /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C252F8CF01C000A024E /* MapScreen.swift */; };
 		15388C2B2F8CF01F000A024E /* ListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C262F8CF01E000A024E /* ListScreen.swift */; };
@@ -95,6 +96,7 @@
 		15388BFF2F8CDE83000A024E /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		15388C002F8CDE83000A024E /* FilterStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterStatusBanner.swift; sourceTree = "<group>"; };
 		15388C012F8CDE83000A024E /* FloatingPlusButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlusButton.swift; sourceTree = "<group>"; };
+		15388C5A2F8CF050000A024E /* StarRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarRatingView.swift; sourceTree = "<group>"; };
 		15388C022F8CDE83000A024E /* MiniMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniMapView.swift; sourceTree = "<group>"; };
 		15388C032F8CDE83000A024E /* PlusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusBadge.swift; sourceTree = "<group>"; };
 		15388C042F8CDE83000A024E /* StatsSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSummaryCard.swift; sourceTree = "<group>"; };
@@ -247,6 +249,7 @@
 				15388BFF2F8CDE83000A024E /* EmptyStateView.swift */,
 				15388C002F8CDE83000A024E /* FilterStatusBanner.swift */,
 				15388C012F8CDE83000A024E /* FloatingPlusButton.swift */,
+				15388C5A2F8CF050000A024E /* StarRatingView.swift */,
 				15388C022F8CDE83000A024E /* MiniMapView.swift */,
 				15388C032F8CDE83000A024E /* PlusBadge.swift */,
 				15388C042F8CDE83000A024E /* StatsSummaryCard.swift */,
@@ -375,6 +378,7 @@
 				15388C212F8CF018000A024E /* CategoryPickerGrid.swift in Sources */,
 				15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */,
 				15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */,
+				15388C5B2F8CF051000A024E /* StarRatingView.swift in Sources */,
 				15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */,
 				15388C2A2F8CF01D000A024E /* MapScreen.swift in Sources */,
 				15388C2B2F8CF01F000A024E /* ListScreen.swift in Sources */,
@@ -526,6 +530,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Remember – Life Journal";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Remember benötigt deinen Standort um Aktivitäten auf der Karte zu speichern.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -560,6 +565,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Remember – Life Journal";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Remember benötigt deinen Standort um Aktivitäten auf der Karte zu speichern.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
