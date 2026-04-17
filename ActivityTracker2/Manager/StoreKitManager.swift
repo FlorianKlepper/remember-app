@@ -77,28 +77,27 @@ extension StoreKitManager {
         }
     }
 
-    /// Stellt frühere Käufe wieder her via `AppStore.sync()`.
+    /// Stellt frühere Käufe wieder her via `AppStore.sync()` und synchronisiert UserSettings.
+    /// - Parameter settings: `UserSettings`-Objekt — wird bei aktivem Plus-Kauf auf `.plus` gesetzt.
     /// - Throws: `AppError.storeKitError` bei Netzwerk- oder Store-Fehlern.
-    func restorePurchases() async throws {
+    func restorePurchases(settings: UserSettings) async throws {
         do {
             try await AppStore.sync()
         } catch {
             throw AppError.storeKitError(error)
         }
-        await checkCurrentEntitlements()
+        await checkCurrentEntitlements(settings: settings)
     }
-}
-
-// MARK: - Private Methoden
-
-private extension StoreKitManager {
 
     /// Prüft aktuelle Entitlements beim App-Start und nach `restorePurchases()`.
-    func checkCurrentEntitlements() async {
+    /// Synchronisiert `isPlusActive` und optional `settings.subscriptionStatus`.
+    /// - Parameter settings: Wenn übergeben, wird `subscriptionStatus` bei aktivem Plus auf `.plus` gesetzt.
+    func checkCurrentEntitlements(settings: UserSettings? = nil) async {
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result,
-               transaction.productID == AppConstants.plusProductId {
+            guard case .verified(let transaction) = result else { continue }
+            if transaction.productID == AppConstants.plusProductId {
                 isPlusActive = true
+                settings?.subscriptionStatus = .plus
                 return
             }
         }

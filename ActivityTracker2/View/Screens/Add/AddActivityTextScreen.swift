@@ -144,7 +144,18 @@ struct AddActivityTextScreen: View {
                 activityViewModel: activityVM,
                 context: modelContext
             )
+
+            // Neue Aktivität-Info für MapScreen bereitstellen
+            NotificationCenter.default.post(
+                name: .activitySaved,
+                object: [
+                    "categoryId": addActivityVM.selectedCategoryId ?? "",
+                    "coordinate": addActivityVM.pendingCoordinate as Any
+                ]
+            )
+
             addActivityVM.isSaved = true
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 NotificationCenter.default.post(name: .setSheetMedium, object: nil)
             }

@@ -75,7 +75,7 @@ extension PlusViewModel {
             let success = try await manager.purchase(product)
             if success {
                 settings.subscriptionStatus = .plus
-                analytics.track(.purchaseSuccess(productId: AppConstants.plusProductId))
+                analytics.track(.plusPurchased)
             }
         } catch let appError as AppError {
             errorMessage = appError.errorDescription
@@ -88,14 +88,6 @@ extension PlusViewModel {
     /// Aktualisiert `settings.subscriptionStatus` wenn ein aktiver Plus-Kauf gefunden wird.
     /// - Throws: `AppError.storeKitError` bei Netzwerk- oder Store-Fehlern.
     func restorePurchases(manager: StoreKitManager, settings: UserSettings) async throws {
-        do {
-            try await manager.restorePurchases()
-        } catch {
-            throw AppError.storeKitError(error)
-        }
-
-        if manager.isPlusActive {
-            settings.subscriptionStatus = .plus
-        }
+        try await manager.restorePurchases(settings: settings)
     }
 }

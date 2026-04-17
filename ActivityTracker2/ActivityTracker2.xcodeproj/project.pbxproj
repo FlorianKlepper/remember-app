@@ -42,7 +42,6 @@
 		15388C212F8CF018000A024E /* CategoryPickerGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFE2F8CDE83000A024E /* CategoryPickerGrid.swift */; };
 		15388C222F8CF019000A024E /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BFF2F8CDE83000A024E /* EmptyStateView.swift */; };
 		15388C232F8CF01A000A024E /* FloatingPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C012F8CDE83000A024E /* FloatingPlusButton.swift */; };
-		15388C5B2F8CF051000A024E /* StarRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C5A2F8CF050000A024E /* StarRatingView.swift */; };
 		15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C042F8CDE83000A024E /* StatsSummaryCard.swift */; };
 		15388C2A2F8CF01D000A024E /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C252F8CF01C000A024E /* MapScreen.swift */; };
 		15388C2B2F8CF01F000A024E /* ListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C262F8CF01E000A024E /* ListScreen.swift */; };
@@ -54,12 +53,17 @@
 		15388C382F8CF02F000A024E /* AddActivityTextScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C312F8CF028000A024E /* AddActivityTextScreen.swift */; };
 		15388C392F8CF030000A024E /* ActivityDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C322F8CF029000A024E /* ActivityDetailScreen.swift */; };
 		15388C3A2F8CF031000A024E /* EditActivityScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C332F8CF02A000A024E /* EditActivityScreen.swift */; };
-		15388C5D2F8CF053000A024E /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C5C2F8CF052000A024E /* SettingsScreen.swift */; };
 		15388C3B2F8CF032000A024E /* OnboardingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C342F8CF02B000A024E /* OnboardingScreen.swift */; };
 		15388C3C2F8CF033000A024E /* LocationPermissionDeniedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */; };
 		15388C3E2F8CF035000A024E /* PreviewDataHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */; };
 		15388C402F8CF037000A024E /* PermanentBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C3F2F8CF036000A024E /* PermanentBottomSheet.swift */; };
+		15388C5B2F8CF051000A024E /* StarRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C5A2F8CF050000A024E /* StarRatingView.swift */; };
+		15388C5D2F8CF053000A024E /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C5C2F8CF052000A024E /* SettingsScreen.swift */; };
 		15388C722F918017000A024E /* LocationSearchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388C712F918017000A024E /* LocationSearchManager.swift */; };
+		15388CA62F92701D000A024E /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 15388CA52F92701D000A024E /* Algorithms */; };
+		15388CA92F9270BE000A024E /* TelemetryClient in Frameworks */ = {isa = PBXBuildFile; productRef = 15388CA82F9270BE000A024E /* TelemetryClient */; };
+		15388CAB2F9270BE000A024E /* TelemetryDeck in Frameworks */ = {isa = PBXBuildFile; productRef = 15388CAA2F9270BE000A024E /* TelemetryDeck */; };
+		15388CAD2F92C9F7000A024E /* StoreKit.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 15388CAC2F92C9F7000A024E /* StoreKit.storekit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,7 +101,6 @@
 		15388BFF2F8CDE83000A024E /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		15388C002F8CDE83000A024E /* FilterStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterStatusBanner.swift; sourceTree = "<group>"; };
 		15388C012F8CDE83000A024E /* FloatingPlusButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlusButton.swift; sourceTree = "<group>"; };
-		15388C5A2F8CF050000A024E /* StarRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarRatingView.swift; sourceTree = "<group>"; };
 		15388C022F8CDE83000A024E /* MiniMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniMapView.swift; sourceTree = "<group>"; };
 		15388C032F8CDE83000A024E /* PlusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusBadge.swift; sourceTree = "<group>"; };
 		15388C042F8CDE83000A024E /* StatsSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSummaryCard.swift; sourceTree = "<group>"; };
@@ -111,12 +114,14 @@
 		15388C312F8CF028000A024E /* AddActivityTextScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddActivityTextScreen.swift; sourceTree = "<group>"; };
 		15388C322F8CF029000A024E /* ActivityDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailScreen.swift; sourceTree = "<group>"; };
 		15388C332F8CF02A000A024E /* EditActivityScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditActivityScreen.swift; sourceTree = "<group>"; };
-		15388C5C2F8CF052000A024E /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		15388C342F8CF02B000A024E /* OnboardingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreen.swift; sourceTree = "<group>"; };
 		15388C352F8CF02C000A024E /* LocationPermissionDeniedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionDeniedScreen.swift; sourceTree = "<group>"; };
 		15388C3D2F8CF034000A024E /* PreviewDataHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDataHelper.swift; sourceTree = "<group>"; };
 		15388C3F2F8CF036000A024E /* PermanentBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermanentBottomSheet.swift; sourceTree = "<group>"; };
+		15388C5A2F8CF050000A024E /* StarRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarRatingView.swift; sourceTree = "<group>"; };
+		15388C5C2F8CF052000A024E /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		15388C712F918017000A024E /* LocationSearchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchManager.swift; sourceTree = "<group>"; };
+		15388CAC2F92C9F7000A024E /* StoreKit.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKit.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -132,6 +137,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15388CA62F92701D000A024E /* Algorithms in Frameworks */,
+				15388CA92F9270BE000A024E /* TelemetryClient in Frameworks */,
+				15388CAB2F9270BE000A024E /* TelemetryDeck in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +149,7 @@
 		15388B962F8C99AE000A024E = {
 			isa = PBXGroup;
 			children = (
+				15388CAC2F92C9F7000A024E /* StoreKit.storekit */,
 				15388BB32F8C9D75000A024E /* View */,
 				15388BB22F8C9D67000A024E /* Manager */,
 				15388BB12F8C9D5D000A024E /* ViewModel */,
@@ -291,6 +300,9 @@
 			);
 			name = ActivityTracker2;
 			packageProductDependencies = (
+				15388CA52F92701D000A024E /* Algorithms */,
+				15388CA82F9270BE000A024E /* TelemetryClient */,
+				15388CAA2F9270BE000A024E /* TelemetryDeck */,
 			);
 			productName = ActivityTracker2;
 			productReference = 15388B9F2F8C99AE000A024E /* ActivityTracker2.app */;
@@ -320,6 +332,10 @@
 			);
 			mainGroup = 15388B962F8C99AE000A024E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				15388CA42F92701D000A024E /* XCRemoteSwiftPackageReference "swift-algorithms" */,
+				15388CA72F9270BE000A024E /* XCRemoteSwiftPackageReference "SwiftSDK" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 15388BA02F8C99AE000A024E /* Products */;
 			projectDirPath = "";
@@ -335,6 +351,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15388CAD2F92C9F7000A024E /* StoreKit.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -615,6 +632,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		15388CA42F92701D000A024E /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.1;
+			};
+		};
+		15388CA72F9270BE000A024E /* XCRemoteSwiftPackageReference "SwiftSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/TelemetryDeck/SwiftSDK";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		15388CA52F92701D000A024E /* Algorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15388CA42F92701D000A024E /* XCRemoteSwiftPackageReference "swift-algorithms" */;
+			productName = Algorithms;
+		};
+		15388CA82F9270BE000A024E /* TelemetryClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15388CA72F9270BE000A024E /* XCRemoteSwiftPackageReference "SwiftSDK" */;
+			productName = TelemetryClient;
+		};
+		15388CAA2F9270BE000A024E /* TelemetryDeck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15388CA72F9270BE000A024E /* XCRemoteSwiftPackageReference "SwiftSDK" */;
+			productName = TelemetryDeck;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 15388B972F8C99AE000A024E /* Project object */;
 }

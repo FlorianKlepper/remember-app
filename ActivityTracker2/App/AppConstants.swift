@@ -16,7 +16,7 @@ enum AppConstants {
     static let freeActivityLimit: Int = 100
 
     /// StoreKit-Produkt-ID für den Plus-Einmalkauf.
-    static let plusProductId: String = "com.remember.app.plus"
+    static let plusProductId: String = "com.Florian.remember.plus"
 
     /// Öffentliche Website der App.
     static let websiteURL: URL = {
@@ -82,4 +82,8 @@ extension Notification.Name {
     static let sheetBecameSmall = Notification.Name("sheetBecameSmall")
     /// ActivityRow → CategoryChipBar: Kategorie-Filter wurde über Icon-Tap gesetzt.
     static let categoryFilterChanged = Notification.Name("categoryFilterChanged")
+    /// AddActivityTextScreen → MapScreen: Neue Aktivität wurde gespeichert (mit categoryId + coordinate).
+    static let activitySaved = Notification.Name("activitySaved")
+    /// PermanentBottomSheet → MapScreen: Sheet-Größe hat sich geändert (object: Bool — true = small).
+    static let sheetSizeChanged = Notification.Name("sheetSizeChanged")
 }

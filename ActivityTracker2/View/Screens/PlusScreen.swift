@@ -40,7 +40,7 @@ struct PlusScreen: View {
             Task {
                 await plusVM.loadProducts(from: storeKitManager)
             }
-            analyticsManager.track(.paywallViewed(source: "tab"))
+            analyticsManager.track(.plusScreenViewed)
         }
     }
 

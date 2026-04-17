@@ -161,7 +161,6 @@ struct OnboardingScreen: View {
                             settings: userSettings,
                             language: selectedLanguage
                         )
-                        languageManager.selectedLanguage = selectedLanguage
                         analyticsManager.track(.onboardingCompleted)
                     }
                 }

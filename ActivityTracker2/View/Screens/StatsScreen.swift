@@ -3,6 +3,7 @@
 // Statistik-Dashboard mit Kategorien, Orten und Monatsübersicht
 
 import SwiftUI
+import SwiftData
 
 // MARK: - StatsScreen
 
@@ -15,6 +16,14 @@ struct StatsScreen: View {
     @Environment(ActivityViewModel.self) private var activityVM
     @Environment(StatsViewModel.self)    private var statsVM
     @Environment(UserSettings.self)      private var userSettings
+
+    @Query private var activities: [Activity]
+
+    private var totalCount: Int { activities.count }
+
+    // MARK: State
+
+    @State private var showSettings = false
 
     // MARK: Private
 
@@ -37,14 +46,19 @@ struct StatsScreen: View {
 
                     // ── Section 1: Zusammenfassung ───────────────────
                     StatsSummaryCard(
-                        totalCount: statsVM.totalActivities,
+                        totalCount: totalCount,
                         thisWeek: statsVM.activitiesThisWeek,
                         topCategoryId: topCategory?.id,
                         topCategoryName: topCategory?.name
                     )
                     .padding(.horizontal)
 
-                    // ── Section 2: Top Kategorien ────────────────────
+                    // ── Section 2: Nutzung / Limit ───────────────────
+                    if !userSettings.subscriptionStatus.isPremium {
+                        usageLimitCard
+                    }
+
+                    // ── Section 3: Top Kategorien ────────────────────
                     topCategoriesSection
 
                     // ── Section 3: Top Orte ──────────────────────────
@@ -57,6 +71,19 @@ struct StatsScreen: View {
             }
             .navigationTitle("stats.title")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsScreen()
+            }
         }
         .onAppear {
             statsVM.compute(from: activityVM.activities)
@@ -64,6 +91,44 @@ struct StatsScreen: View {
         .onChange(of: activityVM.activities.count) {
             statsVM.compute(from: activityVM.activities)
         }
+    }
+
+    // MARK: Usage Limit Card
+
+    @ViewBuilder
+    private var usageLimitCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(String(localized: "stats.usage.title", defaultValue: "Aktivitäten"))
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text("\(totalCount) / \(AppConstants.freeActivityLimit)")
+                    .font(.subheadline)
+                    .foregroundStyle(totalCount > 80 ? Color.red : Color.secondary)
+            }
+
+            ProgressView(
+                value: Double(min(totalCount, AppConstants.freeActivityLimit)),
+                total: Double(AppConstants.freeActivityLimit)
+            )
+            .tint(totalCount > 80 ? .red : Color(hex: "#E8593C"))
+
+            if totalCount > 80 {
+                Text(String(
+                    localized: "stats.usage.warning",
+                    defaultValue: "Nur noch \(AppConstants.freeActivityLimit - totalCount) Aktivitäten verfügbar"
+                ))
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+        .padding(.horizontal, 16)
     }
 
     // MARK: Section Views

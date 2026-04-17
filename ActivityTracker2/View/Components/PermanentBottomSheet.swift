@@ -11,9 +11,9 @@ import MapKit
 /// Drei Höhenstufen: small (15 %) · medium (50 %) · large (100 %).
 /// Per Drag oder Velocity-Fling zwischen den Stufen navigieren.
 ///
-/// Zeigt immer `mapVM.displayedActivities` — die vollständige gefilterte Liste.
-/// `mapVM.highlightedActivityId` steuert Hervorhebung, Scroll-Position und Map-Pin.
-/// Scroll-Snap: jede Zeile ist ein Snap-Punkt — beim Landen folgt die Map dem Pin.
+/// Kategorie-Navigation: TabView mit PageTabViewStyle —
+/// jede Kategorie ist eine eigene Seite. User wischt horizontal wie bei einem Carousel.
+/// `mapVM.highlightedActivityId` steuert Hervorhebung und Map-Pin-Sync.
 struct PermanentBottomSheet: View {
 
     // MARK: Nested Types
@@ -32,23 +32,18 @@ struct PermanentBottomSheet: View {
 
     // MARK: Private
 
-    /// Alle Aktivitäten gefiltert nach aktivem Kategorie-Filter — für den large Detent (volle Liste).
-    private var displayedActivities: [Activity] {
-        activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
-    }
-
     private var currentLanguage: String {
         languageManager.currentLanguageCode
     }
 
     // MARK: State
 
-    @State private var currentDetent: SheetDetent = .small
-    @State private var dragOffset: CGFloat = 0
-    @State private var selectedActivity: Activity? = nil
+    @State private var currentDetent:    SheetDetent = .small
+    @State private var dragOffset:       CGFloat     = 0
+    @State private var selectedActivity: Activity?   = nil
 
-    /// Aktuell gesnappte Activity-ID — steuert Scroll-Position und Map-Sync.
-    @State private var scrollPosition: Activity.ID? = nil
+    /// Aktive TabView-Seite — Index in `categoryPages`.
+    @State private var selectedPageIndex: Int = 0
 
     // MARK: Body
 
@@ -102,7 +97,7 @@ struct PermanentBottomSheet: View {
                 )
             )
             .offset(y: screen - displayH)
-            .gesture(dragGesture)
+            .simultaneousGesture(sheetDragGesture)
         }
         .ignoresSafeArea(edges: .bottom)
         .sheet(item: $selectedActivity) { activity in
@@ -110,13 +105,9 @@ struct PermanentBottomSheet: View {
                 ActivityDetailScreen(activity: activity)
             }
         }
-        // Highlight von außen (z.B. Pin-Tap) → Scroll-Position synchronisieren
+        // Highlight von außen (z.B. Pin-Tap) → Sheet auf .medium hochfahren
         .onChange(of: mapVM.highlightedActivityId) { _, newId in
-            guard let newId, newId != scrollPosition else { return }
-            withAnimation(.easeInOut(duration: 0.3)) {
-                scrollPosition = newId
-            }
-            // Sheet auf .medium hochfahren wenn aktuell .small
+            guard newId != nil else { return }
             if currentDetent == .small {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                     currentDetent = .medium
@@ -127,44 +118,58 @@ struct PermanentBottomSheet: View {
         .onReceive(NotificationCenter.default.publisher(for: .setSheetSmall)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .small
-                dragOffset = 0
+                dragOffset    = 0
             }
             mapVM.currentSheetDetent = 0.15
+            NotificationCenter.default.post(name: .sheetSizeChanged, object: true)
         }
         // Tab "Liste" → Sheet gross
         .onReceive(NotificationCenter.default.publisher(for: .setSheetLarge)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .large
-                dragOffset = 0
+                dragOffset    = 0
             }
             mapVM.currentSheetDetent = 1.0
+            NotificationCenter.default.post(name: .sheetSizeChanged, object: false)
         }
         // Nach Speichern einer Aktivität → Sheet auf medium
         .onReceive(NotificationCenter.default.publisher(for: .setSheetMedium)) { _ in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentDetent = .medium
-                dragOffset = 0
+                dragOffset    = 0
             }
             mapVM.currentSheetDetent = 0.45
             NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
+            NotificationCenter.default.post(name: .sheetSizeChanged, object: false)
         }
     }
 
-    // MARK: Drag Gesture
+    // MARK: Sheet Drag Gesture
 
-    private var dragGesture: some Gesture {
-        DragGesture()
+    /// Vertikale Geste zum Ändern der Sheet-Höhe.
+    /// Horizontale Bewegungen werden ignoriert — TabView verarbeitet diese selbst.
+    private var sheetDragGesture: some Gesture {
+        DragGesture(minimumDistance: 10)
             .onChanged { value in
-                let translation = value.translation.height
-                let screen      = UIScreen.main.bounds.height
-                let base        = heightFor(currentDetent, screen)
-                let newH        = base - translation
-                let minH        = screen * 0.15
-                dragOffset = newH < minH ? minH - base : -translation
+                let absX = abs(value.translation.width)
+                let absY = abs(value.translation.height)
+                guard absY > absX else { return }
+
+                let screen = UIScreen.main.bounds.height
+                let base   = heightFor(currentDetent, screen)
+                let newH   = base - value.translation.height
+                let minH   = screen * 0.15
+                dragOffset = newH < minH ? minH - base : -value.translation.height
             }
             .onEnded { value in
-                let velocity = value.predictedEndTranslation.height
+                let absX = abs(value.translation.width)
+                let absY = abs(value.translation.height)
+                guard absY > absX else {
+                    dragOffset = 0
+                    return
+                }
 
+                let velocity = value.predictedEndTranslation.height
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     if velocity > 0 {
                         switch currentDetent {
@@ -191,54 +196,70 @@ struct PermanentBottomSheet: View {
                     } else {
                         NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
                     }
+                    NotificationCenter.default.post(
+                        name: .sheetSizeChanged,
+                        object: detentAfterDrag == .small
+                    )
                 }
             }
     }
 
-    /// Karte nach Drag-Ende neu zentrieren.
-    private func syncMapAfterDrag(detent: SheetDetent) {
-        switch detent {
-        case .small:
-            mapVM.currentSheetDetent = 0.15
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                guard let activity = mapVM.displayedActivities
-                    .first(where: { $0.id == mapVM.highlightedActivityId }),
-                      let location = activity.location else { return }
-                let center = mapVM.adjustedCenter(
-                    for: location.coordinate,
-                    span: mapVM.region.span,
-                    sheetDetent: 0.15
-                )
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+    // MARK: Category Pages
+
+    /// Alle Seiten des Kategorie-Carousels.
+    /// Index 0 = `nil` ("Alle"), danach sortiert nach Anzahl absteigend.
+    private var categoryPages: [Category?] {
+        var pages: [Category?] = [nil]
+        pages += filterVM.sortedUsedCategories(from: activityVM.activities).map { Optional($0) }
+        return pages
+    }
+
+    // MARK: Shared Category TabView
+
+    /// TabView mit einer Seite pro Kategorie.
+    /// Wird sowohl in medium als auch in large verwendet.
+    @ViewBuilder
+    private var categoryTabView: some View {
+        TabView(selection: $selectedPageIndex) {
+            ForEach(Array(categoryPages.enumerated()), id: \.offset) { index, category in
+                categoryListPage(category: category)
+                    .tag(index)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        // Seite gewechselt → Kategorie-Filter setzen
+        .onChange(of: selectedPageIndex) { _, newIndex in
+            let cats = categoryPages
+            guard newIndex < cats.count else { return }
+            withAnimation(.easeInOut(duration: 0.3)) {
+                if let category = cats[newIndex] {
+                    filterVM.setFilter(categoryId: category.id)
+                } else {
+                    filterVM.clearFilter()
                 }
             }
-        case .medium:
-            mapVM.currentSheetDetent = 0.5
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                let location: Location? = {
-                    if let sel = mapVM.selectedLocation,
-                       mapVM.displayedActivities.contains(where: { $0.location?.id == sel.id }) {
-                        return sel
-                    }
-                    if let id = mapVM.highlightedActivityId,
-                       let act = mapVM.displayedActivities.first(where: { $0.id == id }) {
-                        return act.location
-                    }
-                    return nil
-                }()
-                guard let location else { return }
-                let center = mapVM.adjustedCenter(
-                    for: location.coordinate,
-                    span: mapVM.region.span,
-                    sheetDetent: 0.5
-                )
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+            HapticManager.selectionChanged()
+            NotificationCenter.default.post(
+                name: .categoryFilterChanged,
+                object: filterVM.selectedCategoryId
+            )
+        }
+        // Filter von außen (ChipBar, CategoryIconView-Tap) → Seite syncen
+        .onChange(of: filterVM.selectedCategoryId) { _, newId in
+            if let newId {
+                if let idx = categoryPages.firstIndex(where: { $0?.id == newId }),
+                   idx != selectedPageIndex {
+                    withAnimation { selectedPageIndex = idx }
                 }
+            } else if selectedPageIndex != 0 {
+                withAnimation { selectedPageIndex = 0 }
             }
-        case .large:
-            mapVM.currentSheetDetent = 1.0
+        }
+        // Seiten-Anzahl verringert → Index eingrenzen
+        .onChange(of: categoryPages.count) { _, count in
+            if selectedPageIndex >= count {
+                withAnimation { selectedPageIndex = max(0, count - 1) }
+            }
         }
     }
 
@@ -254,21 +275,16 @@ struct PermanentBottomSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             mediumCountHeader
             Divider()
-            if mapVM.displayedActivities.isEmpty {
-                Text(LocalizedStringKey("bottomsheet.tap.pin"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(16)
-            } else {
-                mediumScrollView
-            }
+            categoryTabView
         }
     }
 
     @ViewBuilder
     private var mediumCountHeader: some View {
-        if !mapVM.displayedActivities.isEmpty {
-            let count = mapVM.displayedActivities.count
+        let page       = categoryPages.indices.contains(selectedPageIndex) ? categoryPages[selectedPageIndex] : nil
+        let activities = activitiesForPage(page)
+        if !activities.isEmpty {
+            let count = activities.count
             let label = count == 1
                 ? String(localized: "bottomsheet.activities.count.few")
                 : String(localized: "bottomsheet.activities")
@@ -283,74 +299,12 @@ struct PermanentBottomSheet: View {
         }
     }
 
-    private var mediumScrollView: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: 0) {
-                    activityListItems(
-                        activities: mapVM.displayedActivities,
-                        highlighted: mapVM.highlightedActivityId
-                    )
-                }
-                .padding(.bottom, UIScreen.main.bounds.height * 0.35)
-                .scrollTargetLayout()
-            }
-            .scrollTargetBehavior(.viewAligned)
-            .scrollPosition(id: $scrollPosition)
-            .onChange(of: scrollPosition) { _, newId in
-                guard let newId, newId != mapVM.highlightedActivityId else { return }
-                // Nur highlightedActivityId setzen —
-                // animateToPin wird durch onChange(of: highlightedActivityId) ausgelöst
-                mapVM.highlightedActivityId = newId
-                if let activity = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                   let location = activity.location {
-                    mapVM.selectedLocation = location
-                }
-            }
-            .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                guard let newId,
-                      let newActivity  = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                      let newLocation  = newActivity.location
-                else { return }
-                let currentLocation = mapVM.displayedActivities
-                    .first(where: { $0.id == mapVM.previousHighlightedId })?.location
-                mapVM.animateToPin(from: currentLocation, to: newLocation, currentSpan: mapVM.region.span)
-                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(newId, anchor: UnitPoint.top) }
-            }
-            .onAppear {
-                if scrollPosition == nil {
-                    scrollPosition = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
-                }
-                if let id = mapVM.highlightedActivityId {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        proxy.scrollTo(id, anchor: UnitPoint.top)
-                    }
-                }
-            }
-            .onChange(of: mapVM.displayedActivities.first?.id) { _, _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    let target = mapVM.highlightedActivityId ?? mapVM.displayedActivities.first?.id
-                    if let id = target {
-                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: UnitPoint.top) }
-                    }
-                }
-            }
-            .onChange(of: filterVM.selectedCategoryId) { _, _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    if let first = mapVM.displayedActivities.first {
-                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(first.id, anchor: UnitPoint.top) }
-                    }
-                }
-            }
-        }
-    }
-
     // MARK: Large Content (100 %)
 
     private var largeContent: some View {
         VStack(spacing: 0) {
             largeListHeader
-            largeScrollView
+            categoryTabView
         }
     }
 
@@ -375,11 +329,27 @@ struct PermanentBottomSheet: View {
         .background(Color(.systemBackground))
     }
 
-    private var largeScrollView: some View {
+    // MARK: Category List Page
+
+    /// Aktivitäten für eine Seite — alle wenn `category == nil`, sonst gefiltert.
+    private func activitiesForPage(_ category: Category?) -> [Activity] {
+        if let category {
+            return activityVM.activities
+                .filter { $0.categoryId == category.id }
+                .sorted { $0.date > $1.date }
+        }
+        return activityVM.activities.sorted { $0.date > $1.date }
+    }
+
+    /// Eine Seite im Kategorie-Carousel — vertikale Liste aller Aktivitäten dieser Kategorie.
+    @ViewBuilder
+    private func categoryListPage(category: Category?) -> some View {
+        let activities = activitiesForPage(category)
+
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: 0) {
-                    if displayedActivities.isEmpty {
+                    if activities.isEmpty {
                         EmptyStateView(
                             config: filterVM.isFilterActive
                                 ? .filteredNoResults
@@ -387,23 +357,35 @@ struct PermanentBottomSheet: View {
                         )
                         .padding(.top, 40)
                     } else {
-                        activityListItems(
-                            activities: displayedActivities,
-                            highlighted: mapVM.highlightedActivityId
-                        )
+                        ForEach(
+                            Array(activities.enumerated()),
+                            id: \.element.id
+                        ) { index, activity in
+                            let showYear = index == 0
+                                || activities[index - 1].yearInt != activity.yearInt
+
+                            if showYear {
+                                yearSeparator(yearInt: activity.yearInt)
+                            }
+
+                            activityRow(
+                                activity: activity,
+                                isHighlighted: activity.id == mapVM.highlightedActivityId
+                            )
+                            .id(activity.id)
+
+                            Divider().padding(.leading, 16)
+                        }
+
+                        Color.clear.frame(height: 100)
                     }
                 }
-                .padding(.bottom, UIScreen.main.bounds.height * 0.35)
             }
             .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                guard let newId,
-                      let newActivity  = mapVM.displayedActivities.first(where: { $0.id == newId }),
-                      let newLocation  = newActivity.location
-                else { return }
-                let currentLocation = mapVM.displayedActivities
-                    .first(where: { $0.id == mapVM.previousHighlightedId })?.location
-                mapVM.animateToPin(from: currentLocation, to: newLocation, currentSpan: mapVM.region.span)
-                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(newId, anchor: UnitPoint.top) }
+                guard let newId else { return }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(newId, anchor: UnitPoint.top)
+                }
             }
             .onAppear {
                 if let id = mapVM.highlightedActivityId {
@@ -412,45 +394,11 @@ struct PermanentBottomSheet: View {
                     }
                 }
             }
-            .onChange(of: displayedActivities.first?.id) { _, _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    let target = mapVM.highlightedActivityId ?? displayedActivities.first?.id
-                    if let id = target {
-                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: UnitPoint.top) }
-                    }
-                }
-            }
-            .onChange(of: filterVM.selectedCategoryId) { _, _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    if let first = displayedActivities.first {
-                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(first.id, anchor: UnitPoint.top) }
-                    }
-                }
-            }
         }
     }
 
-    // MARK: Shared List Items
+    // MARK: Year Separator
 
-    /// Gemeinsame Listeinhalte für medium und large — Jahr-Header + Zeilen + Divider.
-    @ViewBuilder
-    private func activityListItems(
-        activities: [Activity],
-        highlighted: Activity.ID?
-    ) -> some View {
-        ForEach(Array(activities.enumerated()), id: \.element.id) { index, activity in
-            if index == 0 || activities[index - 1].yearInt != activity.yearInt {
-                yearSeparator(yearInt: activity.yearInt)
-            }
-            activityRow(activity: activity, isHighlighted: activity.id == highlighted)
-                .frame(minHeight: 72)
-                .id(activity.id)
-            Divider()
-                .padding(.leading, 16)
-        }
-    }
-
-    /// Jahr-Trennzeile.
     @ViewBuilder
     private func yearSeparator(yearInt: Int) -> some View {
         HStack(spacing: 0) {
@@ -582,6 +530,53 @@ struct PermanentBottomSheet: View {
                 .compactMap { $0 as? UIWindowScene }
                 .first?.windows.first?.safeAreaInsets.top ?? 47
             return screen - topSafeArea - 8
+        }
+    }
+
+    /// Karte nach Drag-Ende neu zentrieren.
+    private func syncMapAfterDrag(detent: SheetDetent) {
+        switch detent {
+        case .small:
+            mapVM.currentSheetDetent = 0.15
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                guard let activity = mapVM.displayedActivities
+                    .first(where: { $0.id == mapVM.highlightedActivityId }),
+                      let location = activity.location else { return }
+                let center = mapVM.adjustedCenter(
+                    for: location.coordinate,
+                    span: mapVM.region.span,
+                    sheetDetent: 0.15
+                )
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                }
+            }
+        case .medium:
+            mapVM.currentSheetDetent = 0.5
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                let location: Location? = {
+                    if let sel = mapVM.selectedLocation,
+                       mapVM.displayedActivities.contains(where: { $0.location?.id == sel.id }) {
+                        return sel
+                    }
+                    if let id = mapVM.highlightedActivityId,
+                       let act = mapVM.displayedActivities.first(where: { $0.id == id }) {
+                        return act.location
+                    }
+                    return nil
+                }()
+                guard let location else { return }
+                let center = mapVM.adjustedCenter(
+                    for: location.coordinate,
+                    span: mapVM.region.span,
+                    sheetDetent: 0.5
+                )
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    mapVM.region = MKCoordinateRegion(center: center, span: mapVM.region.span)
+                }
+            }
+        case .large:
+            mapVM.currentSheetDetent = 1.0
         }
     }
 }

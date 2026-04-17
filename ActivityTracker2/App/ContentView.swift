@@ -186,9 +186,6 @@ struct ContentView: View {
         .onAppear {
             activityVM.fetchActivities(context: modelContext)
         }
-        .onChange(of: selectedTab) { _, newTab in
-            if newTab == 3 { analyticsManager.track(.statsOpened) }
-        }
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()
         }

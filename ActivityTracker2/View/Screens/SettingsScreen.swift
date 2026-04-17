@@ -1,8 +1,9 @@
 // SettingsScreen.swift
 // ActivityTracker2 — Remember
-// App-Einstellungen: Sprache, Standort, Darstellung, Info, Daten
+// App-Einstellungen: Nutzung, Standort, Darstellung, Info, Daten
 
 import SwiftUI
+import SwiftData
 
 // MARK: - SettingsScreen
 
@@ -11,9 +12,10 @@ struct SettingsScreen: View {
 
     // MARK: Environment
 
-    @Environment(UserSettings.self)    private var userSettings
-    @Environment(LanguageManager.self) private var languageManager
-    @Environment(\.dismiss)            private var dismiss
+    @Environment(UserSettings.self) private var userSettings
+    @Environment(\.dismiss)         private var dismiss
+
+    @Query private var activities: [Activity]
 
     // MARK: State
 
@@ -66,33 +68,37 @@ struct SettingsScreen: View {
                         }
                         .buttonStyle(.plain)
                     }
-
-                    // Aktivitäten-Zähler
-                    HStack {
-                        Label(
-                            String(localized: "settings.activities",
-                                   defaultValue: "Aktivitäten"),
-                            systemImage: "chart.bar.fill"
-                        )
-                        Spacer()
-                        Text(userSettings.subscriptionStatus.isPremium
-                             ? "\(userSettings.activitiesCreatedCount)"
-                             : "\(userSettings.activitiesCreatedCount) / \(AppConstants.freeActivityLimit)")
-                            .foregroundStyle(.secondary)
-                    }
                 }
 
-                // ── Sprache ──────────────────────────────────────
-                Section(String(localized: "settings.section.language",
-                               defaultValue: "Sprache")) {
+                // ── Nutzung ───────────────────────────────────────
+                Section(String(localized: "settings.section.usage",
+                               defaultValue: "Nutzung")) {
 
-                    languageRow(code: "de",
-                                label: String(localized: "language.de",
-                                              defaultValue: "Deutsch"))
+                    VStack(spacing: 8) {
+                        HStack {
+                            Label(
+                                String(localized: "settings.activities",
+                                       defaultValue: "Aktivitäten"),
+                                systemImage: "chart.bar.fill"
+                            )
+                            Spacer()
+                            Text(userSettings.subscriptionStatus.isPremium
+                                 ? "\(activities.count)"
+                                 : "\(activities.count) / \(AppConstants.freeActivityLimit)")
+                                .foregroundStyle(
+                                    activities.count > 80 ? Color.red : Color.secondary
+                                )
+                        }
 
-                    languageRow(code: "en",
-                                label: String(localized: "language.en",
-                                              defaultValue: "English"))
+                        if !userSettings.subscriptionStatus.isPremium {
+                            ProgressView(
+                                value: Double(min(activities.count, AppConstants.freeActivityLimit)),
+                                total: Double(AppConstants.freeActivityLimit)
+                            )
+                            .tint(activities.count > 80 ? .red : Color(hex: "#E8593C"))
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
 
                 // ── Standort ─────────────────────────────────────
@@ -202,7 +208,6 @@ struct SettingsScreen: View {
                 Section(String(localized: "settings.section.legal",
                                defaultValue: "Rechtliches")) {
 
-                    // Impressum
                     VStack(alignment: .leading, spacing: 4) {
                         Text(String(localized: "settings.legal.imprint",
                                     defaultValue: "Impressum"))
@@ -275,22 +280,6 @@ struct SettingsScreen: View {
 
     // MARK: Helpers
 
-    private func languageRow(code: String, label: String) -> some View {
-        HStack {
-            Label(label, systemImage: "globe")
-            Spacer()
-            if languageManager.currentLanguageCode == code {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color(hex: "#E8593C"))
-            }
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            languageManager.applyLanguage(code)
-            userSettings.selectedLanguage = code
-        }
-    }
-
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build   = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -303,5 +292,4 @@ struct SettingsScreen: View {
 #Preview("Settings Screen") {
     SettingsScreen()
         .environment(UserSettings())
-        .environment(LanguageManager())
 }

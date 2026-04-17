@@ -1,17 +1,14 @@
 // AnalyticsManager.swift
 // ActivityTracker2 — Remember
-// Analytics-Tracking — Debug: Konsolen-Output / Release: TODO Firebase/Amplitude
+// Analytics-Tracking via TelemetryDeck
 
 import Foundation
+import TelemetryDeck
 
 // MARK: - AnalyticsManager
 
-/// Zentraler Analytics-Manager der App.
-/// Im DEBUG-Modus werden Events auf der Konsole geloggt.
-/// Im RELEASE-Modus ist der Manager ein No-op — Firebase/Amplitude werden hier integriert,
-/// sobald ein Analytics-SDK hinzugefügt wird.
-///
-/// Events werden in einem unstrukturierten `Task` nicht-blockierend getracked.
+/// Zentraler Analytics-Manager der App — sendet Events via TelemetryDeck.
+/// Im DEBUG-Modus werden Events zusätzlich auf der Konsole geloggt.
 @Observable
 final class AnalyticsManager {
 
@@ -21,40 +18,46 @@ final class AnalyticsManager {
 
     // MARK: Tracking
 
-    /// Tracked ein Analytics-Event nicht-blockierend.
-    /// Aufruf ist fire-and-forget — der Caller wartet nicht auf Completion.
+    /// Tracked ein Analytics-Event via TelemetryDeck.
+    /// Fire-and-forget — TelemetryDeck puffert und sendet intern asynchron.
     /// - Parameter event: Das zu trackende Event aus `AnalyticsEvent`.
     func track(_ event: AnalyticsEvent) {
-        Task {
-            await log(event)
-        }
-    }
-}
-
-// MARK: - Private Logging
-
-private extension AnalyticsManager {
-
-    /// Führt das tatsächliche Logging aus — im DEBUG auf Konsole, im Release No-op.
-    func log(_ event: AnalyticsEvent) async {
         #if DEBUG
-        let params = event.parameters
-        if params.isEmpty {
-            print("[Analytics] \(event.eventName)")
-        } else {
-            let formatted = params
-                .sorted { $0.key < $1.key }
-                .map { "\($0.key): \($0.value)" }
-                .joined(separator: ", ")
-            print("[Analytics] \(event.eventName) — \(formatted)")
-        }
-        #else
-        // TODO: Firebase Analytics Integration
-        // Analytics.logEvent(event.eventName, parameters: event.parameters)
-
-        // TODO: Amplitude Integration (Alternative)
-        // Amplitude.instance().logEvent(event.eventName, withEventProperties: event.parameters)
-        _ = event // Unterdrückt "unused variable"-Warnung im Release-Build
+        print("[Analytics] \(event)")
         #endif
+
+        switch event {
+        case .appOpened:
+            TelemetryDeck.signal("app.opened")
+
+        case .onboardingCompleted:
+            TelemetryDeck.signal("onboarding.completed")
+
+        case .activityCreated(let categoryId):
+            TelemetryDeck.signal("activity.created",
+                                 parameters: ["categoryId": categoryId])
+
+        case .activityDeleted:
+            TelemetryDeck.signal("activity.deleted")
+
+        case .activityEdited:
+            TelemetryDeck.signal("activity.edited")
+
+        case .filterApplied(let categoryId):
+            TelemetryDeck.signal("filter.applied",
+                                 parameters: ["categoryId": categoryId])
+
+        case .filterCleared:
+            TelemetryDeck.signal("filter.cleared")
+
+        case .pinTapped:
+            TelemetryDeck.signal("map.pin_tapped")
+
+        case .plusScreenViewed:
+            TelemetryDeck.signal("plus.screen_viewed")
+
+        case .plusPurchased:
+            TelemetryDeck.signal("plus.purchased")
+        }
     }
 }

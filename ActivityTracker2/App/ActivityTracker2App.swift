@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import TelemetryDeck
 
 // MARK: - ActivityTracker2App
 
@@ -46,6 +47,9 @@ struct ActivityTracker2App: App {
     /// `AnalyticsManager` wird zuerst erstellt, da `ActivityViewModel`
     /// und `PlusViewModel` ihn als Parameter benötigen.
     init() {
+        // 0. TelemetryDeck — muss als erstes initialisiert werden
+        TelemetryDeck.initialize(config: .init(appID: "DB2C7E9A-F056-413C-B648-A062D6E037A7"))
+
         // 1. Analytics zuerst — wird von mehreren ViewModels benötigt
         let analytics = AnalyticsManager()
         analyticsManager = analytics
@@ -116,9 +120,14 @@ struct ActivityTracker2App: App {
             .environment(onboardingViewModel)
             .environment(plusViewModel)
             .onAppear {
+                TelemetryDeck.signal("app.opened")
+                print("TelemetryDeck signal sent")
                 analyticsManager.track(.appOpened)
-                languageManager.applyLanguage(userSettings.selectedLanguage)
                 locationManager.startUpdating()
+            }
+            .task {
+                // Entitlements prüfen und beide Stores synchronisieren
+                await storeKitManager.checkCurrentEntitlements(settings: userSettings)
             }
         }
     }

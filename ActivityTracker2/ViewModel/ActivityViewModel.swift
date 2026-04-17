@@ -96,7 +96,7 @@ extension ActivityViewModel {
         }
 
         fetchActivities(context: context)
-        analytics.track(.activitySaved(categoryId: categoryId, city: location.city))
+        analytics.track(.activityCreated(categoryId: categoryId))
     }
 
     /// Persistiert Änderungen an einer bestehenden Activity.
@@ -113,7 +113,6 @@ extension ActivityViewModel {
 
     /// Löscht eine Activity aus SwiftData und trackt das Deletion-Event.
     func deleteActivity(_ activity: Activity, context: ModelContext) {
-        let categoryId = activity.categoryId
         context.delete(activity)
         do {
             try context.save()
@@ -121,7 +120,7 @@ extension ActivityViewModel {
             // Fehler still ignorieren — View zeigt optimistisch gelöscht
         }
         fetchActivities(context: context)
-        analytics.track(.activityDeleted(categoryId: categoryId))
+        analytics.track(.activityDeleted)
     }
 }
 
