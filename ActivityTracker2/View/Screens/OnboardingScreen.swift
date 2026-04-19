@@ -230,6 +230,7 @@ struct OnboardingScreen: View {
     /// "Überspringen" auf Page 0 und 1 — springt zu Page 2, beendet Onboarding NICHT.
     private var skipButton: some View {
         Button {
+            analyticsManager.track(.onboardingSkipped)
             onboardingVM.skipToLocationPage()
         } label: {
             Text("button.skip")

@@ -88,10 +88,11 @@ struct FilterStatusBanner: View {
 // MARK: - Preview
 
 #Preview("Filter Status Banner") {
+    let analytics = AnalyticsManager()
     VStack(alignment: .leading, spacing: 16) {
         FilterStatusBanner(
             filterVM: {
-                let vm = FilterViewModel()
+                let vm = FilterViewModel(analytics: analytics)
                 vm.setFilter(categoryId: "hiking")
                 return vm
             }(),
@@ -99,7 +100,7 @@ struct FilterStatusBanner: View {
         )
         FilterStatusBanner(
             filterVM: {
-                let vm = FilterViewModel()
+                let vm = FilterViewModel(analytics: analytics)
                 vm.setFilter(categoryId: "restaurant")
                 return vm
             }(),

@@ -235,8 +235,8 @@ struct ContentView: View {
 #Preview("Content View") {
     let analytics = AnalyticsManager()
     let activityVM = ActivityViewModel(analytics: analytics)
-    let mapVM = MapViewModel()
-    let filterVM = FilterViewModel()
+    let mapVM = MapViewModel(analytics: analytics)
+    let filterVM = FilterViewModel(analytics: analytics)
     let statsVM = StatsViewModel()
     let plusVM = PlusViewModel(analytics: analytics)
     let settings = UserSettings()

@@ -14,17 +14,25 @@ enum AnalyticsEvent {
     /// App wird gestartet oder in den Vordergrund gebracht.
     case appOpened
 
+    // MARK: Onboarding
+
     /// User hat den Onboarding-Flow vollständig abgeschlossen.
     case onboardingCompleted
+
+    /// User hat auf "Überspringen" getippt und ist zur Location-Permission-Seite gesprungen.
+    case onboardingSkipped
 
     // MARK: Activity CRUD
 
     /// Eine Activity wurde erfolgreich gespeichert.
-    /// - Parameter categoryId: ID der gewählten Kategorie.
-    case activityCreated(categoryId: String)
+    /// - Parameters:
+    ///   - categoryId: ID der gewählten Kategorie.
+    ///   - city: Erkannter Stadtname oder `nil` wenn kein Reverse Geocoding verfügbar.
+    case activitySaved(categoryId: String, city: String?)
 
     /// Eine Activity wurde gelöscht.
-    case activityDeleted
+    /// - Parameter categoryId: ID der Kategorie der gelöschten Activity.
+    case activityDeleted(categoryId: String)
 
     /// Eine Activity wurde bearbeitet.
     case activityEdited
@@ -33,21 +41,31 @@ enum AnalyticsEvent {
 
     /// Ein Kategorie-Filter wurde aktiviert.
     /// - Parameter categoryId: ID der gefilterten Kategorie.
-    case filterApplied(categoryId: String)
+    case filterActivated(categoryId: String)
 
     /// Aktiver Filter wurde zurückgesetzt.
-    case filterCleared
+    case filterReset
 
     // MARK: Map
 
     /// User hat einen Map-Pin angetippt.
-    case pinTapped
+    case mapPinTapped
+
+    // MARK: Stats
+
+    /// Stats-Tab wurde geöffnet.
+    case statsOpened
 
     // MARK: Monetarisierung
 
-    /// Plus-Screen wurde angezeigt.
-    case plusScreenViewed
+    /// Paywall wurde angezeigt.
+    /// - Parameter source: Auslöser der Paywall, z.B. "plus_tab", "activity_limit", "category_locked".
+    case paywallViewed(source: String)
 
     /// Plus wurde erfolgreich gekauft.
-    case plusPurchased
+    /// - Parameter productId: StoreKit-Produkt-ID des gekauften Produkts.
+    case purchaseSuccess(productId: String)
+
+    /// Kauf ist fehlgeschlagen (abgebrochen oder Fehler).
+    case purchaseFailed
 }

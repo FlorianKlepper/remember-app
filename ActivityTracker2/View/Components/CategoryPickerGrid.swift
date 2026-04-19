@@ -167,7 +167,7 @@ struct CategoryPickerGrid: View {
             .padding(.vertical, 12)
         }
         .sheet(isPresented: $showPlusScreen) {
-            PlusScreen()
+            PlusScreen(source: "category_locked")
         }
     }
 

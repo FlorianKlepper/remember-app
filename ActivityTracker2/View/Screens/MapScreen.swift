@@ -248,45 +248,45 @@ struct MapScreen: View {
             // Einstellungen
             Button { showSettings = true } label: {
                 Image(systemName: "gearshape.fill")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 42, height: 42)
             }
 
             Color(.systemGray4)
-                .frame(width: 36, height: 0.5)
+                .frame(width: 42, height: 0.5)
                 .padding(.vertical, 4)
 
             // Zoom In
             Button { zoomIn() } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.primary)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 42, height: 42)
             }
 
-            Divider().frame(width: 36)
+            Divider().frame(width: 42)
 
             // Zoom Out
             Button { zoomOut() } label: {
                 Image(systemName: "minus")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.primary)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 42, height: 42)
             }
 
             // Trennlinie zwischen Zoom und GPS
             Color(.systemGray4)
-                .frame(width: 36, height: 0.5)
+                .frame(width: 42, height: 0.5)
                 .padding(.vertical, 4)
 
             // GPS Refokussierung
             Button { refocusOnGPS() } label: {
                 let hasLocation = locationManager.currentLocation != nil
                 Image(systemName: hasLocation ? "location.fill" : "location.slash")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(hasLocation ? Color(hex: "#E8593C") : Color(.systemGray3))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 42, height: 42)
             }
         }
         .buttonStyle(.plain)
@@ -344,8 +344,8 @@ struct MapScreen: View {
 #Preview("Map Screen") {
     let analytics = AnalyticsManager()
     let activityVM = ActivityViewModel(analytics: analytics)
-    let mapVM = MapViewModel()
-    let filterVM = FilterViewModel()
+    let mapVM = MapViewModel(analytics: analytics)
+    let filterVM = FilterViewModel(analytics: analytics)
     let locationManager = LocationManager()
 
     activityVM.activities = Activity.samples

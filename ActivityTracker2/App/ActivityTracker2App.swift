@@ -66,8 +66,8 @@ struct ActivityTracker2App: App {
         // 4. ViewModels — abhängige zuerst
         activityViewModel    = ActivityViewModel(analytics: analytics)
         plusViewModel        = PlusViewModel(analytics: analytics)
-        mapViewModel         = MapViewModel()
-        filterViewModel      = FilterViewModel()
+        mapViewModel         = MapViewModel(analytics: analytics)
+        filterViewModel      = FilterViewModel(analytics: analytics)
         addActivityViewModel = AddActivityViewModel()
         statsViewModel       = StatsViewModel()
         onboardingViewModel  = OnboardingViewModel()
@@ -120,8 +120,6 @@ struct ActivityTracker2App: App {
             .environment(onboardingViewModel)
             .environment(plusViewModel)
             .onAppear {
-                TelemetryDeck.signal("app.opened")
-                print("TelemetryDeck signal sent")
                 analyticsManager.track(.appOpened)
                 locationManager.startUpdating()
             }

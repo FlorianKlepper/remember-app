@@ -174,7 +174,7 @@ struct ListScreen: View {
 #Preview("List Screen") {
     let analytics = AnalyticsManager()
     let activityVM = ActivityViewModel(analytics: analytics)
-    let filterVM = FilterViewModel()
+    let filterVM = FilterViewModel(analytics: analytics)
 
     activityVM.activities = Activity.samples
 

@@ -74,12 +74,16 @@ extension PlusViewModel {
         do {
             let success = try await manager.purchase(product, settings: settings)
             if success {
-                analytics.track(.plusPurchased)
+                analytics.track(.purchaseSuccess(productId: product.id))
+            } else {
+                analytics.track(.purchaseFailed)
             }
         } catch let appError as AppError {
             errorMessage = appError.errorDescription
+            analytics.track(.purchaseFailed)
         } catch {
             errorMessage = AppError.storeKitError(error).errorDescription
+            analytics.track(.purchaseFailed)
         }
     }
 

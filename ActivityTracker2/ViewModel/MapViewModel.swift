@@ -57,9 +57,16 @@ final class MapViewModel {
     /// Verhindert wiederholtes Zentrieren bei jedem Location-Update.
     var hasInitialLocation: Bool = false
 
+    // MARK: Private
+
+    private let analytics: AnalyticsManager
+
     // MARK: Init
 
-    init() {}
+    /// - Parameter analytics: Für Map-Event-Tracking.
+    init(analytics: AnalyticsManager) {
+        self.analytics = analytics
+    }
 }
 
 // MARK: - Pin-Logik
@@ -139,6 +146,7 @@ extension MapViewModel {
     ///   - categoryId: Aktiver Kategorie-Filter oder `nil`.
     func onPinTapped(location: Location, allActivities: [Activity], categoryId: String?) {
         selectedLocation = location
+        analytics.track(.mapPinTapped)
 
         // Erste Activity an diesem Pin hervorheben (Kategorie-Filter respektieren)
         let atPin = displayedActivities.filter { $0.location?.id == location.id }

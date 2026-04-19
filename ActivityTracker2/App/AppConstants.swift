@@ -57,7 +57,7 @@ enum AppConstants {
     static let toastDuration: Double = 2.0
 
     /// Bottom Sheet – schmaler Streifen (immer sichtbar nach Pin-Tap).
-    static let bottomSheetSmall: Double = 0.15
+    static let bottomSheetSmall: Double = 0.17
 
     /// Bottom Sheet – halbe Bildschirmhöhe (Standard-Detent).
     static let bottomSheetMedium: Double = 0.45

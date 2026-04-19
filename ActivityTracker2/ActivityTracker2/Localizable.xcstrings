@@ -76,6 +76,9 @@
         }
       }
     },
+    "82418 Murnau am Staffelsee" : {
+
+    },
     "activity.delete.confirm.message" : {
       "comment" : "Body text in the delete confirmation dialog",
       "localizations" : {
@@ -590,6 +593,9 @@
           }
         }
       }
+    },
+    "Bayern, Deutschland" : {
+
     },
     "bottomsheet.activities" : {
       "comment" : "Plural label for activity count in bottom sheet (2+)",
@@ -1453,7 +1459,7 @@
         }
       }
     },
-    "f.klepper@gmx.de" : {
+    "F. Klepper" : {
 
     },
     "filter.active" : {
@@ -1526,9 +1532,6 @@
           }
         }
       }
-    },
-    "Florian Klepper" : {
-
     },
     "general.back" : {
       "comment" : "Back button label in detail screens",
@@ -2825,6 +2828,9 @@
         }
       }
     },
+    "remember-journal.com" : {
+
+    },
     "settings.activities" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -2843,6 +2849,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Erscheinungsbild"
+          }
+        }
+      }
+    },
+    "settings.developer" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Entwickler"
           }
         }
       }
@@ -2898,6 +2915,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Impressum"
+          }
+        }
+      }
+    },
+    "settings.legal.imprint.type" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hard- und Software Development"
           }
         }
       }
@@ -3073,7 +3101,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Info"
+            "value" : "App Info"
           }
         }
       }
@@ -3151,6 +3179,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Version"
+          }
+        }
+      }
+    },
+    "settings.website" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Website"
           }
         }
       }
@@ -3481,6 +3520,9 @@
           }
         }
       }
+    },
+    "support@remember-journal.com" : {
+
     },
     "tab.list" : {
       "comment" : "Tab bar label for the list screen",

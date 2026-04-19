@@ -119,9 +119,10 @@ struct CategoryChipBar: View {
 // MARK: - Preview
 
 #Preview("Category Chip Bar") {
+    let analytics = AnalyticsManager()
     VStack(spacing: 20) {
         CategoryChipBar(
-            filterVM: FilterViewModel(),
+            filterVM: FilterViewModel(analytics: analytics),
             activities: Activity.samples,
             language: "de"
         )
@@ -131,7 +132,7 @@ struct CategoryChipBar: View {
 
         CategoryChipBar(
             filterVM: {
-                let vm = FilterViewModel()
+                let vm = FilterViewModel(analytics: analytics)
                 vm.setFilter(categoryId: "hiking")
                 return vm
             }(),

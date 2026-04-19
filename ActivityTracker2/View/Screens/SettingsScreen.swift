@@ -197,7 +197,7 @@ struct SettingsScreen: View {
 
                 // ── App Info ──────────────────────────────────────
                 Section(String(localized: "settings.section.info",
-                               defaultValue: "Info")) {
+                               defaultValue: "App Info")) {
 
                     HStack {
                         Label(
@@ -210,12 +210,27 @@ struct SettingsScreen: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Link(destination: URL(string: "mailto:f.klepper@gmx.de")!) {
+                    HStack {
                         Label(
-                            String(localized: "settings.feedback",
-                                   defaultValue: "Feedback senden"),
-                            systemImage: "envelope"
+                            String(localized: "settings.developer",
+                                   defaultValue: "Entwickler"),
+                            systemImage: "person.fill"
                         )
+                        Spacer()
+                        Text("F. Klepper")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack {
+                        Label(
+                            String(localized: "settings.website",
+                                   defaultValue: "Website"),
+                            systemImage: "globe"
+                        )
+                        Spacer()
+                        Link("remember-journal.com",
+                             destination: URL(string: "https://remember-journal.com")!)
+                            .foregroundStyle(Color(hex: "#E8593C"))
                     }
                 }
 
@@ -223,36 +238,88 @@ struct SettingsScreen: View {
                 Section(String(localized: "settings.section.legal",
                                defaultValue: "Rechtliches")) {
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    // Impressum
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(String(localized: "settings.legal.imprint",
                                     defaultValue: "Impressum"))
+                            .font(.headline)
+                            .padding(.bottom, 4)
+
+                        Text(String(localized: "settings.legal.imprint.type",
+                                    defaultValue: "Hard- und Software Development"))
                             .font(.subheadline)
-                            .foregroundStyle(.primary)
-                        Text("Florian Klepper")
-                            .font(.caption)
+                            .fontWeight(.medium)
+                        Text("F. Klepper")
+                            .font(.subheadline)
+                        Text("82418 Murnau am Staffelsee")
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        Link("f.klepper@gmx.de",
-                             destination: URL(string: "mailto:f.klepper@gmx.de")!)
-                            .font(.caption)
+                        Text("Bayern, Deutschland")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        Divider()
+                            .padding(.vertical, 4)
+
+                        Link("support@remember-journal.com",
+                             destination: URL(string: "mailto:support@remember-journal.com")!)
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "#E8593C"))
+
+                        Link("remember-journal.com",
+                             destination: URL(string: "https://remember-journal.com")!)
+                            .font(.subheadline)
                             .foregroundStyle(Color(hex: "#E8593C"))
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 8)
 
-                    Link(destination: URL(string: "https://remember-app.de/privacy")!) {
-                        Label(
-                            String(localized: "settings.privacy",
-                                   defaultValue: "Datenschutzerklärung"),
-                            systemImage: "lock.fill"
-                        )
+                    // Datenschutzerklärung
+                    Link(destination: URL(string: "https://remember-journal.com/datenschutz.html")!) {
+                        HStack {
+                            Label(
+                                String(localized: "settings.privacy",
+                                       defaultValue: "Datenschutzerklärung"),
+                                systemImage: "hand.raised.fill"
+                            )
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
+                    .foregroundStyle(.primary)
 
-                    Link(destination: URL(string: "https://remember-app.de/terms")!) {
-                        Label(
-                            String(localized: "settings.terms",
-                                   defaultValue: "Nutzungsbedingungen"),
-                            systemImage: "doc.text"
-                        )
+                    // Nutzungsbedingungen
+                    Link(destination: URL(string: "https://remember-journal.com/nutzungsbedingungen.html")!) {
+                        HStack {
+                            Label(
+                                String(localized: "settings.terms",
+                                       defaultValue: "Nutzungsbedingungen"),
+                                systemImage: "doc.text.fill"
+                            )
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
+                    .foregroundStyle(.primary)
+
+                    // Feedback
+                    Link(destination: URL(string: "mailto:support@remember-journal.com")!) {
+                        HStack {
+                            Label(
+                                String(localized: "settings.feedback",
+                                       defaultValue: "Feedback senden"),
+                                systemImage: "envelope.fill"
+                            )
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .foregroundStyle(.primary)
                 }
 
                 // ── Daten ─────────────────────────────────────────
@@ -289,7 +356,7 @@ struct SettingsScreen: View {
             userSettings.colorScheme == "dark"  ? .dark  : nil
         )
         .sheet(isPresented: $showPlus) {
-            PlusScreen()
+            PlusScreen(source: "settings")
         }
     }
 

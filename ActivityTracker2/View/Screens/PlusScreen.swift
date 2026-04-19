@@ -10,6 +10,12 @@ import StoreKit
 /// Zeigt Free-Usern die Paywall (Layout A) und Plus-Usern eine Danke-Ansicht (Layout B).
 struct PlusScreen: View {
 
+    // MARK: Input
+
+    /// Auslöser der Paywall — wird an Analytics weitergegeben.
+    /// Mögliche Werte: "plus_tab", "settings", "category_locked", "activity_limit".
+    var source: String = "plus_tab"
+
     // MARK: Environment
 
     @Environment(PlusViewModel.self)      private var plusVM
@@ -40,7 +46,7 @@ struct PlusScreen: View {
             Task {
                 await plusVM.loadProducts(from: storeKitManager)
             }
-            analyticsManager.track(.plusScreenViewed)
+            analyticsManager.track(.paywallViewed(source: source))
         }
     }
 

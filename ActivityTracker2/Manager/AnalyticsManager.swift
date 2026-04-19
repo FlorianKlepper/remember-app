@@ -27,37 +27,65 @@ final class AnalyticsManager {
         #endif
 
         switch event {
+
+        // MARK: App-Lifecycle
+
         case .appOpened:
             TelemetryDeck.signal("app.opened")
+
+        // MARK: Onboarding
 
         case .onboardingCompleted:
             TelemetryDeck.signal("onboarding.completed")
 
-        case .activityCreated(let categoryId):
-            TelemetryDeck.signal("activity.created",
-                                 parameters: ["categoryId": categoryId])
+        case .onboardingSkipped:
+            TelemetryDeck.signal("onboarding.skipped")
 
-        case .activityDeleted:
-            TelemetryDeck.signal("activity.deleted")
+        // MARK: Activity CRUD
+
+        case .activitySaved(let categoryId, let city):
+            var params: [String: String] = ["categoryId": categoryId]
+            if let city { params["city"] = city }
+            TelemetryDeck.signal("activity.saved", parameters: params)
+
+        case .activityDeleted(let categoryId):
+            TelemetryDeck.signal("activity.deleted",
+                                 parameters: ["categoryId": categoryId])
 
         case .activityEdited:
             TelemetryDeck.signal("activity.edited")
 
-        case .filterApplied(let categoryId):
-            TelemetryDeck.signal("filter.applied",
+        // MARK: Filter
+
+        case .filterActivated(let categoryId):
+            TelemetryDeck.signal("filter.activated",
                                  parameters: ["categoryId": categoryId])
 
-        case .filterCleared:
-            TelemetryDeck.signal("filter.cleared")
+        case .filterReset:
+            TelemetryDeck.signal("filter.reset")
 
-        case .pinTapped:
+        // MARK: Map
+
+        case .mapPinTapped:
             TelemetryDeck.signal("map.pin_tapped")
 
-        case .plusScreenViewed:
-            TelemetryDeck.signal("plus.screen_viewed")
+        // MARK: Stats
 
-        case .plusPurchased:
-            TelemetryDeck.signal("plus.purchased")
+        case .statsOpened:
+            TelemetryDeck.signal("stats.opened")
+
+        // MARK: Monetarisierung
+
+        case .paywallViewed(let source):
+            TelemetryDeck.signal("paywall.viewed",
+                                 parameters: ["source": source])
+
+        case .purchaseSuccess(let productId):
+            TelemetryDeck.signal("purchase.success",
+                                 parameters: ["productId": productId])
+
+        case .purchaseFailed:
+            TelemetryDeck.signal("purchase.failed")
         }
     }
 }

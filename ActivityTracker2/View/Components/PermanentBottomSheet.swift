@@ -273,8 +273,13 @@ struct PermanentBottomSheet: View {
                             Divider().padding(.leading, 16)
                         }
 
-                        // Leerraum am Ende — letzte Zeile kann ganz nach oben scrollen
-                        Color.clear.frame(height: UIScreen.main.bounds.height * 0.5)
+                        // Leerraum am Ende — exakt so viel dass letzte Row oben einrastet.
+                        // Sheet-Höhe (0.45) minus Handle (40) minus ChipBar (50) minus 1 Row (72).
+                        GeometryReader { geo in
+                            Color.clear
+                                .frame(height: max(geo.size.height - 72, 0))
+                        }
+                        .frame(height: UIScreen.main.bounds.height * 0.45 - 40 - 50 - 72)
                     }
                 }
                 .scrollTargetLayout()
@@ -529,10 +534,10 @@ struct PermanentBottomSheet: View {
                 // ── Datum links ──────────────────────────────────
                 VStack(alignment: .center, spacing: 0) {
                     Text(activity.dayString)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.primary)
                     Text(activity.monthString)
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
                 .frame(width: 40)
@@ -540,13 +545,14 @@ struct PermanentBottomSheet: View {
                 // ── Titel + Ort + Text mitte ─────────────────────
                 VStack(alignment: .leading, spacing: 2) {
                     Text(activity.displayTitle)
-                        .font(.subheadline)
+                        .font(.body)
                         .fontWeight(.semibold)
                         .lineLimit(1)
 
                     if let city = activity.location?.city, !city.isBlank {
                         Text(city)
                             .font(.caption)
+                            .fontWeight(.medium)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -554,6 +560,7 @@ struct PermanentBottomSheet: View {
                     if let text = activity.text, !text.isBlank {
                         Text(text)
                             .font(.caption)
+                            .fontWeight(.medium)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -592,13 +599,13 @@ struct PermanentBottomSheet: View {
                         }
                         HapticManager.selectionChanged()
                     } label: {
-                        CategoryIconView(categoryId: activity.categoryId, size: 30)
+                        CategoryIconView(categoryId: activity.categoryId, size: 34)
                     }
                     .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
         }
         .background(isHighlighted ? Color(hex: "#E8593C").opacity(0.05) : Color.clear)
         .contentShape(Rectangle())
@@ -675,8 +682,8 @@ struct PermanentBottomSheet: View {
 
 #Preview("Permanent Bottom Sheet — medium") {
     let analytics       = AnalyticsManager()
-    let mapVM           = MapViewModel()
-    let filterVM        = FilterViewModel()
+    let mapVM           = MapViewModel(analytics: analytics)
+    let filterVM        = FilterViewModel(analytics: analytics)
     let activityVM      = ActivityViewModel(analytics: analytics)
     let languageManager = LanguageManager()
 

@@ -13,10 +13,11 @@ struct StatsScreen: View {
 
     // MARK: Environment
 
-    @Environment(ActivityViewModel.self) private var activityVM
-    @Environment(StatsViewModel.self)    private var statsVM
-    @Environment(UserSettings.self)      private var userSettings
-    @Environment(StoreKitManager.self)   private var storeKitManager
+    @Environment(ActivityViewModel.self)  private var activityVM
+    @Environment(StatsViewModel.self)     private var statsVM
+    @Environment(UserSettings.self)       private var userSettings
+    @Environment(StoreKitManager.self)    private var storeKitManager
+    @Environment(AnalyticsManager.self)   private var analyticsManager
 
     @Query private var activities: [Activity]
 
@@ -92,6 +93,7 @@ struct StatsScreen: View {
         }
         .onAppear {
             statsVM.compute(from: activityVM.activities)
+            analyticsManager.track(.statsOpened)
         }
         .onChange(of: activityVM.activities.count) {
             statsVM.compute(from: activityVM.activities)

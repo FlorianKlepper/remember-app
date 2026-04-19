@@ -21,9 +21,16 @@ final class FilterViewModel {
     /// MapScreen hängt hier die Map-Animations-Logik ein.
     var onCategoryChanged: ((String?) -> Void)?
 
+    // MARK: Private
+
+    private let analytics: AnalyticsManager
+
     // MARK: Init
 
-    init() {}
+    /// - Parameter analytics: Für Filter-Event-Tracking.
+    init(analytics: AnalyticsManager) {
+        self.analytics = analytics
+    }
 }
 
 // MARK: - Filter-Steuerung
@@ -40,12 +47,14 @@ extension FilterViewModel {
     func setFilter(categoryId: String) {
         selectedCategoryId = categoryId
         onCategoryChanged?(categoryId)
+        analytics.track(.filterActivated(categoryId: categoryId))
     }
 
     /// Setzt den Filter zurück und informiert den `onCategoryChanged`-Callback.
     func clearFilter() {
         selectedCategoryId = nil
         onCategoryChanged?(nil)
+        analytics.track(.filterReset)
     }
 }
 

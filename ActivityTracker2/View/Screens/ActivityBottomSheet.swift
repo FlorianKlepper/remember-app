@@ -110,7 +110,8 @@ struct ActivityBottomSheet: View {
 // MARK: - Preview
 
 #Preview("Activity Bottom Sheet") {
-    let mapVM = MapViewModel()
+    let analytics = AnalyticsManager()
+    let mapVM = MapViewModel(analytics: analytics)
     mapVM.displayedActivities = Array(Activity.samples.prefix(3))
     mapVM.highlightedActivityId = Activity.samples.first?.id
 
