@@ -34,6 +34,12 @@ final class AddActivityViewModel {
     /// Menschenlesbarer Ortsname (z.B. aus Reverse Geocoding oder Suche).
     var pendingLocationName: String? = nil
 
+    /// Stadt des gewählten Orts (z.B. aus MKLocalSearch-Ergebnis).
+    var pendingCity: String? = nil
+
+    /// Land des gewählten Orts (z.B. aus MKLocalSearch-Ergebnis).
+    var pendingCountry: String? = nil
+
     // MARK: Step 3 — Titel & Text
 
     /// Kurztitel der Activity (optional).
@@ -163,7 +169,14 @@ extension AddActivityViewModel {
 
         let location = try await findOrCreateLocation(coordinate: coordinate, context: context)
 
-        // Geocoding-Ergebnis nachpflegen, falls Location noch keinen Stadtnamen hat
+        // Stadt und Land aus Nearby-Place-Auswahl nachpflegen
+        if location.city == nil, let city = pendingCity, !city.isBlank {
+            location.city = city
+        }
+        if location.country == nil, let country = pendingCountry, !country.isBlank {
+            location.country = country
+        }
+        // Fallback: pendingLocationName als Stadtname wenn kein pendingCity gesetzt
         if location.city == nil, let name = pendingLocationName, !name.isBlank {
             location.city = name
         }
@@ -191,6 +204,8 @@ extension AddActivityViewModel {
         selectedCategoryId = nil
         pendingCoordinate = nil
         pendingLocationName = nil
+        pendingCity = nil
+        pendingCountry = nil
         title = ""
         text = ""
         selectedDate = .now

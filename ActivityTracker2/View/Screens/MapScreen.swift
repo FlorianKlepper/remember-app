@@ -135,6 +135,20 @@ struct MapScreen: View {
                 allActivities: activityVM.activities
             )
         }
+        // Erster GPS-Fix → Karte einmalig auf aktuellen Standort zentrieren
+        .onChange(of: locationManager.currentLocation) { _, newLocation in
+            guard let coord = newLocation, !mapVM.hasInitialLocation else { return }
+            mapVM.hasInitialLocation = true
+            withAnimation(.easeInOut(duration: 0.8)) {
+                mapVM.region = MKCoordinateRegion(
+                    center: coord,
+                    span: MKCoordinateSpan(
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05
+                    )
+                )
+            }
+        }
         .onChange(of: activityVM.activities) { _, newActivities in
             mapVM.onCategorySelected(
                 categoryId: filterVM.selectedCategoryId,
@@ -155,59 +169,32 @@ struct MapScreen: View {
         .onReceive(NotificationCenter.default.publisher(for: .sheetSizeChanged)) { notification in
             currentSheetIsSmall = notification.object as? Bool ?? true
         }
-        // Neue Aktivität gespeichert → Karte auf neuen Pin springen
-        .onReceive(NotificationCenter.default.publisher(for: .activitySaved)) { notification in
-            guard let info       = notification.object as? [String: Any],
-                  let categoryId = info["categoryId"] as? String
-            else { return }
-
+        // Filter zurücksetzen (von AddActivityTextScreen gesendet)
+        .onReceive(NotificationCenter.default.publisher(for: .filterCleared)) { _ in
+            withAnimation(.easeInOut(duration: AppConstants.animationStandard)) {
+                filterVM.clearFilter()
+            }
+        }
+        // Neue Aktivität gespeichert → Karte auf neuen Pin zentrieren
+        .onReceive(NotificationCenter.default.publisher(for: .activitySaved)) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let allActivities = activityVM.activities
-                guard let newest  = allActivities.sorted(by: { $0.date > $1.date }).first,
+                guard let newest  = activityVM.activities
+                    .sorted(by: { $0.date > $1.date }).first,
                       let location = newest.location
                 else { return }
 
-                if currentSheetIsSmall {
-                    // Sheet klein (0.15): nur zentrieren, kein Filter
-                    withAnimation(.easeInOut(duration: 0.6)) {
-                        mapVM.region = MKCoordinateRegion(
-                            center: mapVM.adjustedCenter(
-                                for: location.coordinate,
-                                span: mapVM.region.span,
-                                sheetDetent: 0.15
-                            ),
-                            span: mapVM.region.span
-                        )
-                    }
-                    mapVM.highlightedActivityId = newest.id
-                } else {
-                    // Sheet offen (0.5): Filter auf neue Kategorie + zentrieren
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        filterVM.setFilter(categoryId: categoryId)
-                    }
+                mapVM.highlightedActivityId = newest.id
+                mapVM.selectedLocation      = location
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        mapVM.onCategorySelected(
-                            categoryId: categoryId,
-                            allActivities: allActivities
-                        )
-                        withAnimation(.easeInOut(duration: 0.6)) {
-                            mapVM.region = MKCoordinateRegion(
-                                center: mapVM.adjustedCenter(
-                                    for: location.coordinate,
-                                    span: mapVM.region.span,
-                                    sheetDetent: 0.5
-                                ),
-                                span: mapVM.region.span
-                            )
-                        }
-                        mapVM.highlightedActivityId = newest.id
-                        mapVM.selectedLocation      = location
-                        NotificationCenter.default.post(
-                            name: .categoryFilterChanged,
-                            object: categoryId
-                        )
-                    }
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    mapVM.region = MKCoordinateRegion(
+                        center: mapVM.adjustedCenter(
+                            for: location.coordinate,
+                            span: mapVM.region.span,
+                            sheetDetent: 0.45
+                        ),
+                        span: mapVM.region.span
+                    )
                 }
             }
         }
@@ -220,6 +207,8 @@ struct MapScreen: View {
         let filtered = activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
 
         Map(position: $cameraPosition) {
+            UserAnnotation()
+
             ForEach(uniqueLocations) { location in
                 Annotation("", coordinate: location.coordinate, anchor: .bottom) {
                     ActivityMapAnnotation(

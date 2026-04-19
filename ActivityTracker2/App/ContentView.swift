@@ -108,6 +108,7 @@ struct ContentView: View {
     @Environment(AnalyticsManager.self)   private var analyticsManager
     @Environment(FilterViewModel.self)    private var filterVM
     @Environment(MapViewModel.self)       private var mapVM
+    @Environment(UserSettings.self)       private var userSettings
     @Environment(\.modelContext)          private var modelContext
 
     // MARK: State
@@ -115,6 +116,10 @@ struct ContentView: View {
     @State private var selectedTab:  Int  = 0
     @State private var showAddFlow        = false
     @State private var isSheetLarge: Bool = false
+
+    /// Nur `true` wenn der User den Overlay noch nie gesehen hat.
+    @State private var showWelcome: Bool =
+        !UserDefaults.standard.bool(forKey: "hasSeenWelcome")
 
     // MARK: Body
 
@@ -149,7 +154,15 @@ struct ContentView: View {
                     .allowsHitTesting(true)
             }
 
-            // ━━━ 3. Tab Bar — oberste Ebene ━━━
+            // ━━━ 3. Welcome Overlay — nur beim allerersten Start ━━━
+            if showWelcome
+                && userSettings.hasCompletedOnboarding
+                && activityVM.activities.isEmpty {
+                WelcomeOverlayView(isShowing: $showWelcome)
+                    .zIndex(99999)
+            }
+
+            // ━━━ 4. Tab Bar — oberste Ebene ━━━
             AppTabBar(
                 isSheetLarge: $isSheetLarge,
                 selectedTab:  $selectedTab,
@@ -183,6 +196,7 @@ struct ContentView: View {
             .zIndex(9999)
             .allowsHitTesting(true)
         }
+        .animation(.easeInOut(duration: 0.3), value: showWelcome)
         .onAppear {
             activityVM.fetchActivities(context: modelContext)
         }

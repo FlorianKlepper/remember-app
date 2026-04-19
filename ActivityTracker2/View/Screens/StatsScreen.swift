@@ -16,10 +16,15 @@ struct StatsScreen: View {
     @Environment(ActivityViewModel.self) private var activityVM
     @Environment(StatsViewModel.self)    private var statsVM
     @Environment(UserSettings.self)      private var userSettings
+    @Environment(StoreKitManager.self)   private var storeKitManager
 
     @Query private var activities: [Activity]
 
     private var totalCount: Int { activities.count }
+
+    private var isPlusUser: Bool {
+        storeKitManager.isPlusActive || userSettings.subscriptionStatus.isPremium
+    }
 
     // MARK: State
 
@@ -54,7 +59,7 @@ struct StatsScreen: View {
                     .padding(.horizontal)
 
                     // ── Section 2: Nutzung / Limit ───────────────────
-                    if !userSettings.subscriptionStatus.isPremium {
+                    if !isPlusUser {
                         usageLimitCard
                     }
 
@@ -310,4 +315,5 @@ struct StatsScreen: View {
         .environment(activityVM)
         .environment(statsVM)
         .environment(settings)
+        .environment(StoreKitManager())
 }

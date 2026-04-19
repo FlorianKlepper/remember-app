@@ -26,6 +26,7 @@ struct AddActivityLocationScreen: View {
     @State private var locationName    = ""
     @State private var navigateToText  = false
     @State private var completer       = SearchCompleter()
+    @State private var nearbyPlaces:   [NearbyPlace] = []
 
     // MARK: Private
 
@@ -114,6 +115,47 @@ struct AddActivityLocationScreen: View {
                     }
                     .listRowBackground(Color.clear)
                 }
+
+                // In der Nähe (nur wenn keine Suche aktiv)
+                if searchText.isEmpty && !nearbyPlaces.isEmpty {
+                    Section(String(localized: "add.location.nearby",
+                                   defaultValue: "In der Nähe")) {
+                        ForEach(nearbyPlaces) { place in
+                            Button {
+                                selectNearbyPlace(place)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(categoryColor.opacity(0.12))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "mappin.circle.fill")
+                                            .foregroundStyle(categoryColor)
+                                            .font(.system(size: 15))
+                                    }
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(place.name)
+                                            .font(.body)
+                                            .foregroundStyle(.primary)
+                                            .lineLimit(1)
+                                        Text(place.subtitle.isEmpty
+                                            ? formatDistance(place.distance)
+                                            : "\(place.subtitle) · \(formatDistance(place.distance))"
+                                        )
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .listRowBackground(Color.clear)
+                        }
+                    }
+                }
             }
             .listStyle(.plain)
         }
@@ -136,6 +178,7 @@ struct AddActivityLocationScreen: View {
         }
         .onAppear {
             fetchCurrentLocation()
+            loadNearbyPlaces()
         }
     }
 
@@ -194,6 +237,8 @@ struct AddActivityLocationScreen: View {
             guard error == nil, let item = response?.mapItems.first else { return }
             DispatchQueue.main.async {
                 addActivityVM.pendingCoordinate   = item.placemark.coordinate
+                addActivityVM.pendingCity         = item.placemark.locality
+                addActivityVM.pendingCountry      = item.placemark.country
                 addActivityVM.pendingLocationName = [
                     item.name ?? suggestion.title,
                     item.placemark.locality,
@@ -205,6 +250,74 @@ struct AddActivityLocationScreen: View {
             }
         }
     }
+
+    private func loadNearbyPlaces() {
+        guard let coord = locationManager.currentLocation else { return }
+
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = "restaurant cafe bar shop"
+        request.region = MKCoordinateRegion(
+            center: coord,
+            span: MKCoordinateSpan(latitudeDelta: 0.004, longitudeDelta: 0.004)
+        )
+        request.resultTypes = .pointOfInterest
+
+        let userLocation = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+
+        MKLocalSearch(request: request).start { response, _ in
+            guard let items = response?.mapItems else { return }
+            DispatchQueue.main.async {
+                nearbyPlaces = items
+                    .compactMap { item -> NearbyPlace? in
+                        guard let name = item.name else { return nil }
+                        let itemLocation = CLLocation(
+                            latitude: item.placemark.coordinate.latitude,
+                            longitude: item.placemark.coordinate.longitude
+                        )
+                        let distance = userLocation.distance(from: itemLocation)
+                        guard distance <= 500 else { return nil }
+                        return NearbyPlace(
+                            name: name,
+                            subtitle: item.placemark.thoroughfare ?? "",
+                            distance: distance,
+                            coordinate: item.placemark.coordinate,
+                            city: item.placemark.locality,
+                            country: item.placemark.country
+                        )
+                    }
+                    .sorted { $0.distance < $1.distance }
+                    .prefix(5)
+                    .map { $0 }
+            }
+        }
+    }
+
+    private func selectNearbyPlace(_ place: NearbyPlace) {
+        addActivityVM.pendingCoordinate   = place.coordinate
+        addActivityVM.pendingLocationName = place.name
+        addActivityVM.pendingCity         = place.city
+        addActivityVM.pendingCountry      = place.country
+        navigateToText = true
+    }
+
+    private func formatDistance(_ meters: Double) -> String {
+        meters < 1000
+            ? "\(Int(meters))m entfernt"
+            : String(format: "%.1fkm entfernt", meters / 1000)
+    }
+}
+
+// MARK: - NearbyPlace
+
+/// Ergebnis aus MKLocalSearch — ein Point of Interest in der Nähe des aktuellen Standorts.
+private struct NearbyPlace: Identifiable {
+    let id       = UUID()
+    let name:       String
+    let subtitle:   String
+    let distance:   Double
+    let coordinate: CLLocationCoordinate2D
+    let city:       String?
+    let country:    String?
 }
 
 // MARK: - SearchCompleter

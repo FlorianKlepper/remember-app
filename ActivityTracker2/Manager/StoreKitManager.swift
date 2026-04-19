@@ -54,10 +54,12 @@ extension StoreKitManager {
     }
 
     /// Startet den Kaufvorgang für ein Produkt.
-    /// - Parameter product: Das zu kaufende `Product` (muss `plusProduct` sein).
+    /// - Parameters:
+    ///   - product: Das zu kaufende `Product` (muss `plusProduct` sein).
+    ///   - settings: `UserSettings`-Objekt — wird bei Erfolg auf `.plus` gesetzt.
     /// - Throws: `AppError.storeKitError` bei Kauffehlern.
     /// - Returns: `true` bei verifiziertem Kauf, `false` bei Abbruch oder Pending.
-    func purchase(_ product: Product) async throws -> Bool {
+    func purchase(_ product: Product, settings: UserSettings) async throws -> Bool {
         let result: Product.PurchaseResult
         do {
             result = try await product.purchase()
@@ -67,7 +69,7 @@ extension StoreKitManager {
 
         switch result {
         case .success(let verification):
-            return await handleVerification(verification)
+            return await handleVerification(verification, settings: settings)
         case .userCancelled:
             return false
         case .pending:
@@ -121,11 +123,12 @@ extension StoreKitManager {
         }
     }
 
-    /// Verarbeitet ein `VerificationResult` und setzt `isPlusActive` bei Erfolg.
-    func handleVerification(_ verification: VerificationResult<Transaction>) async -> Bool {
+    /// Verarbeitet ein `VerificationResult` und setzt `isPlusActive` + `settings.subscriptionStatus` bei Erfolg.
+    func handleVerification(_ verification: VerificationResult<Transaction>, settings: UserSettings) async -> Bool {
         switch verification {
         case .verified(let transaction):
             isPlusActive = true
+            settings.subscriptionStatus = .plus
             await transaction.finish()
             return true
         case .unverified:

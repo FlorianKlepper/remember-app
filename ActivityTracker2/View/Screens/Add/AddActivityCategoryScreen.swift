@@ -15,6 +15,7 @@ struct AddActivityCategoryScreen: View {
 
     @Environment(AddActivityViewModel.self) private var addActivityVM
     @Environment(UserSettings.self)         private var userSettings
+    @Environment(StoreKitManager.self)      private var storeKitManager
     @Environment(\.dismiss)                 private var dismiss
 
     // MARK: State
@@ -69,6 +70,12 @@ struct AddActivityCategoryScreen: View {
                 AddActivityLocationScreen()
             }
         }
+        .onAppear {
+            #if DEBUG
+            print("isPlusActive: \(storeKitManager.isPlusActive)")
+            print("subscriptionStatus: \(userSettings.subscriptionStatus)")
+            #endif
+        }
         // LocationScreen dismissed → Auswahl zurücksetzen für Neu-Auswahl
         .onChange(of: navigateToLocation) { _, isActive in
             if !isActive {
@@ -88,10 +95,15 @@ struct AddActivityCategoryScreen: View {
 // MARK: - Preview
 
 #Preview("Add — Step 1: Kategorie") {
-    let addVM    = AddActivityViewModel()
-    let settings = UserSettings()
+    let addVM        = AddActivityViewModel()
+    let settings     = UserSettings()
+    let storeKitMgr  = StoreKitManager()
+    let analytics    = AnalyticsManager()
+    let activityVM   = ActivityViewModel(analytics: analytics)
 
     return AddActivityCategoryScreen()
         .environment(addVM)
         .environment(settings)
+        .environment(storeKitMgr)
+        .environment(activityVM)
 }

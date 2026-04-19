@@ -72,9 +72,8 @@ extension PlusViewModel {
         defer { isPurchasing = false }
 
         do {
-            let success = try await manager.purchase(product)
+            let success = try await manager.purchase(product, settings: settings)
             if success {
-                settings.subscriptionStatus = .plus
                 analytics.track(.plusPurchased)
             }
         } catch let appError as AppError {

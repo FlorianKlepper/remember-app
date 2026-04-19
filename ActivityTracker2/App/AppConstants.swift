@@ -86,4 +86,6 @@ extension Notification.Name {
     static let activitySaved = Notification.Name("activitySaved")
     /// PermanentBottomSheet → MapScreen: Sheet-Größe hat sich geändert (object: Bool — true = small).
     static let sheetSizeChanged = Notification.Name("sheetSizeChanged")
+    /// AddActivityTextScreen → MapScreen/FilterViewModel: Filter soll zurückgesetzt werden.
+    static let filterCleared = Notification.Name("filterCleared")
 }

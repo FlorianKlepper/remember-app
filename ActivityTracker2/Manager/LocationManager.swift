@@ -50,8 +50,11 @@ extension LocationManager {
     }
 
     /// Startet kontinuierliche Standort-Updates — hält `currentLocation` aktuell.
-    /// Muss beim App-Start aufgerufen werden, damit `currentLocation` befüllt ist.
+    /// Keine Aktion wenn die Berechtigung noch nicht erteilt wurde.
     func startUpdating() {
+        guard authorizationStatus == .authorizedWhenInUse ||
+              authorizationStatus == .authorizedAlways else { return }
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.startUpdatingLocation()
     }
 
@@ -107,11 +110,14 @@ extension LocationManager: CLLocationManagerDelegate {
         }
     }
 
-    /// Autorisierungsstatus hat sich geändert.
+    /// Autorisierungsstatus hat sich geändert — startet Updates sofort wenn erlaubt.
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         Task { @MainActor [weak self] in
             self?.authorizationStatus = status
+            if status == .authorizedWhenInUse || status == .authorizedAlways {
+                self?.startUpdating()
+            }
         }
     }
 }

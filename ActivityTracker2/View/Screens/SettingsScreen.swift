@@ -12,14 +12,21 @@ struct SettingsScreen: View {
 
     // MARK: Environment
 
-    @Environment(UserSettings.self) private var userSettings
-    @Environment(\.dismiss)         private var dismiss
+    @Environment(UserSettings.self)      private var userSettings
+    @Environment(StoreKitManager.self)   private var storeKitManager
+    @Environment(\.dismiss)              private var dismiss
 
     @Query private var activities: [Activity]
 
     // MARK: State
 
     @State private var showPlus = false
+
+    // MARK: Private
+
+    private var isPlusUser: Bool {
+        storeKitManager.isPlusActive || userSettings.subscriptionStatus.isPremium
+    }
 
     // MARK: Body
 
@@ -40,7 +47,7 @@ struct SettingsScreen: View {
                         )
                         .foregroundStyle(.primary)
                         Spacer()
-                        Text(userSettings.subscriptionStatus.isPremium
+                        Text(isPlusUser
                              ? String(localized: "settings.plan.plus",
                                       defaultValue: "Remember Plus")
                              : String(localized: "settings.plan.free",
@@ -49,7 +56,7 @@ struct SettingsScreen: View {
                     }
 
                     // Plus entdecken — nur für Free-User
-                    if !userSettings.subscriptionStatus.isPremium {
+                    if !isPlusUser {
                         Button {
                             showPlus = true
                         } label: {
@@ -82,15 +89,23 @@ struct SettingsScreen: View {
                                 systemImage: "chart.bar.fill"
                             )
                             Spacer()
-                            Text(userSettings.subscriptionStatus.isPremium
-                                 ? "\(activities.count)"
-                                 : "\(activities.count) / \(AppConstants.freeActivityLimit)")
-                                .foregroundStyle(
-                                    activities.count > 80 ? Color.red : Color.secondary
-                                )
+                            if isPlusUser {
+                                // Plus: kein Limit — Zahl + ∞-Icon, immer secondary
+                                Text("\(activities.count)")
+                                    .foregroundStyle(.secondary)
+                                Image(systemName: "infinity")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            } else {
+                                // Free: Zahl/100, rot wenn > 80
+                                Text("\(activities.count) / \(AppConstants.freeActivityLimit)")
+                                    .foregroundStyle(
+                                        activities.count > 80 ? Color.red : Color.secondary
+                                    )
+                            }
                         }
 
-                        if !userSettings.subscriptionStatus.isPremium {
+                        if !isPlusUser {
                             ProgressView(
                                 value: Double(min(activities.count, AppConstants.freeActivityLimit)),
                                 total: Double(AppConstants.freeActivityLimit)
@@ -292,4 +307,5 @@ struct SettingsScreen: View {
 #Preview("Settings Screen") {
     SettingsScreen()
         .environment(UserSettings())
+        .environment(StoreKitManager())
 }

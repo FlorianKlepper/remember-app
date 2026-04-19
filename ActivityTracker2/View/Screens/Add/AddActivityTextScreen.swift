@@ -145,20 +145,19 @@ struct AddActivityTextScreen: View {
                 context: modelContext
             )
 
-            // Neue Aktivität-Info für MapScreen bereitstellen
-            NotificationCenter.default.post(
-                name: .activitySaved,
-                object: [
-                    "categoryId": addActivityVM.selectedCategoryId ?? "",
-                    "coordinate": addActivityVM.pendingCoordinate as Any
-                ]
-            )
+            // 1. Filter zurücksetzen
+            NotificationCenter.default.post(name: .filterCleared, object: nil)
 
-            addActivityVM.isSaved = true
+            // 2. Neue Aktivität auf Karte zeigen
+            NotificationCenter.default.post(name: .activitySaved, object: nil)
 
+            // 3. Sheet auf medium (0.45) hochfahren
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 NotificationCenter.default.post(name: .setSheetMedium, object: nil)
             }
+
+            addActivityVM.isSaved = true
+
         } catch {
             saveError = String(
                 localized: "add.save.error",

@@ -53,6 +53,10 @@ final class MapViewModel {
     /// 0.15 = klein, 0.5 = mittel, 1.0 = gross.
     var currentSheetDetent: Double = 0.15
 
+    /// `true` nachdem die erste GPS-Koordinate empfangen und die Karte zentriert wurde.
+    /// Verhindert wiederholtes Zentrieren bei jedem Location-Update.
+    var hasInitialLocation: Bool = false
+
     // MARK: Init
 
     init() {}
@@ -198,7 +202,7 @@ extension MapViewModel {
         }
 
         // Phase 1: Rauszoomen + zur Mitte fahren
-        withAnimation(.easeIn(duration: 0.35)) {
+        withAnimation(.easeIn(duration: 0.45)) {
             region = MKCoordinateRegion(
                 center: adjustedCenter(for: midCenter, span: zoomedOutSpan, sheetDetent: currentSheetDetent),
                 span: zoomedOutSpan
@@ -206,8 +210,8 @@ extension MapViewModel {
         }
 
         // Phase 2: Reinzoomen auf neuen Pin
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            withAnimation(.easeOut(duration: 0.35)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            withAnimation(.easeOut(duration: 0.45)) {
                 self.region = MKCoordinateRegion(
                     center: self.adjustedCenter(
                         for: newLocation.coordinate,
