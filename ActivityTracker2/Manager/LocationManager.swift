@@ -110,13 +110,22 @@ extension LocationManager: CLLocationManagerDelegate {
         }
     }
 
-    /// Autorisierungsstatus hat sich geändert — startet Updates sofort wenn erlaubt.
+    /// Autorisierungsstatus hat sich geändert — reagiert sofort auf alle Statuswechsel.
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         Task { @MainActor [weak self] in
-            self?.authorizationStatus = status
-            if status == .authorizedWhenInUse || status == .authorizedAlways {
-                self?.startUpdating()
+            guard let self else { return }
+            self.authorizationStatus = status
+            switch status {
+            case .authorizedWhenInUse, .authorizedAlways:
+                self.startUpdating()
+                NotificationCenter.default.post(name: .locationPermissionGranted, object: nil)
+            case .denied, .restricted:
+                self.currentLocation = nil
+            case .notDetermined:
+                manager.requestWhenInUseAuthorization()
+            @unknown default:
+                break
             }
         }
     }

@@ -23,6 +23,28 @@ struct StatsScreen: View {
 
     private var totalCount: Int { activities.count }
 
+    private var cityCount: Int {
+        Set(activities.compactMap { $0.location?.city }).count
+    }
+
+    private var bestYear: String {
+        let grouped = Dictionary(grouping: activities) { activity -> Int in
+            Calendar.current.component(.year, from: activity.date)
+        }
+        guard let year = grouped.max(by: { $0.value.count < $1.value.count })?.key else {
+            return "–"
+        }
+        return "\(year)"
+    }
+
+    private var favoriteCount: Int {
+        activities.filter { $0.isFavorite }.count
+    }
+
+    private var categoriesUsedCount: Int {
+        Set(activities.map { $0.categoryId }).count
+    }
+
     private var isPlusUser: Bool {
         storeKitManager.isPlusActive || userSettings.subscriptionStatus.isPremium
     }
@@ -53,10 +75,15 @@ struct StatsScreen: View {
                     // ── Section 1: Zusammenfassung ───────────────────
                     StatsSummaryCard(
                         totalCount: totalCount,
-                        thisWeek: statsVM.activitiesThisWeek,
+                        categoriesUsed: categoriesUsedCount,
                         topCategoryId: topCategory?.id,
                         topCategoryName: topCategory?.name
                     )
+
+                    // ── Section 1b: Emotionale Stats ─────────────────
+                    if totalCount > 0 {
+                        emotionalStatsCard
+                    }
 
                     // ── Section 2: Nutzung / Limit ───────────────────
                     if !isPlusUser {
@@ -71,6 +98,9 @@ struct StatsScreen: View {
 
                     // ── Section 4: Monatsübersicht ───────────────────
                     monthlySection
+
+                    // Puffer — Platz zum Hochscrollen über Tab Bar
+                    Color.clear.frame(height: 100)
                 }
                 .padding(.vertical, 16)
             }
@@ -99,13 +129,70 @@ struct StatsScreen: View {
         }
     }
 
+    // MARK: Emotional Stats Card
+
+    @ViewBuilder
+    private var emotionalStatsCard: some View {
+        VStack(spacing: 0) {
+            emotionalStatRow(
+                icon: "sparkles",
+                text: String(format: L10n.statsMoments, activities.count)
+            )
+            Divider().padding(.leading, 52)
+            emotionalStatRow(
+                icon: "building.2.fill",
+                text: String(format: L10n.statsCities, cityCount)
+            )
+            Divider().padding(.leading, 52)
+            emotionalStatRow(
+                icon: "calendar.badge.checkmark",
+                text: String(format: L10n.statsBestYear, bestYear)
+            )
+            if favoriteCount > 0 {
+                Divider().padding(.leading, 52)
+                emotionalStatRow(
+                    icon: "heart.fill",
+                    text: String(format: L10n.statsFavorites, favoriteCount)
+                )
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.04), radius: 3, x: 0, y: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(LinearGradient(colors: [.white.opacity(0.5), .clear],
+                                     startPoint: .top, endPoint: .center))
+                .allowsHitTesting(false)
+        )
+        .padding(.horizontal, 16)
+    }
+
+    private func emotionalStatRow(icon: String, text: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(brandColor)
+                .frame(width: 24)
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
     // MARK: Usage Limit Card
 
     @ViewBuilder
     private var usageLimitCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(String(localized: "stats.usage.title", defaultValue: "Aktivitäten"))
+                Text(L10n.statsUsageTitle)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 Spacer()
@@ -121,10 +208,8 @@ struct StatsScreen: View {
             .tint(totalCount > 80 ? .red : Color(hex: "#E8593C"))
 
             if totalCount > 80 {
-                Text(String(
-                    localized: "stats.usage.warning",
-                    defaultValue: "Nur noch \(AppConstants.freeActivityLimit - totalCount) Aktivitäten verfügbar"
-                ))
+                Text(String(format: L10n.statsUsageWarning,
+                            AppConstants.freeActivityLimit - totalCount))
                 .font(.caption)
                 .foregroundStyle(.orange)
             }

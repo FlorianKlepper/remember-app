@@ -9,37 +9,51 @@ import CoreLocation
 // MARK: - UserSettings
 
 /// Zentrales Settings-Objekt der App.
-/// Alle Werte werden via `@AppStorage` in UserDefaults persistiert — kein SwiftData.
+/// Alle Werte werden in UserDefaults persistiert — kein SwiftData.
 /// Wird in `ActivityTracker2App` erstellt und per `.environment()` in den View-Tree injiziert.
 ///
-/// > Hinweis: `@AppStorage`-Properties innerhalb einer `@Observable`-Klasse
-/// > erfordern `@ObservationIgnored`, um Konflikte mit dem Observation-Registrar zu vermeiden.
-/// > SwiftUI-Views erhalten Updates weiterhin über den `@AppStorage`-eigenen
-/// > UserDefaults-Notification-Mechanismus.
+/// > Hinweis: Home-Location-Properties (`homeLatitude`, `homeLongitude`, `homeName`) sind
+/// > bewusst NICHT `@ObservationIgnored`, damit `@Observable` sie trackt und Views automatisch
+/// > neu rendern wenn sich die Zuhause-Location ändert. Persistenz erfolgt via `didSet`.
+/// > Alle anderen `@AppStorage`-Properties bleiben `@ObservationIgnored`, da sie
+/// > seltener wechseln und SwiftUI Updates über den UserDefaults-Mechanismus erhält.
 @Observable
 final class UserSettings {
 
-    // MARK: Init
+    // MARK: Home Location — @Observable tracked (kein @ObservationIgnored)
 
-    /// Lädt `hasCompletedOnboarding` aus UserDefaults — alle anderen Properties
-    /// werden via @AppStorage automatisch synchronisiert.
-    init() {
-        hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    /// Gespeicherte Heimat-Latitude. `nil` = nicht gesetzt.
+    var homeLatitude: Double? = nil {
+        didSet {
+            if let lat = homeLatitude {
+                UserDefaults.standard.set(lat, forKey: "homeLatitude")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "homeLatitude")
+            }
+        }
     }
 
-    // MARK: Home Location
+    /// Gespeicherte Heimat-Longitude. `nil` = nicht gesetzt.
+    var homeLongitude: Double? = nil {
+        didSet {
+            if let lon = homeLongitude {
+                UserDefaults.standard.set(lon, forKey: "homeLongitude")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "homeLongitude")
+            }
+        }
+    }
 
-    /// Gespeicherte Heimat-Latitude. Sentinel `-999.0` bedeutet: nicht gesetzt.
-    @ObservationIgnored
-    @AppStorage("homeLatitude") var homeLatitude: Double = -999.0
-
-    /// Gespeicherte Heimat-Longitude. Sentinel `-999.0` bedeutet: nicht gesetzt.
-    @ObservationIgnored
-    @AppStorage("homeLongitude") var homeLongitude: Double = -999.0
-
-    /// Anzeigename der Heimat-Location, z.B. "München, Maxvorstadt".
-    @ObservationIgnored
-    @AppStorage("homeLocationName") var homeLocationName: String = ""
+    /// Anzeigename der Heimat-Location, z.B. "München, Maxvorstadt". `nil` = nicht gesetzt.
+    var homeName: String? = nil {
+        didSet {
+            if let name = homeName {
+                UserDefaults.standard.set(name, forKey: "homeName")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "homeName")
+            }
+        }
+    }
 
     // MARK: Subscription
 
@@ -48,7 +62,6 @@ final class UserSettings {
     @AppStorage("subscriptionStatusRaw") private var subscriptionStatusRaw: String = SubscriptionStatus.free.rawValue
 
     /// Aktueller Abo-/Kaufstatus des Users.
-    /// Getter und Setter delegieren an `subscriptionStatusRaw`.
     var subscriptionStatus: SubscriptionStatus {
         get { SubscriptionStatus(rawValue: subscriptionStatusRaw) ?? .free }
         set { subscriptionStatusRaw = newValue.rawValue }
@@ -86,24 +99,40 @@ final class UserSettings {
     // MARK: Aktivitäten-Zähler
 
     /// Gesamtanzahl erstellter Activities — für Paywall-Trigger-Logik.
-    /// Wird bei jedem Speichern inkrementiert, nicht aus SwiftData gezählt.
     @ObservationIgnored
     @AppStorage("activitiesCreatedCount") var activitiesCreatedCount: Int = 0
+
+    // MARK: Init
+
+    init() {
+        // Onboarding-Status
+        hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+
+        // Home Location laden — Migration: alter Sentinel-Wert -999.0 → nil
+        let storedLat = UserDefaults.standard.object(forKey: "homeLatitude") as? Double
+        let storedLon = UserDefaults.standard.object(forKey: "homeLongitude") as? Double
+        homeLatitude  = (storedLat == nil || storedLat == -999.0) ? nil : storedLat
+        homeLongitude = (storedLon == nil || storedLon == -999.0) ? nil : storedLon
+
+        // homeName laden — liest auch alten Key "homeLocationName" für Migration
+        homeName = UserDefaults.standard.string(forKey: "homeName")
+            ?? UserDefaults.standard.string(forKey: "homeLocationName")
+    }
 }
 
 // MARK: - Computed Properties
 
 extension UserSettings {
 
-    /// `true` wenn eine Heimat-Location gespeichert ist (Sentinel-Prüfung).
+    /// `true` wenn eine Heimat-Location gespeichert ist.
     var hasHomeLocation: Bool {
-        homeLatitude != -999.0
+        homeLatitude != nil && homeLongitude != nil
     }
 
     /// `CLLocationCoordinate2D` der Heimat-Location, oder `nil` wenn nicht gesetzt.
     var homeCoordinate: CLLocationCoordinate2D? {
-        guard hasHomeLocation else { return nil }
-        return CLLocationCoordinate2D(latitude: homeLatitude, longitude: homeLongitude)
+        guard let lat = homeLatitude, let lon = homeLongitude else { return nil }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
     }
 }
 
@@ -112,23 +141,20 @@ extension UserSettings {
 extension UserSettings {
 
     /// Speichert eine neue Heimat-Location.
-    /// - Parameters:
-    ///   - coordinate: Koordinate des Heimat-Orts.
-    ///   - name: Menschenlesbarer Anzeigename, z.B. "München, Maxvorstadt".
     func setHomeLocation(coordinate: CLLocationCoordinate2D, name: String) {
-        homeLatitude = coordinate.latitude
+        homeLatitude  = coordinate.latitude
         homeLongitude = coordinate.longitude
-        homeLocationName = name
+        homeName      = name
     }
 
-    /// Entfernt die gespeicherte Heimat-Location und setzt alle Felder zurück.
+    /// Entfernt die gespeicherte Heimat-Location.
     func clearHomeLocation() {
-        homeLatitude = -999.0
-        homeLongitude = -999.0
-        homeLocationName = ""
+        homeLatitude  = nil
+        homeLongitude = nil
+        homeName      = nil
     }
 
-    /// Inkrementiert den Activity-Zähler um 1. Aufruf nach jedem erfolgreichen Speichern.
+    /// Inkrementiert den Activity-Zähler um 1.
     func incrementActivityCount() {
         activitiesCreatedCount += 1
     }

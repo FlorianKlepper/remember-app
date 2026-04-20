@@ -5,6 +5,7 @@
 import SwiftUI
 import MapKit
 import CoreLocation
+import UIKit
 
 // MARK: - AddActivityLocationScreen
 
@@ -81,6 +82,34 @@ struct AddActivityLocationScreen: View {
 
             Divider()
 
+            // ── GPS verweigert — Link zu iOS Einstellungen ────────
+            if locationManager.authorizationStatus == .denied ||
+               locationManager.authorizationStatus == .restricted {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "location.slash")
+                            .foregroundStyle(.orange)
+                        Text(L10n.enableLocation)
+                            .foregroundStyle(.orange)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.tertiary)
+                            .font(.caption)
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.orange.opacity(0.1))
+                    )
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+
             // ── Liste ─────────────────────────────────────────────
             List {
 
@@ -88,8 +117,8 @@ struct AddActivityLocationScreen: View {
                 if userSettings.hasHomeLocation {
                     Button {
                         addActivityVM.pendingCoordinate   = userSettings.homeCoordinate
-                        addActivityVM.pendingLocationName = userSettings.homeLocationName
-                        addActivityVM.pendingCity         = userSettings.homeLocationName
+                        addActivityVM.pendingLocationName = userSettings.homeName
+                        addActivityVM.pendingCity         = userSettings.homeName
                         navigateToText = true
                     } label: {
                         HStack(spacing: 12) {
@@ -107,7 +136,7 @@ struct AddActivityLocationScreen: View {
                                     .font(.body)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.primary)
-                                Text(userSettings.homeLocationName)
+                                Text(userSettings.homeName ?? "")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
@@ -217,6 +246,13 @@ struct AddActivityLocationScreen: View {
         .onAppear {
             fetchCurrentLocation()
             loadNearbyPlaces()
+        }
+        // GPS-Berechtigung erteilt → Standort und Nearby Places neu laden
+        .onReceive(NotificationCenter.default.publisher(for: .locationPermissionGranted)) { _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                fetchCurrentLocation()
+                loadNearbyPlaces()
+            }
         }
     }
 

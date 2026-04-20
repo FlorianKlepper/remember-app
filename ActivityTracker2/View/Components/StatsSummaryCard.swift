@@ -13,7 +13,7 @@ struct StatsSummaryCard: View {
     // MARK: Parameter
 
     let totalCount: Int
-    let thisWeek: Int
+    let categoriesUsed: Int
     let topCategoryId: String?
     let topCategoryName: String?
 
@@ -23,15 +23,17 @@ struct StatsSummaryCard: View {
         HStack(spacing: 0) {
             StatItemView(
                 value: "\(totalCount)",
-                labelKey: "stats.total_activities"
+                label: String(localized: "stats.total",
+                              defaultValue: "Aktivitäten gesamt")
             )
 
             Divider()
                 .frame(height: 40)
 
             StatItemView(
-                value: "\(thisWeek)",
-                labelKey: "stats.this_week"
+                value: "\(categoriesUsed)",
+                label: String(localized: "stats.categories_used",
+                              defaultValue: "Kategorien verwendet")
             )
 
             Divider()
@@ -53,7 +55,8 @@ struct StatsSummaryCard: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
 
-                Text(LocalizedStringKey("stats.top_category"))
+                Text(String(localized: "stats.top_category",
+                            defaultValue: "Top Kategorie"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -88,7 +91,7 @@ struct StatsSummaryCard: View {
 private struct StatItemView: View {
 
     let value: String
-    let labelKey: LocalizedStringKey
+    let label: String
 
     var body: some View {
         VStack(spacing: 4) {
@@ -99,7 +102,7 @@ private struct StatItemView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
-            Text(labelKey)
+            Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -115,13 +118,13 @@ private struct StatItemView: View {
     VStack(spacing: 20) {
         StatsSummaryCard(
             totalCount: 42,
-            thisWeek: 5,
+            categoriesUsed: 7,
             topCategoryId: "hiking",
             topCategoryName: "Wandern"
         )
         StatsSummaryCard(
             totalCount: 0,
-            thisWeek: 0,
+            categoriesUsed: 0,
             topCategoryId: nil,
             topCategoryName: nil
         )

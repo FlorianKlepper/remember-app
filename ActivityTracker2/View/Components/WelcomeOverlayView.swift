@@ -55,13 +55,14 @@ struct WelcomeOverlayView: View {
                 // ── Titel + Text ──────────────────────────────────
                 VStack(spacing: 12) {
                     Text(String(localized: "welcome.title",
-                                defaultValue: "Willkommen bei Remember!"))
+                                defaultValue: "Hier entsteht deine\npersönliche Weltkarte."))
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(.primary)
+                        .multilineTextAlignment(.center)
 
                     Text(String(localized: "welcome.body",
-                                defaultValue: "Tippe auf das + um deine erste Aktivität zu erstellen und deine Reise mit Remember zu starten."))
+                                defaultValue: "Fang mit deinem ersten\nErlebnis an."))
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -77,13 +78,9 @@ struct WelcomeOverlayView: View {
                         isShowing = false
                     }
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text(String(localized: "welcome.cta",
-                                    defaultValue: "Los geht's!"))
-                            .font(.headline)
-                    }
+                    Text(String(localized: "welcome.cta",
+                                defaultValue: "Ersten Moment festhalten +"))
+                        .font(.headline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)

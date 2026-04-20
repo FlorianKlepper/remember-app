@@ -47,13 +47,13 @@ struct LimitReachedSheet: View {
             .padding(.bottom, 20)
 
             // Titel
-            Text("Limit erreicht")
+            Text(L10n.limitTitle)
                 .font(.title2)
                 .fontWeight(.bold)
                 .padding(.bottom, 8)
 
             // Beschreibung
-            Text("Du hast 100 Aktivitäten erstellt — das Maximum im kostenlosen Plan.")
+            Text(L10n.limitSubtitle)
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -62,9 +62,9 @@ struct LimitReachedSheet: View {
 
             // Feature-Liste
             VStack(spacing: 12) {
-                plusFeatureRow(icon: "infinity",             text: "Unbegrenzte Aktivitäten")
-                plusFeatureRow(icon: "square.grid.3x3.fill", text: "Alle 100 Kategorien freigeschaltet")
-                plusFeatureRow(icon: "crown.fill",           text: "Einmalig kaufen — kein Abo")
+                plusFeatureRow(icon: "infinity",              text: L10n.limitFeatureUnlimited)
+                plusFeatureRow(icon: "square.grid.3x3.fill", text: L10n.limitFeatureCategories)
+                plusFeatureRow(icon: "crown.fill",            text: L10n.limitFeatureOnetime)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
@@ -85,7 +85,7 @@ struct LimitReachedSheet: View {
                     } else {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(Color(hex: "#FFD700"))
-                        Text("Remember Plus — 4,99€")
+                        Text(L10n.limitCta)
                             .fontWeight(.semibold)
                     }
                 }
@@ -104,7 +104,7 @@ struct LimitReachedSheet: View {
             Button {
                 isShowing = false
             } label: {
-                Text("Vielleicht später")
+                Text(L10n.limitLater)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -113,6 +113,12 @@ struct LimitReachedSheet: View {
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.hidden)
+        .onAppear {
+            #if DEBUG
+            print("Locale: \(Locale.current.language.languageCode?.identifier ?? "unknown")")
+            print("limit.title: \(L10n.limitTitle)")
+            #endif
+        }
     }
 
     // MARK: Helper

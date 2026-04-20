@@ -63,7 +63,7 @@ extension GeocodeManager {
         CLGeocoder().reverseGeocodeLocation(location) { [weak self] placemarks, _ in
             let p = placemarks?.first
             let result = GeocodeResult(
-                city:    p?.locality,
+                city:    Location.normalizeCity(p?.locality, country: p?.country),
                 region:  p?.administrativeArea,
                 country: p?.isoCountryCode
             )

@@ -54,12 +54,14 @@ struct OnboardingScreen: View {
                 .foregroundStyle(Color(hex: "#E8593C"))
 
             VStack(spacing: 10) {
-                Text("onboarding.screen1.title")
+                Text(String(localized: "onboarding.screen1.title",
+                            defaultValue: "Dein Leben. Deine Karte."))
                     .font(.title)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("onboarding.screen1.subtitle")
+                Text(String(localized: "onboarding.screen1.subtitle",
+                            defaultValue: "Jeder Moment zählt."))
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -85,12 +87,14 @@ struct OnboardingScreen: View {
                 .foregroundStyle(.blue)
 
             VStack(spacing: 10) {
-                Text("onboarding.screen2.title")
+                Text(String(localized: "onboarding.screen2.title",
+                            defaultValue: "Halte fest, was bleibt."))
                     .font(.title)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("onboarding.screen2.subtitle")
+                Text(String(localized: "onboarding.screen2.subtitle",
+                            defaultValue: "Remember merkt sich wo du warst,\nwas du erlebt hast —\ndamit du es nie vergisst."))
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -129,6 +133,14 @@ struct OnboardingScreen: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
+
+            // ── Made in Munich Footer ─────────────────────────────
+            Text(String(localized: "onboarding.screen3.footer",
+                        defaultValue: "Remember wurde in München gebaut —\nvon jemandem der glaubt,\ndass die kleinen Momente\ndie grossen ausmachen."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
 
             Spacer()
 

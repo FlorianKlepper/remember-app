@@ -69,10 +69,10 @@ struct CategoryPickerGrid: View {
         VStack(alignment: .leading, spacing: 12) {
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "category.section.journal", defaultValue: "Tagebuch"))
+                Text(String(localized: "journal.section_title", defaultValue: "Tagebuch"))
                     .font(.headline)
                     .foregroundStyle(.primary)
-                Text(String(localized: "category.section.journal.subtitle", defaultValue: "Persönliche Einträge"))
+                Text(String(localized: "journal.section_subtitle", defaultValue: "Was bewegt dich heute?"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -102,9 +102,8 @@ struct CategoryPickerGrid: View {
                                 .font(.system(size: 22))
                                 .foregroundStyle(journalColor)
                         }
-                        Text(String(localized: "category.journal.home.label",
-                                    defaultValue: "Journal - Home"))
-                            .font(.system(size: 11))
+                        Text(String(localized: "journal.home", defaultValue: "Journal -\nHome"))
+                            .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                             .multilineTextAlignment(.center)
@@ -132,10 +131,10 @@ struct CategoryPickerGrid: View {
                                 .font(.system(size: 22))
                                 .foregroundStyle(journalColor)
                         }
-                        Text("Journal -\nOn the Road")
-                            .font(.system(size: 11))
+                        Text(String(localized: "journal.on_the_road", defaultValue: "Journal -\nOn the Road"))
+                            .font(.system(size: 10))
                             .foregroundStyle(.secondary)
-                            .lineLimit(3)
+                            .lineLimit(2)
                             .multilineTextAlignment(.center)
                             .minimumScaleFactor(0.8)
                             .frame(width: 60)
@@ -277,8 +276,7 @@ struct CategoryPickerGrid: View {
                 // ── 2. Verwendete Kategorien (ohne Tagebuch) ─────────
                 if !usedCategoriesWithoutJournal.isEmpty {
                     categorySection(
-                        title: String(localized: "category.section.used",
-                                      defaultValue: "Verwendete Kategorien"),
+                        title: L10n.categoryUsed,
                         categories: usedCategoriesWithoutJournal
                     )
                 }

@@ -67,6 +67,9 @@
 		15388CAD2F92C9F7000A024E /* StoreKit.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 15388CAC2F92C9F7000A024E /* StoreKit.storekit */; };
 		15388CC72F9619FA000A024E /* HomeLocationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388CC62F9619FA000A024E /* HomeLocationSheet.swift */; };
 		15388CC92F96238A000A024E /* LimitReachedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388CC82F96238A000A024E /* LimitReachedSheet.swift */; };
+		15388CCB2F9662B4000A024E /* CategoryPickerGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388CCA2F9662B4000A024E /* CategoryPickerGrid.swift */; };
+		15388CCD2F966311000A024E /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388CCC2F966311000A024E /* L10n.swift */; };
+		15388CCF2F967949000A024E /* SmoothMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388CCE2F967949000A024E /* SmoothMapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -128,6 +131,9 @@
 		15388CAC2F92C9F7000A024E /* StoreKit.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKit.storekit; sourceTree = "<group>"; };
 		15388CC62F9619FA000A024E /* HomeLocationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeLocationSheet.swift; sourceTree = "<group>"; };
 		15388CC82F96238A000A024E /* LimitReachedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitReachedSheet.swift; sourceTree = "<group>"; };
+		15388CCA2F9662B4000A024E /* CategoryPickerGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryPickerGrid.swift; sourceTree = "<group>"; };
+		15388CCC2F966311000A024E /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		15388CCE2F967949000A024E /* SmoothMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmoothMapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -177,6 +183,7 @@
 		15388BAF2F8C9D38000A024E /* App */ = {
 			isa = PBXGroup;
 			children = (
+				15388CCC2F966311000A024E /* L10n.swift */,
 				15388BB72F8CA489000A024E /* AppConstants.swift */,
 				15388BB82F8CA489000A024E /* Extensions.swift */,
 				15388BA42F8C99AE000A024E /* ContentView.swift */,
@@ -258,7 +265,9 @@
 		15388BB52F8C9D86000A024E /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				15388CCE2F967949000A024E /* SmoothMapView.swift */,
 				15388CC82F96238A000A024E /* LimitReachedSheet.swift */,
+				15388CCA2F9662B4000A024E /* CategoryPickerGrid.swift */,
 				15388CC62F9619FA000A024E /* HomeLocationSheet.swift */,
 				15388BF92F8CDE83000A024E /* ActivityCardView.swift */,
 				15388BFA2F8CDE83000A024E /* ActivityMapAnnotation.swift */,
@@ -388,6 +397,7 @@
 				15388C0F2F8CF006000A024E /* UserSettings.swift in Sources */,
 				15388C102F8CF007000A024E /* AnalyticsManager.swift in Sources */,
 				15388C722F918017000A024E /* LocationSearchManager.swift in Sources */,
+				15388CCB2F9662B4000A024E /* CategoryPickerGrid.swift in Sources */,
 				15388C112F8CF008000A024E /* GeocodeManager.swift in Sources */,
 				15388C122F8CF009000A024E /* HapticManager.swift in Sources */,
 				15388C132F8CF00A000A024E /* LanguageManager.swift in Sources */,
@@ -412,8 +422,10 @@
 				15388C242F8CF01B000A024E /* StatsSummaryCard.swift in Sources */,
 				15388C2A2F8CF01D000A024E /* MapScreen.swift in Sources */,
 				15388C2B2F8CF01F000A024E /* ListScreen.swift in Sources */,
+				15388CCD2F966311000A024E /* L10n.swift in Sources */,
 				15388C2C2F8CF021000A024E /* ActivityBottomSheet.swift in Sources */,
 				15388C2D2F8CF023000A024E /* StatsScreen.swift in Sources */,
+				15388CCF2F967949000A024E /* SmoothMapView.swift in Sources */,
 				15388C2E2F8CF025000A024E /* PlusScreen.swift in Sources */,
 				15388C362F8CF02D000A024E /* AddActivityCategoryScreen.swift in Sources */,
 				15388C372F8CF02E000A024E /* AddActivityLocationScreen.swift in Sources */,

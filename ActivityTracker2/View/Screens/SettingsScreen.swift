@@ -4,6 +4,8 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
+import CoreLocation
 
 // MARK: - SettingsScreen
 
@@ -14,6 +16,7 @@ struct SettingsScreen: View {
 
     @Environment(UserSettings.self)      private var userSettings
     @Environment(StoreKitManager.self)   private var storeKitManager
+    @Environment(LocationManager.self)   private var locationManager
     @Environment(\.dismiss)              private var dismiss
 
     @Query private var activities: [Activity]
@@ -36,33 +39,51 @@ struct SettingsScreen: View {
             List {
 
                 // ── Mitgliedschaft ────────────────────────────────
-                Section(String(localized: "settings.section.membership")) {
+                Section(L10n.settingsMembership) {
 
-                    // Aktueller Plan
-                    HStack {
-                        Label(
-                            String(localized: "settings.plan.current"),
-                            systemImage: "crown.fill"
-                        )
-                        .foregroundStyle(.primary)
-                        Spacer()
-                        Text(isPlusUser
-                             ? String(localized: "settings.plan.plus")
-                             : String(localized: "settings.plan.free"))
+                    if isPlusUser {
+
+                        HStack {
+                            Label(L10n.settingsCurrentPlan, systemImage: "crown.fill")
+                            Spacer()
+                            Text(L10n.settingsPlus)
+                                .foregroundStyle(Color(hex: "#FFD700"))
+                                .fontWeight(.semibold)
+                        }
+
+                        Text(String(localized: "settings.plan.plus_detail",
+                                    defaultValue: "Unbegrenzte Aktivitäten"))
+                            .font(.caption)
                             .foregroundStyle(.secondary)
-                    }
 
-                    // Plus entdecken — nur für Free-User
-                    if !isPlusUser {
+                    } else {
+
+                        HStack {
+                            Label(L10n.settingsCurrentPlan, systemImage: "crown.fill")
+                            Spacer()
+                            Text(L10n.settingsFree)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Text(String(localized: "settings.plan.free_detail",
+                                    defaultValue: "100 Aktivitäten kostenlos"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        HStack {
+                            Label(L10n.settingsActivities, systemImage: "chart.bar.fill")
+                            Spacer()
+                            Text(String(format: L10n.settingsActivitiesCount,
+                                        activities.count))
+                                .foregroundStyle(activities.count > 80 ? Color.red : Color.secondary)
+                        }
+
                         Button {
                             showPlus = true
                         } label: {
                             HStack {
-                                Label(
-                                    String(localized: "settings.plan.discover"),
-                                    systemImage: "star.fill"
-                                )
-                                .foregroundStyle(Color(hex: "#E8593C"))
+                                Label(L10n.settingsDiscoverPlus, systemImage: "star.fill")
+                                    .foregroundStyle(Color(hex: "#E8593C"))
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
@@ -73,58 +94,48 @@ struct SettingsScreen: View {
                     }
                 }
 
-                // ── Nutzung ───────────────────────────────────────
-                Section(String(localized: "settings.section.usage")) {
+                // ── Standort ─────────────────────────────────────
+                Section(L10n.settingsLocation) {
 
-                    VStack(spacing: 8) {
-                        HStack {
-                            Label(
-                                String(localized: "settings.activities"),
-                                systemImage: "chart.bar.fill"
+                    // GPS Status
+                    HStack {
+                        Label(
+                            L10n.settingsGPS,
+                            systemImage: locationManager.authorizationStatus == .denied
+                                ? "location.slash.fill"
+                                : "location.fill"
+                        )
+                        Spacer()
+                        Text(locationManager.authorizationStatus == .denied
+                             ? L10n.settingsGPSDenied
+                             : L10n.settingsGPSActive)
+                            .font(.caption)
+                            .foregroundStyle(
+                                locationManager.authorizationStatus == .denied
+                                    ? .red : .green
                             )
-                            Spacer()
-                            if isPlusUser {
-                                // Plus: kein Limit — Zahl + ∞-Icon, immer secondary
-                                Text("\(activities.count)")
-                                    .foregroundStyle(.secondary)
-                                Image(systemName: "infinity")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                            } else {
-                                // Free: Zahl/100, rot wenn > 80
-                                Text("\(activities.count) / \(AppConstants.freeActivityLimit)")
-                                    .foregroundStyle(
-                                        activities.count > 80 ? Color.red : Color.secondary
-                                    )
+                    }
+
+                    if locationManager.authorizationStatus == .denied {
+                        Button {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
                             }
-                        }
-
-                        if !isPlusUser {
-                            ProgressView(
-                                value: Double(min(activities.count, AppConstants.freeActivityLimit)),
-                                total: Double(AppConstants.freeActivityLimit)
-                            )
-                            .tint(activities.count > 80 ? .red : Color(hex: "#E8593C"))
+                        } label: {
+                            Label(L10n.settingsEnableGPS, systemImage: "gear")
+                                .foregroundStyle(Color(hex: "#E8593C"))
                         }
                     }
-                    .padding(.vertical, 4)
-                }
-
-                // ── Standort ─────────────────────────────────────
-                Section(String(localized: "settings.section.location")) {
 
                     if userSettings.hasHomeLocation {
                         HStack {
                             Label(
-                                userSettings.homeLocationName.isEmpty
-                                    ? String(localized: "settings.home.default")
-                                    : userSettings.homeLocationName,
+                                userSettings.homeName ?? L10n.settingsHome,
                                 systemImage: "house.fill"
                             )
                             .lineLimit(1)
                             Spacer()
-                            Button(String(localized: "settings.home.change",
-                                          defaultValue: "Ändern")) {
+                            Button(L10n.settingsChange) {
                                 showHomeSearch = true
                             }
                             .foregroundStyle(Color(hex: "#E8593C"))
@@ -144,83 +155,64 @@ struct SettingsScreen: View {
                         Button {
                             showHomeSearch = true
                         } label: {
-                            Label(
-                                String(localized: "settings.home.add",
-                                       defaultValue: "Zuhause hinzufügen"),
-                                systemImage: "house.badge.plus"
-                            )
-                            .foregroundStyle(Color(hex: "#E8593C"))
+                            Label(L10n.settingsAddHome, systemImage: "house.badge.plus")
+                                .foregroundStyle(Color(hex: "#E8593C"))
                         }
                         .buttonStyle(.plain)
                     }
                 }
 
                 // ── Darstellung ───────────────────────────────────
-                Section(String(localized: "settings.section.appearance")) {
+                Section(L10n.settingsAppearance) {
 
                     HStack {
-                        Label(
-                            String(localized: "settings.color.scheme"),
-                            systemImage: "circle.lefthalf.filled"
-                        )
+                        Label(L10n.settingsAppearanceMode, systemImage: "circle.lefthalf.filled")
                         Spacer()
                         Picker("", selection: Binding(
                             get: { userSettings.colorScheme },
                             set: { userSettings.colorScheme = $0 }
                         )) {
-                            Text(String(localized: "settings.scheme.system")).tag("system")
-                            Text(String(localized: "settings.scheme.light")).tag("light")
-                            Text(String(localized: "settings.scheme.dark")).tag("dark")
+                            Text(L10n.settingsSystem).tag("system")
+                            Text(L10n.settingsLight).tag("light")
+                            Text(L10n.settingsDark).tag("dark")
                         }
                         .pickerStyle(.menu)
                     }
 
                     HStack {
-                        Label(
-                            String(localized: "settings.map.style"),
-                            systemImage: "map"
-                        )
+                        Label(L10n.settingsMapStyle, systemImage: "map")
                         Spacer()
                         Picker("", selection: Binding(
                             get: { userSettings.mapStyle },
                             set: { userSettings.mapStyle = $0 }
                         )) {
-                            Text(String(localized: "settings.map.standard")).tag("standard")
-                            Text(String(localized: "settings.map.satellite")).tag("satellite")
-                            Text(String(localized: "settings.map.hybrid")).tag("hybrid")
+                            Text(L10n.settingsStandard).tag("standard")
+                            Text(L10n.settingsSatellite).tag("satellite")
+                            Text(L10n.settingsHybrid).tag("hybrid")
                         }
                         .pickerStyle(.menu)
                     }
                 }
 
                 // ── App Info ──────────────────────────────────────
-                Section(String(localized: "settings.section.info")) {
+                Section(L10n.settingsAppInfo) {
 
                     HStack {
-                        Label(
-                            String(localized: "settings.version"),
-                            systemImage: "info.circle"
-                        )
+                        Label(L10n.settingsVersion, systemImage: "info.circle")
                         Spacer()
                         Text(appVersion)
                             .foregroundStyle(.secondary)
                     }
 
                     HStack {
-                        Label(
-                            String(localized: "settings.developer"),
-                            systemImage: "person.fill"
-                        )
+                        Label(L10n.settingsDeveloper, systemImage: "person.fill")
                         Spacer()
                         Text("F. Klepper")
                             .foregroundStyle(.secondary)
                     }
 
                     HStack {
-                        Label(
-                            String(localized: "settings.website"),
-                            systemImage: "globe"
-                        )
+                        Label(L10n.settingsWebsite, systemImage: "globe")
                         Spacer()
                         Link("remember-journal.com",
                              destination: URL(string: "https://remember-journal.com")!)
@@ -229,15 +221,16 @@ struct SettingsScreen: View {
                 }
 
                 // ── Rechtliches ───────────────────────────────────
-                Section(String(localized: "settings.section.legal")) {
+                Section(L10n.settingsLegal) {
 
                     // Impressum
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(String(localized: "settings.legal.imprint"))
+                        Text(L10n.settingsImprint)
                             .font(.headline)
                             .padding(.bottom, 4)
 
-                        Text(String(localized: "settings.legal.imprint.type"))
+                        Text(String(localized: "settings.legal.imprint.type",
+                                    defaultValue: "Einzelunternehmen"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Text("F. Klepper")
@@ -267,10 +260,7 @@ struct SettingsScreen: View {
                     // Datenschutzerklärung
                     Link(destination: URL(string: "https://remember-journal.com/datenschutz.html")!) {
                         HStack {
-                            Label(
-                                String(localized: "settings.privacy"),
-                                systemImage: "hand.raised.fill"
-                            )
+                            Label(L10n.settingsPrivacy, systemImage: "hand.raised.fill")
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.caption)
@@ -282,10 +272,7 @@ struct SettingsScreen: View {
                     // Nutzungsbedingungen
                     Link(destination: URL(string: "https://remember-journal.com/nutzungsbedingungen.html")!) {
                         HStack {
-                            Label(
-                                String(localized: "settings.terms"),
-                                systemImage: "doc.text.fill"
-                            )
+                            Label(L10n.settingsTerms, systemImage: "doc.text.fill")
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.caption)
@@ -297,10 +284,7 @@ struct SettingsScreen: View {
                     // Feedback
                     Link(destination: URL(string: "mailto:support@remember-journal.com")!) {
                         HStack {
-                            Label(
-                                String(localized: "settings.feedback"),
-                                systemImage: "envelope.fill"
-                            )
+                            Label(L10n.settingsFeedback, systemImage: "envelope.fill")
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.caption)
@@ -311,19 +295,37 @@ struct SettingsScreen: View {
                 }
 
                 // ── Daten ─────────────────────────────────────────
-                Section(String(localized: "settings.section.data")) {
+                Section(L10n.settingsData) {
 
                     Button(role: .destructive) {
                         userSettings.hasCompletedOnboarding = false
                     } label: {
-                        Label(
-                            String(localized: "settings.reset.onboarding"),
-                            systemImage: "arrow.counterclockwise"
-                        )
+                        Label(L10n.settingsResetOnboarding, systemImage: "arrow.counterclockwise")
                     }
                 }
+
+                // ── Made in Munich ────────────────────────────────
+                Section {
+                    VStack(spacing: 4) {
+                        Text("🇩🇪 \(L10n.indieApp)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                        Text(L10n.madeIn)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
+                        Text(L10n.privacyFooter)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .listRowBackground(Color.clear)
+                }
             }
-            .navigationTitle(String(localized: "settings.title"))
+            .navigationTitle(L10n.settingsTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -363,4 +365,5 @@ struct SettingsScreen: View {
     SettingsScreen()
         .environment(UserSettings())
         .environment(StoreKitManager())
+        .environment(LocationManager())
 }

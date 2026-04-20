@@ -144,9 +144,7 @@ extension AddActivityViewModel {
     func useHomeLocation(from settings: UserSettings) {
         guard let coordinate = settings.homeCoordinate else { return }
         pendingCoordinate = coordinate
-        pendingLocationName = settings.homeLocationName.isBlank
-            ? nil
-            : settings.homeLocationName
+        pendingLocationName = settings.homeName
     }
 }
 

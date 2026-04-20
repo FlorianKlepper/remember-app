@@ -77,6 +77,45 @@ extension Location {
     }
 }
 
+// MARK: - City Normalization
+
+extension Location {
+
+    /// Normalisiert einen Stadtnamen auf die kanonische deutsche Schreibweise.
+    ///
+    /// Deckt häufige englische und alternative Schreibweisen ab, die CLGeocoder
+    /// je nach Gerätesprache zurückgeben kann.
+    ///
+    /// - Parameters:
+    ///   - city: Rohwert aus Reverse Geocoding (z.B. "Munich").
+    ///   - country: Ländername — kann zukünftig für länderspezifische Mappings genutzt werden.
+    /// - Returns: Kanonischer Stadtname oder der Originalwert, wenn kein Mapping bekannt.
+    static func normalizeCity(_ city: String?, country: String?) -> String? {
+        guard let city else { return nil }
+
+        let mappings: [String: String] = [
+            // München
+            "Munich": "München",
+            "Muenchen": "München",
+            "munich": "München",
+            "münchen": "München",
+            // Frankfurt
+            "Frankfurt am Main": "Frankfurt",
+            // Köln
+            "Cologne": "Köln",
+            "Koeln": "Köln",
+            // Wien
+            "Vienna": "Wien",
+            "Vienne": "Wien",
+            // Bereinigung Länderanhänge
+            "Berlin, Germany": "Berlin",
+            "Hamburg, Germany": "Hamburg",
+        ]
+
+        return mappings[city] ?? city
+    }
+}
+
 // MARK: - Preview Helpers
 
 extension Location {

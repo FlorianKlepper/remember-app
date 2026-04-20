@@ -60,6 +60,7 @@ final class MapViewModel {
     // MARK: Private
 
     private let analytics: AnalyticsManager
+    private var animationTask: DispatchWorkItem? = nil
 
     // MARK: Init
 
@@ -180,56 +181,42 @@ extension MapViewModel {
         }
     }
 
-    /// Flüssige 3-Phasen Transition zwischen zwei Pins: rauszoomen → rüberfahren → reinzoomen.
-    ///
-    /// - Phase 1 (0–0.35s): Rauszoomen auf 3× + Fahrt zur Mitte zwischen altem und neuem Pin.
-    /// - Phase 2 (0.35–0.70s): Reinzoomen auf ursprünglichen Span, zentriert auf neuen Pin.
-    ///
+    /// Wrapper für bestehende Aufrufer — delegiert an `smoothAnimateToPin`.
     /// - Parameters:
-    ///   - currentLocation: Aktuell hervorgehobene Location (Startpunkt). `nil` = kein Offset.
-    ///   - newLocation: Ziel-Location (neuer Pin).
-    ///   - currentSpan: Span der Region vor der Transition — wird am Ende wiederhergestellt.
+    ///   - currentLocation: Wird nicht mehr verwendet (vereinfachte Animation).
+    ///   - newLocation: Ziel-Location.
+    ///   - currentSpan: Wird nicht mehr verwendet — aktueller Span bleibt erhalten.
     func animateToPin(
         from currentLocation: Location?,
         to newLocation: Location,
         currentSpan: MKCoordinateSpan
     ) {
-        let zoomedOutSpan = MKCoordinateSpan(
-            latitudeDelta:  currentSpan.latitudeDelta  * 3.0,
-            longitudeDelta: currentSpan.longitudeDelta * 3.0
-        )
+        smoothAnimateToPin(to: newLocation.coordinate)
+    }
 
-        let midCenter: CLLocationCoordinate2D
-        if let current = currentLocation {
-            midCenter = CLLocationCoordinate2D(
-                latitude:  (current.coordinate.latitude  + newLocation.coordinate.latitude)  / 2,
-                longitude: (current.coordinate.longitude + newLocation.coordinate.longitude) / 2
+    /// Gleitet smooth zum Ziel-Pin — debounced (0.15s) mit interpolatingSpring.
+    ///
+    /// Bricht laufende Transitions ab bevor die neue startet.
+    /// Nutzt SwiftUI `interpolatingSpring` für natürliche Kamera-Bewegung.
+    ///
+    /// - Parameter coordinate: Ziel-Koordinate des Pins.
+    func smoothAnimateToPin(to coordinate: CLLocationCoordinate2D) {
+        animationTask?.cancel()
+
+        let task = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            // Kein withAnimation — SmoothMapView animiert via UIView.animate ✓
+            self.region = MKCoordinateRegion(
+                center: self.adjustedCenter(
+                    for: coordinate,
+                    span: self.region.span,
+                    sheetDetent: self.currentSheetDetent
+                ),
+                span: self.region.span
             )
-        } else {
-            midCenter = newLocation.coordinate
         }
-
-        // Phase 1: Rauszoomen + zur Mitte fahren
-        withAnimation(.easeIn(duration: 0.45)) {
-            region = MKCoordinateRegion(
-                center: adjustedCenter(for: midCenter, span: zoomedOutSpan, sheetDetent: currentSheetDetent),
-                span: zoomedOutSpan
-            )
-        }
-
-        // Phase 2: Reinzoomen auf neuen Pin
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-            withAnimation(.easeOut(duration: 0.45)) {
-                self.region = MKCoordinateRegion(
-                    center: self.adjustedCenter(
-                        for: newLocation.coordinate,
-                        span: currentSpan,
-                        sheetDetent: self.currentSheetDetent
-                    ),
-                    span: currentSpan
-                )
-            }
-        }
+        animationTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: task)
     }
 
     // MARK: Private

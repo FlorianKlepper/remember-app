@@ -125,6 +125,30 @@ extension ActivityViewModel {
     }
 }
 
+// MARK: - Migration
+
+extension ActivityViewModel {
+
+    /// Normalisiert Stadtnamen aller gespeicherten Locations auf kanonische Schreibweisen.
+    ///
+    /// Einmalig beim App-Start aufrufen — idempotent, da bereits korrekte Namen unverändert bleiben.
+    /// - Parameter context: Aktiver SwiftData `ModelContext`.
+    func normalizeExistingLocations(context: ModelContext) {
+        var didChange = false
+        for activity in activities {
+            guard let location = activity.location else { continue }
+            let normalized = Location.normalizeCity(location.city, country: location.country)
+            if normalized != location.city {
+                location.city = normalized
+                didChange = true
+            }
+        }
+        if didChange {
+            try? context.save()
+        }
+    }
+}
+
 // MARK: - Computed Properties
 
 extension ActivityViewModel {

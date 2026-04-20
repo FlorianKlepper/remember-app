@@ -28,6 +28,9 @@ struct AddActivityTextScreen: View {
     /// Fehlermeldung nach einem fehlgeschlagenen Speichervorgang.
     @State private var saveError: String? = nil
 
+    /// Toast für den allerersten gespeicherten Eintrag.
+    @State private var showFirstActivityToast = false
+
     // MARK: Private
 
     private enum Field: Hashable {
@@ -204,6 +207,27 @@ struct AddActivityTextScreen: View {
         .onAppear {
             focusedField = .title
         }
+        // ── Erster-Moment-Toast ───────────────────────────────────────
+        .overlay(alignment: .top) {
+            if showFirstActivityToast {
+                HStack(spacing: 8) {
+                    Text("Dein erster Moment 🎉")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(
+                    Capsule()
+                        .fill(Color(hex: "#E8593C"))
+                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                )
+                .padding(.top, 16)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showFirstActivityToast)
     }
 
 
@@ -228,7 +252,19 @@ struct AddActivityTextScreen: View {
                 NotificationCenter.default.post(name: .setSheetMedium, object: nil)
             }
 
-            addActivityVM.isSaved = true
+            // 4. Erster-Moment-Toast (nur beim allerersten Eintrag)
+            if activityVM.activities.count == 1 {
+                withAnimation { showFirstActivityToast = true }
+                HapticManager.success()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation { showFirstActivityToast = false }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        addActivityVM.isSaved = true
+                    }
+                }
+            } else {
+                addActivityVM.isSaved = true
+            }
 
         } catch {
             saveError = String(

@@ -29,9 +29,8 @@ struct MapScreen: View {
 
     // MARK: State
 
-    @State private var cameraPosition:      MapCameraPosition = .automatic
-    @State private var showSettings:        Bool              = false
-    @State private var currentSheetIsSmall: Bool              = true
+    @State private var showSettings:        Bool = false
+    @State private var currentSheetIsSmall: Bool = true
 
     // MARK: Private
 
@@ -47,12 +46,15 @@ struct MapScreen: View {
             .first?.windows.first?.safeAreaInsets.top ?? 47
     }
 
-    private var uniqueLocations: [Location] {
-        let filtered = activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
-        var seen = Set<UUID>()
-        return filtered
-            .compactMap { $0.location }
-            .filter { seen.insert($0.id).inserted }
+    private var displayedAnnotations: [ActivityAnnotation] {
+        mapVM.displayedActivities
+            .filter { $0.location != nil }
+            .map { activity in
+                ActivityAnnotation(
+                    activity: activity,
+                    isSelected: activity.id == mapVM.highlightedActivityId
+                )
+            }
     }
 
     // MARK: Body
@@ -114,6 +116,9 @@ struct MapScreen: View {
                 .zIndex(50)
         }
         .ignoresSafeArea(edges: .bottom)
+        .sheet(isPresented: $showSettings) {
+            SettingsScreen()
+        }
         .onAppear {
             // Tab-Modus → Sheet-Position beim Start setzen
             if isListMode {
@@ -123,7 +128,6 @@ struct MapScreen: View {
                     NotificationCenter.default.post(name: .setSheetSmall, object: nil)
                 }
             }
-            cameraPosition = .region(mapVM.region)
             filterVM.onCategoryChanged = { categoryId in
                 mapVM.onCategorySelected(
                     categoryId: categoryId,
@@ -139,15 +143,10 @@ struct MapScreen: View {
         .onChange(of: locationManager.currentLocation) { _, newLocation in
             guard let coord = newLocation, !mapVM.hasInitialLocation else { return }
             mapVM.hasInitialLocation = true
-            withAnimation(.easeInOut(duration: 0.8)) {
-                mapVM.region = MKCoordinateRegion(
-                    center: coord,
-                    span: MKCoordinateSpan(
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05
-                    )
-                )
-            }
+            mapVM.region = MKCoordinateRegion(
+                center: coord,
+                span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+            )
         }
         .onChange(of: activityVM.activities) { _, newActivities in
             mapVM.onCategorySelected(
@@ -155,11 +154,16 @@ struct MapScreen: View {
                 allActivities: newActivities
             )
         }
-        .onChange(of: mapVM.region.center.latitude) { _, _ in
-            cameraPosition = .region(mapVM.region)
-        }
-        .onChange(of: mapVM.region.center.longitude) { _, _ in
-            cameraPosition = .region(mapVM.region)
+        // GPS-Berechtigung erteilt → Karte auf aktuellen Standort zentrieren
+        .onReceive(NotificationCenter.default.publisher(for: .locationPermissionGranted)) { _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                guard let coord = locationManager.currentLocation else { return }
+                mapVM.region = MKCoordinateRegion(
+                    center: coord,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                )
+                mapVM.hasInitialLocation = true
+            }
         }
         // Sheet-Größe tracken (von PermanentBottomSheet gesendet)
         .onReceive(NotificationCenter.default.publisher(for: .sheetSizeChanged)) { notification in
@@ -182,16 +186,14 @@ struct MapScreen: View {
                 mapVM.highlightedActivityId = newest.id
                 mapVM.selectedLocation      = location
 
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    mapVM.region = MKCoordinateRegion(
-                        center: mapVM.adjustedCenter(
-                            for: location.coordinate,
-                            span: mapVM.region.span,
-                            sheetDetent: 0.45
-                        ),
-                        span: mapVM.region.span
-                    )
-                }
+                mapVM.region = MKCoordinateRegion(
+                    center: mapVM.adjustedCenter(
+                        for: location.coordinate,
+                        span: mapVM.region.span,
+                        sheetDetent: 0.45
+                    ),
+                    span: mapVM.region.span
+                )
             }
         }
     }
@@ -200,39 +202,20 @@ struct MapScreen: View {
 
     @ViewBuilder
     private var mapLayer: some View {
-        let filtered = activityVM.filteredActivities(categoryId: filterVM.selectedCategoryId)
-
-        Map(position: $cameraPosition) {
-            UserAnnotation()
-
-            ForEach(uniqueLocations) { location in
-                Annotation("", coordinate: location.coordinate, anchor: .bottom) {
-                    ActivityMapAnnotation(
-                        location: location,
-                        dominantCategoryId: mapVM.dominantCategoryId(
-                            for: location,
-                            activities: filtered
-                        ),
-                        isSelected: mapVM.selectedLocation?.id == location.id,
-                        onTap: {
-                            mapVM.onPinTapped(
-                                location: location,
-                                allActivities: activityVM.activities,
-                                categoryId: filterVM.selectedCategoryId
-                            )
-                        }
-                    )
-                }
+        SmoothMapView(
+            region: Binding(
+                get: { mapVM.region },
+                set: { mapVM.region = $0 }
+            ),
+            annotations: displayedAnnotations,
+            mapStyle: userSettings.mapStyle,
+            onRegionChange: { newRegion in
+                mapVM.region = newRegion
+            },
+            onAnnotationTap: { annotation in
+                mapVM.highlightedActivityId = annotation.activity.id
             }
-        }
-        .mapStyle(
-            userSettings.mapStyle == "satellite" ? .imagery :
-            userSettings.mapStyle == "hybrid"    ? .hybrid  :
-            .standard(pointsOfInterest: .excludingAll)
         )
-        .sheet(isPresented: $showSettings) {
-            SettingsScreen()
-        }
     }
 
     // MARK: Map Control Buttons (rechts oben, fix)
@@ -302,34 +285,35 @@ struct MapScreen: View {
     // MARK: Zoom + GPS Actions
 
     private func zoomIn() {
-        let span = MKCoordinateSpan(
-            latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.001),
-            longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.001)
+        // Kein withAnimation — SmoothMapView animiert via UIView.animate ✓
+        mapVM.region = MKCoordinateRegion(
+            center: mapVM.region.center,
+            span: MKCoordinateSpan(
+                latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.001),
+                longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.001)
+            )
         )
-        mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
-        cameraPosition = .region(mapVM.region)
     }
 
     private func zoomOut() {
-        let span = MKCoordinateSpan(
-            latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 100.0),
-            longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 100.0)
+        mapVM.region = MKCoordinateRegion(
+            center: mapVM.region.center,
+            span: MKCoordinateSpan(
+                latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 100.0),
+                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 100.0)
+            )
         )
-        mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
-        cameraPosition = .region(mapVM.region)
     }
 
     private func refocusOnGPS() {
         guard let coordinate = locationManager.currentLocation else { return }
-        withAnimation(.easeInOut(duration: 0.5)) {
-            mapVM.region = MKCoordinateRegion(
-                center: coordinate,
-                span: MKCoordinateSpan(
-                    latitudeDelta:  AppConstants.defaultMapSpan,
-                    longitudeDelta: AppConstants.defaultMapSpan
-                )
+        mapVM.region = MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(
+                latitudeDelta:  AppConstants.defaultMapSpan,
+                longitudeDelta: AppConstants.defaultMapSpan
             )
-        }
+        )
     }
 }
 

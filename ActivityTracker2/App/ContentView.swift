@@ -212,6 +212,7 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.3), value: showWelcome)
         .onAppear {
             activityVM.fetchActivities(context: modelContext)
+            activityVM.normalizeExistingLocations(context: modelContext)
         }
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()

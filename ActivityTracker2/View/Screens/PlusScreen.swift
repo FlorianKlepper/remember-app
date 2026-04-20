@@ -7,7 +7,8 @@ import StoreKit
 
 // MARK: - PlusScreen
 
-/// Zeigt Free-Usern die Paywall (Layout A) und Plus-Usern eine Danke-Ansicht (Layout B).
+/// Zeigt Free-Usern die Paywall (kompaktes Non-Scroll-Layout)
+/// und Plus-Usern eine Danke-Ansicht.
 struct PlusScreen: View {
 
     // MARK: Input
@@ -22,25 +23,17 @@ struct PlusScreen: View {
     @Environment(UserSettings.self)       private var userSettings
     @Environment(StoreKitManager.self)    private var storeKitManager
     @Environment(AnalyticsManager.self)   private var analyticsManager
-    @Environment(\.openURL)               private var openURL
-
-    // MARK: Private
-
-    private let brandColor = Color(hex: "#E8593C")
+    @Environment(\.dismiss)               private var dismiss
 
     // MARK: Body
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if userSettings.subscriptionStatus.isPremium {
-                    plusMemberView
-                } else {
-                    paywallView
-                }
+        Group {
+            if userSettings.subscriptionStatus.isPremium {
+                plusMemberView
+            } else {
+                paywallView
             }
-            .navigationTitle("plus.title")
-            .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {
             Task {
@@ -53,87 +46,141 @@ struct PlusScreen: View {
     // MARK: Layout A — Paywall (Free User)
 
     private var paywallView: some View {
-        ScrollView {
-            VStack(spacing: 24) {
+        VStack(spacing: 0) {
 
-                // ── Hero ───────────────────────────────────────────
-                VStack(spacing: 12) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 56))
-                        .foregroundStyle(brandColor)
-
-                    Text("plus.hero.title")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .multilineTextAlignment(.center)
-
-                    Text("plus.hero.subtitle")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                }
-                .padding(.top, 24)
-
-                // ── Vorteile ───────────────────────────────────────
-                VStack(spacing: 16) {
-                    benefitRow(
-                        icon: "infinity",
-                        titleKey: "plus.benefit1.title",
-                        descriptionKey: "plus.benefit1.description"
-                    )
-                    benefitRow(
-                        icon: "square.grid.2x2",
-                        titleKey: "plus.benefit2.title",
-                        descriptionKey: "plus.benefit2.description"
-                    )
-                    benefitRow(
-                        icon: "chart.bar.fill",
-                        titleKey: "plus.benefit3.title",
-                        descriptionKey: "plus.benefit3.description"
-                    )
-                }
-                .padding(.horizontal, 24)
-
-                // ── Preis & Kaufen ─────────────────────────────────
-                VStack(spacing: 12) {
-                    if let product = plusVM.plusProduct {
-                        Text(product.displayPrice)
-                            .font(.system(size: 36, weight: .bold))
-                    } else {
-                        Text("8,99 €")
-                            .font(.system(size: 36, weight: .bold))
-                    }
-
-                    Text("plus.price.once")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    purchaseButton
-
-                    restoreButton
-                }
-
-                // ── Fehler-Meldung ─────────────────────────────────
-                if let error = plusVM.errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                }
-
-                // ── Website-Link ────────────────────────────────────
+            // ── Dismiss ───────────────────────────────────────────
+            HStack {
+                Spacer()
                 Button {
-                    openURL(AppConstants.websiteURL)
+                    dismiss()
                 } label: {
-                    Text("plus.learn_more")
-                        .font(.caption)
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 22))
                         .foregroundStyle(.secondary)
-                        .underline()
                 }
-                .padding(.bottom, 32)
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+
+            // ── Header ────────────────────────────────────────────
+            VStack(spacing: 8) {
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(Color(hex: "#FFD700"))
+
+                Text(L10n.plusTitle)
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Text(L10n.plusSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, 16)
+            .padding(.bottom, 20)
+
+            // ── Features — kompakt ────────────────────────────────
+            VStack(spacing: 10) {
+                plusRow(icon: "infinity",              text: L10n.plusFeatureUnlimited)
+                plusRow(icon: "square.grid.3x3.fill", text: L10n.plusFeatureCategories)
+                plusRow(icon: "lock.open.fill",        text: L10n.plusFeatureOnetime)
+                plusRow(icon: "hand.raised.fill",      text: L10n.plusFeaturePrivacy)
+            }
+            .padding(.horizontal, 32)
+            .padding(.bottom, 24)
+
+            // ── Preis ─────────────────────────────────────────────
+            Text(L10n.plusPrice)
+                .font(.headline)
+                .foregroundStyle(.primary)
+
+            Text(L10n.plusLaunchPrice)
+                .font(.caption)
+                .foregroundStyle(Color(hex: "#E8593C"))
+                .padding(.top, 4)
+                .padding(.bottom, 20)
+
+            // ── Kauf Button ───────────────────────────────────────
+            Button {
+                Task {
+                    await plusVM.purchasePlus(
+                        manager: storeKitManager,
+                        settings: userSettings
+                    )
+                }
+            } label: {
+                Group {
+                    if plusVM.isPurchasing {
+                        HStack(spacing: 8) {
+                            ProgressView().tint(.white)
+                            Text("Wird verarbeitet…")
+                        }
+                    } else {
+                        HStack(spacing: 8) {
+                            Image(systemName: "crown.fill")
+                                .foregroundStyle(Color(hex: "#FFD700"))
+                            Text(L10n.plusCta)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(plusVM.isPurchasing
+                              ? Color(hex: "#E8593C").opacity(0.6)
+                              : Color(hex: "#E8593C"))
+                )
+            }
+            .disabled(plusVM.isPurchasing)
+            .padding(.horizontal, 24)
+
+            // ── Restore ───────────────────────────────────────────
+            Button {
+                Task {
+                    try? await plusVM.restorePurchases(
+                        manager: storeKitManager,
+                        settings: userSettings
+                    )
+                }
+            } label: {
+                Text(L10n.plusRestore)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, 8)
+
+            // ── Fehler ────────────────────────────────────────────
+            if let error = plusVM.errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 4)
+            }
+
+            Spacer()
+
+            // ── Made in Munich ────────────────────────────────────
+            VStack(spacing: 4) {
+                Text("🇩🇪 \(L10n.indieApp)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                Text(L10n.madeIn)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                Text(L10n.privacyFooter)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 2)
+            }
+            .padding(.bottom, 24)
         }
     }
 
@@ -141,18 +188,34 @@ struct PlusScreen: View {
 
     private var plusMemberView: some View {
         VStack(spacing: 16) {
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+
             Spacer()
 
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.green)
 
-            Text("plus.member.title")
+            Text(String(localized: "plus.member.title",
+                        defaultValue: "Du bist dabei!"))
                 .font(.title2)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
 
-            Text("plus.member.subtitle")
+            Text(String(localized: "plus.member.subtitle",
+                        defaultValue: "Danke für deine Unterstützung.\nAlle Momente gehören dir."))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -162,73 +225,21 @@ struct PlusScreen: View {
         }
     }
 
-    // MARK: Private Views
+    // MARK: Feature Row
 
-    private func benefitRow(
-        icon: String,
-        titleKey: LocalizedStringKey,
-        descriptionKey: LocalizedStringKey
-    ) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+    private func plusRow(icon: String, text: String) -> some View {
+        HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(brandColor)
-                .frame(width: 28)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(titleKey)
-                    .font(.headline)
-                Text(descriptionKey)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+                .font(.system(size: 15))
+                .foregroundStyle(Color(hex: "#E8593C"))
+                .frame(width: 24)
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
             Spacer()
-        }
-    }
-
-    private var purchaseButton: some View {
-        Button {
-            Task {
-                await plusVM.purchasePlus(
-                    manager: storeKitManager,
-                    settings: userSettings
-                )
-            }
-        } label: {
-            Group {
-                if plusVM.isPurchasing {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                            .tint(.white)
-                        Text("plus.purchasing")
-                    }
-                } else {
-                    Text("plus.cta.purchase")
-                }
-            }
-            .font(.headline)
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(plusVM.isPurchasing ? brandColor.opacity(0.6) : brandColor,
-                        in: RoundedRectangle(cornerRadius: 14))
-        }
-        .disabled(plusVM.isPurchasing)
-        .padding(.horizontal, 24)
-    }
-
-    private var restoreButton: some View {
-        Button {
-            Task {
-                try? await plusVM.restorePurchases(
-                    manager: storeKitManager,
-                    settings: userSettings
-                )
-            }
-        } label: {
-            Text("plus.restore")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color(hex: "#E8593C").opacity(0.6))
         }
     }
 }
@@ -237,9 +248,9 @@ struct PlusScreen: View {
 
 #Preview("Plus Screen — Free") {
     let analytics = AnalyticsManager()
-    let plusVM = PlusViewModel(analytics: analytics)
-    let settings = UserSettings()
-    let storeKit = StoreKitManager()
+    let plusVM    = PlusViewModel(analytics: analytics)
+    let settings  = UserSettings()
+    let storeKit  = StoreKitManager()
 
     return PlusScreen()
         .environment(plusVM)
@@ -250,9 +261,9 @@ struct PlusScreen: View {
 
 #Preview("Plus Screen — Plus Member") {
     let analytics = AnalyticsManager()
-    let plusVM = PlusViewModel(analytics: analytics)
-    let settings = UserSettings()
-    let storeKit = StoreKitManager()
+    let plusVM    = PlusViewModel(analytics: analytics)
+    let settings  = UserSettings()
+    let storeKit  = StoreKitManager()
     settings.subscriptionStatus = .plus
 
     return PlusScreen()

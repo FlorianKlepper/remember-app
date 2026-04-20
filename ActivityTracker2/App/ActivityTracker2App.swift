@@ -123,6 +123,12 @@ struct ActivityTracker2App: App {
                 analyticsManager.track(.appOpened)
                 locationManager.startUpdating()
             }
+            // App kommt aus dem Hintergrund (z.B. nach iOS Einstellungen) → Location neu prüfen
+            .onReceive(NotificationCenter.default.publisher(
+                for: UIApplication.willEnterForegroundNotification)
+            ) { _ in
+                locationManager.startUpdating()
+            }
             .task {
                 // Entitlements prüfen und beide Stores synchronisieren
                 await storeKitManager.checkCurrentEntitlements(settings: userSettings)

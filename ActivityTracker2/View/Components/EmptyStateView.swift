@@ -9,22 +9,22 @@ import SwiftUI
 /// Konfigurationsobjekt für `EmptyStateView`.
 struct EmptyStateConfig {
     let systemImage: String
-    let titleKey: LocalizedStringKey
-    let messageKey: LocalizedStringKey
-    let actionTitleKey: LocalizedStringKey?
+    let title: String
+    let message: String
+    let actionTitle: String?
     let action: (() -> Void)?
 
     init(
         systemImage: String,
-        titleKey: LocalizedStringKey,
-        messageKey: LocalizedStringKey,
-        actionTitleKey: LocalizedStringKey? = nil,
+        title: String,
+        message: String,
+        actionTitle: String? = nil,
         action: (() -> Void)? = nil
     ) {
         self.systemImage = systemImage
-        self.titleKey = titleKey
-        self.messageKey = messageKey
-        self.actionTitleKey = actionTitleKey
+        self.title = title
+        self.message = message
+        self.actionTitle = actionTitle
         self.action = action
     }
 }
@@ -37,8 +37,10 @@ extension EmptyStateConfig {
     static var noActivities: EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "map",
-            titleKey: "empty.no_activities.title",
-            messageKey: "empty.no_activities.message"
+            title: String(localized: "empty.no_activities.title",
+                          defaultValue: "Noch keine Momente"),
+            message: String(localized: "empty.no_activities.message",
+                            defaultValue: "Heute noch nichts erlebt?\nManchmal ist Pause auch ein Moment.")
         )
     }
 
@@ -46,8 +48,10 @@ extension EmptyStateConfig {
     static var filteredNoResults: EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "line.3.horizontal.decrease",
-            titleKey: "empty.filtered.title",
-            messageKey: "empty.filtered.message"
+            title: String(localized: "empty.filtered.title",
+                          defaultValue: "Keine Treffer"),
+            message: String(localized: "empty.filtered.message",
+                            defaultValue: "Für diesen Filter gibt es noch keine Einträge.")
         )
     }
 
@@ -55,10 +59,23 @@ extension EmptyStateConfig {
     static func limitReached(action: @escaping () -> Void) -> EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "lock.fill",
-            titleKey: "empty.limit_reached.title",
-            messageKey: "empty.limit_reached.message",
-            actionTitleKey: "empty.limit_reached.cta",
+            title: String(localized: "empty.limit_reached.title",
+                          defaultValue: "Limit erreicht"),
+            message: String(localized: "empty.limit_reached.message",
+                            defaultValue: "Mit Remember Plus hältst du unbegrenzt Momente fest."),
+            actionTitle: String(localized: "empty.limit_reached.cta",
+                                defaultValue: "Plus entdecken"),
             action: action
+        )
+    }
+
+    /// Keine Aktivitäten in einer bestimmten Kategorie.
+    static func forCategory(name: String, icon: String) -> EmptyStateConfig {
+        EmptyStateConfig(
+            systemImage: "map",
+            title: String(localized: "empty.no_activities.title",
+                          defaultValue: "Noch keine Momente"),
+            message: "Noch keine \(name) dabei.\nZeit für ein Abenteuer? \(icon)"
         )
     }
 }
@@ -80,21 +97,21 @@ struct EmptyStateView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
 
-            Text(config.titleKey)
+            Text(config.title)
                 .font(.headline)
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)
 
-            Text(config.messageKey)
+            Text(config.message)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
-            if let actionTitleKey = config.actionTitleKey,
+            if let actionTitle = config.actionTitle,
                let action = config.action {
                 Button(action: action) {
-                    Text(actionTitleKey)
+                    Text(actionTitle)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .padding(.horizontal, 20)
@@ -123,5 +140,8 @@ struct EmptyStateView: View {
 
         EmptyStateView(config: .limitReached(action: {}))
             .tabItem { Label("Limit", systemImage: "lock.fill") }
+
+        EmptyStateView(config: .forCategory(name: "Wanderungen", icon: "🥾"))
+            .tabItem { Label("Kategorie", systemImage: "figure.hiking") }
     }
 }

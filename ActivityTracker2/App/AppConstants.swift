@@ -90,4 +90,6 @@ extension Notification.Name {
     static let filterCleared = Notification.Name("filterCleared")
     /// HomeLocationSheet → AddActivityCategoryScreen: Zuhause wurde gesetzt, direkt zu TextScreen navigieren.
     static let homeLocationSetNavigate = Notification.Name("homeLocationSetNavigate")
+    /// LocationManager → MapScreen/AddActivityLocationScreen: GPS-Berechtigung wurde erteilt.
+    static let locationPermissionGranted = Notification.Name("locationPermissionGranted")
 }

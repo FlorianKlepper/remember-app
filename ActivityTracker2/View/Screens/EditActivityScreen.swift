@@ -125,10 +125,13 @@ struct EditActivityScreen: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "button.save", defaultValue: "Speichern")) {
+                    Button {
                         saveChanges()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#E8593C"))
                     }
-                    .fontWeight(.semibold)
                 }
             }
         }

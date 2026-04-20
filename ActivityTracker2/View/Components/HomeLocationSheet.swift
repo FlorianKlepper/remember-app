@@ -37,13 +37,11 @@ struct HomeLocationSheet: View {
                         .font(.system(size: 40))
                         .foregroundStyle(Color(hex: "#E8593C"))
 
-                    Text(String(localized: "home.prompt.title",
-                                defaultValue: "Wo ist dein Zuhause?"))
+                    Text(L10n.homeTitle)
                         .font(.title2)
                         .fontWeight(.bold)
 
-                    Text(String(localized: "home.prompt.body",
-                                defaultValue: "Mit einem Zuhause kannst du Tagebucheinträge noch schneller erfassen — ohne Ort suchen zu müssen."))
+                    Text(L10n.homeSubtitle)
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -57,11 +55,7 @@ struct HomeLocationSheet: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
 
-                    TextField(
-                        String(localized: "home.prompt.search.placeholder",
-                               defaultValue: "Stadt oder Adresse suchen..."),
-                        text: $searchText
-                    )
+                    TextField(L10n.homeSearchPlaceholder, text: $searchText)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .onChange(of: searchText) { _, new in
@@ -127,8 +121,7 @@ struct HomeLocationSheet: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text(String(localized: "home.prompt.skip",
-                                defaultValue: "Kein Zuhause eingeben"))
+                    Text(L10n.homeSkip)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
