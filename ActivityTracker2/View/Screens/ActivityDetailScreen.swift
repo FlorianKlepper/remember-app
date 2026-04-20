@@ -104,7 +104,7 @@ struct ActivityDetailScreen: View {
                 }
             }
 
-            // ── Trailing: Papierkorb links, Bearbeiten rechts ────
+            // ── Trailing: Papierkorb, Bearbeiten, Fertig ─────────
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Button {
                     showDeleteConfirm = true
@@ -120,6 +120,14 @@ struct ActivityDetailScreen: View {
                     Image(systemName: "square.and.pencil")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(.primary)
+                }
+
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Color(hex: "#E8593C"))
                 }
             }
         }

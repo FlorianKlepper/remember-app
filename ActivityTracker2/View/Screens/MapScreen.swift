@@ -299,8 +299,8 @@ struct MapScreen: View {
         mapVM.region = MKCoordinateRegion(
             center: mapVM.region.center,
             span: MKCoordinateSpan(
-                latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 100.0),
-                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 100.0)
+                latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 80.0),
+                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 80.0)
             )
         )
     }

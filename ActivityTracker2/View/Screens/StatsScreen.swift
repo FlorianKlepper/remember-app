@@ -386,35 +386,43 @@ struct StatsScreen: View {
         let maxCount = statsVM.activitiesPerMonth.map(\.count).max() ?? 1
         let maxHeight: CGFloat = 80
 
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .bottom, spacing: 4) {
-                ForEach(statsVM.activitiesPerMonth) { stat in
-                    let barHeight: CGFloat = maxCount > 0
-                        ? max(4, CGFloat(stat.count) / CGFloat(maxCount) * maxHeight)
-                        : 4
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .bottom, spacing: 4) {
+                    ForEach(statsVM.activitiesPerMonth) { stat in
+                        let barHeight: CGFloat = maxCount > 0
+                            ? max(4, CGFloat(stat.count) / CGFloat(maxCount) * maxHeight)
+                            : 4
 
-                    VStack(spacing: 4) {
-                        if stat.count > 0 {
-                            Text("\(stat.count)")
+                        VStack(spacing: 4) {
+                            if stat.count > 0 {
+                                Text("\(stat.count)")
+                                    .font(.system(size: 8))
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(stat.count > 0 ? brandColor : Color(.systemGray5))
+                                .frame(width: 20, height: barHeight)
+
+                            Text(stat.month)
                                 .font(.system(size: 8))
                                 .foregroundStyle(.secondary)
+                                .frame(width: 28)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
                         }
-
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(stat.count > 0 ? brandColor : Color(.systemGray5))
-                            .frame(width: 20, height: barHeight)
-
-                        Text(stat.month)
-                            .font(.system(size: 8))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
+                        .id(stat.id)
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .onAppear {
+                if let last = statsVM.activitiesPerMonth.last {
+                    proxy.scrollTo(last.id, anchor: .trailing)
+                }
+            }
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
