@@ -62,13 +62,12 @@ extension OnboardingViewModel {
 
 extension OnboardingViewModel {
 
-    /// Schließt das Onboarding vollständig ab und speichert die Sprachauswahl.
-    /// Wird auf dem letzten Onboarding-Screen aufgerufen.
-    /// - Parameters:
-    ///   - settings: Globales `UserSettings`-Objekt.
-    ///   - language: Gewählter Sprachcode (`"system"`, `"de"`, `"en"`).
-    func completeOnboarding(settings: UserSettings, language: String) {
-        settings.selectedLanguage = language
+    /// Schließt das Onboarding vollständig ab.
+    /// Setzt `selectedLanguage` automatisch auf die aktuelle iOS-Systemsprache.
+    /// - Parameter settings: Globales `UserSettings`-Objekt.
+    func completeOnboarding(settings: UserSettings) {
+        settings.selectedLanguage =
+            Locale.current.language.languageCode?.identifier ?? "de"
         settings.hasCompletedOnboarding = true
     }
 }

@@ -57,7 +57,7 @@ enum AppConstants {
     static let toastDuration: Double = 2.0
 
     /// Bottom Sheet – schmaler Streifen (immer sichtbar nach Pin-Tap).
-    static let bottomSheetSmall: Double = 0.17
+    static let bottomSheetSmall: Double = 0.16
 
     /// Bottom Sheet – halbe Bildschirmhöhe (Standard-Detent).
     static let bottomSheetMedium: Double = 0.45
@@ -88,4 +88,6 @@ extension Notification.Name {
     static let sheetSizeChanged = Notification.Name("sheetSizeChanged")
     /// AddActivityTextScreen → MapScreen/FilterViewModel: Filter soll zurückgesetzt werden.
     static let filterCleared = Notification.Name("filterCleared")
+    /// HomeLocationSheet → AddActivityCategoryScreen: Zuhause wurde gesetzt, direkt zu TextScreen navigieren.
+    static let homeLocationSetNavigate = Notification.Name("homeLocationSetNavigate")
 }

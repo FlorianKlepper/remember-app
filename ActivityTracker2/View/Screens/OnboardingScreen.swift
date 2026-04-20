@@ -8,7 +8,7 @@ import CoreLocation
 // MARK: - OnboardingScreen
 
 /// Vollbild-Onboarding mit `TabView(.page)` — 3 Screens.
-/// Screen 0: App-Wert + Sprachauswahl
+/// Screen 0: App-Wert
 /// Screen 1: Datenschutz-Versprechen
 /// Screen 2: Standort-Berechtigung (iOS-Dialog vorher anzeigen)
 struct OnboardingScreen: View {
@@ -19,12 +19,8 @@ struct OnboardingScreen: View {
     @Environment(LocationManager.self)     private var locationManager
     @Environment(UserSettings.self)        private var userSettings
     @Environment(AnalyticsManager.self)    private var analyticsManager
-    @Environment(LanguageManager.self)     private var languageManager
 
     // MARK: State
-
-    /// Gewählte Sprache — temporär bis Onboarding abgeschlossen.
-    @State private var selectedLanguage: String = "system"
 
     /// Steuert den LocationPermissionDeniedScreen (Sackgassen-Screen).
     @State private var showDeniedScreen = false
@@ -47,7 +43,7 @@ struct OnboardingScreen: View {
         }
     }
 
-    // MARK: Page 1 — App-Wert & Sprachauswahl
+    // MARK: Page 1 — App-Wert
 
     private var page1: some View {
         VStack(spacing: 28) {
@@ -69,19 +65,6 @@ struct OnboardingScreen: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
-
-            // ── Sprachauswahl ────────────────────────────────────
-            Picker(
-                String(localized: "onboarding.language.label",
-                       defaultValue: "Sprache"),
-                selection: $selectedLanguage
-            ) {
-                Text("onboarding.language.system").tag("system")
-                Text("Deutsch").tag("de")
-                Text("English").tag("en")
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 32)
 
             Spacer()
 
@@ -157,10 +140,7 @@ struct OnboardingScreen: View {
                     if status == .denied || status == .restricted {
                         showDeniedScreen = true
                     } else {
-                        onboardingVM.completeOnboarding(
-                            settings: userSettings,
-                            language: selectedLanguage
-                        )
+                        onboardingVM.completeOnboarding(settings: userSettings)
                         analyticsManager.track(.onboardingCompleted)
                     }
                 }
@@ -192,8 +172,8 @@ struct OnboardingScreen: View {
 
     private var privacyPoints: some View {
         VStack(alignment: .leading, spacing: 14) {
-            privacyRow(icon: "iphone",      key: "onboarding.privacy.local")
-            privacyRow(icon: "eye.slash",   key: "onboarding.privacy.notracking")
+            privacyRow(icon: "iphone",       key: "onboarding.privacy.local")
+            privacyRow(icon: "eye.slash",    key: "onboarding.privacy.notracking")
             privacyRow(icon: "person.slash", key: "onboarding.privacy.noaccount")
         }
         .padding(.horizontal, 32)
@@ -243,16 +223,14 @@ struct OnboardingScreen: View {
 // MARK: - Preview
 
 #Preview("Onboarding Screen") {
-    let onboardingVM  = OnboardingViewModel()
-    let locationMgr   = LocationManager()
-    let settings      = UserSettings()
-    let analytics     = AnalyticsManager()
-    let languageMgr   = LanguageManager()
+    let onboardingVM = OnboardingViewModel()
+    let locationMgr  = LocationManager()
+    let settings     = UserSettings()
+    let analytics    = AnalyticsManager()
 
     return OnboardingScreen()
         .environment(onboardingVM)
         .environment(locationMgr)
         .environment(settings)
         .environment(analytics)
-        .environment(languageMgr)
 }

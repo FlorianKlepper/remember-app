@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import CoreLocation
 
 // MARK: - AddActivityTextScreen
 
@@ -16,15 +17,13 @@ struct AddActivityTextScreen: View {
 
     @Environment(AddActivityViewModel.self) private var addActivityVM
     @Environment(ActivityViewModel.self)    private var activityVM
+    @Environment(LanguageManager.self)      private var languageManager
     @Environment(\.modelContext)            private var modelContext
 
     // MARK: State
 
     /// Fokussiertes Textfeld im Formular.
     @FocusState private var focusedField: Field?
-
-    /// Steuert das Datumsauswahl-Sheet.
-    @State private var showDatePicker = false
 
     /// Fehlermeldung nach einem fehlgeschlagenen Speichervorgang.
     @State private var saveError: String? = nil
@@ -40,100 +39,173 @@ struct AddActivityTextScreen: View {
     var body: some View {
         @Bindable var vm = addActivityVM
 
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 0) {
 
-                // ── Titelzeile ──────────────────────────────────────
-                TextField(
-                    String(localized: "add.text.title.placeholder",
-                           defaultValue: "Titel"),
-                    text: $vm.title
-                )
-                .font(.headline)
-                .focused($focusedField, equals: .title)
-                .submitLabel(.return)
-                .onSubmit { focusedField = .text }
-                .padding(.horizontal)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+            // ── Header: Location + Kategorie ─────────────────────────
+            HStack(spacing: 12) {
 
-                // ── Freitext ────────────────────────────────────────
-                ZStack(alignment: .topLeading) {
-                    TextEditor(text: $vm.text)
-                        .font(.body)
-                        .focused($focusedField, equals: .text)
-                        .frame(minHeight: 220)
+                if let coord = addActivityVM.pendingCoordinate {
+                    MiniMapView(
+                        coordinate: coord,
+                        categoryId: addActivityVM.selectedCategoryId ?? ""
+                    )
+                    .frame(width: UIScreen.main.bounds.width * 0.33, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
 
-                    if vm.text.isEmpty {
-                        Text(String(localized: "add.text.body.placeholder",
-                                    defaultValue: "Text"))
-                            .font(.body)
-                            .foregroundStyle(.tertiary)
-                            .padding(.top, 8)
-                            .padding(.leading, 5)
-                            .allowsHitTesting(false)
+                VStack(alignment: .leading, spacing: 4) {
+
+                    if let categoryId = addActivityVM.selectedCategoryId,
+                       let category = (Category.mvpCategories + Category.plusCategories)
+                           .first(where: { $0.id == categoryId }) {
+                        HStack(spacing: 6) {
+                            ZStack {
+                                Circle()
+                                    .fill(.white)
+                                    .frame(width: 24, height: 24)
+                                    .overlay(
+                                        Circle()
+                                            .strokeBorder(
+                                                Color(hex: category.colorHex),
+                                                lineWidth: 1.5
+                                            )
+                                    )
+                                Image(systemName: category.iconName)
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Color(hex: category.colorHex))
+                            }
+                            Text(category.localizedName(
+                                for: languageManager.currentLanguageCode))
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                    }
+
+                    if let city = addActivityVM.pendingCity {
+                        Text(city)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if let name = addActivityVM.pendingLocationName, !name.isBlank {
+                        Text(name)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 12)
 
-                // ── Sterne-Bewertung ────────────────────────────────
-                StarRatingView(
-                    rating: Binding(
-                        get: { addActivityVM.starRating },
-                        set: { addActivityVM.starRating = $0 }
-                    ),
-                    isEditable: true
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color(.systemGray6))
+
+            Divider()
+
+            // ── Datum ─────────────────────────────────────────────────
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                DatePicker(
+                    "",
+                    selection: $vm.selectedDate,
+                    displayedComponents: .date
                 )
-                .padding(.top, 16)
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
 
-                // ── Fehler ──────────────────────────────────────────
-                if let error = saveError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .padding(.horizontal)
-                        .padding(.bottom, 8)
+            Divider()
+
+            // ── Titel ─────────────────────────────────────────────────
+            TextField(
+                String(localized: "add.text.title.placeholder",
+                       defaultValue: "Titel"),
+                text: $vm.title
+            )
+            .font(.body)
+            .fontWeight(.medium)
+            .focused($focusedField, equals: .title)
+            .submitLabel(.return)
+            .onSubmit { focusedField = .text }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+
+            Divider()
+
+            // ── Text ──────────────────────────────────────────────────
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $vm.text)
+                    .font(.body)
+                    .focused($focusedField, equals: .text)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 4)
+                    .frame(minHeight: 150)
+
+                if vm.text.isEmpty {
+                    Text(String(localized: "add.text.body.placeholder",
+                                defaultValue: "Text"))
+                        .font(.body)
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .allowsHitTesting(false)
                 }
             }
+
+            Spacer()
+
+            // ── Fehler ────────────────────────────────────────────────
+            if let error = saveError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal)
+                    .padding(.bottom, 4)
+            }
+
+            Divider()
+
+            // ── Sterne ────────────────────────────────────────────────
+            StarRatingView(
+                rating: Binding(
+                    get: { addActivityVM.starRating },
+                    set: { addActivityVM.starRating = $0 }
+                ),
+                isEditable: true
+            )
+            .padding(.vertical, 8)
+            .padding(.bottom,
+                UIApplication.shared
+                    .connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .first?.windows.first?.safeAreaInsets.bottom ?? 0
+            )
         }
         .navigationTitle(String(localized: "add.step3.title", defaultValue: "Eintrag"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Speichern-Button oben rechts
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 if addActivityVM.isLoading {
                     ProgressView()
                 } else {
-                    Button(String(localized: "button.save", defaultValue: "Speichern")) {
-                        Task { await save() }
-                    }
-                    .fontWeight(.semibold)
-                }
-            }
-            // Datum-Button unten links
-            ToolbarItem(placement: .bottomBar) {
-                HStack {
                     Button {
-                        showDatePicker = true
+                        Task { await save() }
                     } label: {
-                        Label(
-                            addActivityVM.selectedDate.formattedActivityDate,
-                            systemImage: "calendar"
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#E8593C"))
                     }
-                    Spacer()
                 }
             }
-        }
-        .sheet(isPresented: $showDatePicker) {
-            DatePickerSheet(selectedDate: $vm.selectedDate)
         }
         .onAppear {
             focusedField = .title
         }
     }
+
 
     // MARK: Save
 
@@ -167,53 +239,24 @@ struct AddActivityTextScreen: View {
     }
 }
 
-// MARK: - DatePickerSheet
-
-/// Inline-Datumswähler als Sheet. Zeigt Datum und Uhrzeit.
-private struct DatePickerSheet: View {
-
-    @Binding var selectedDate: Date
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            DatePicker(
-                String(localized: "add.date.label", defaultValue: "Datum & Uhrzeit"),
-                selection: $selectedDate,
-                displayedComponents: [.date, .hourAndMinute]
-            )
-            .datePickerStyle(.graphical)
-            .padding()
-            .navigationTitle(String(localized: "add.date.title", defaultValue: "Datum wählen"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "button.done", defaultValue: "Fertig")) {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
-            }
-        }
-        .presentationDetents([.medium])
-    }
-}
-
 // MARK: - Preview
 
 #Preview("Add — Step 3: Text") {
     let analytics = AnalyticsManager()
     let addVM     = AddActivityViewModel()
     let actVM     = ActivityViewModel(analytics: analytics)
+    let langMgr   = LanguageManager()
 
     addVM.selectedCategoryId  = "hiking"
     addVM.pendingLocationName = "München, Bayern"
+    addVM.pendingCity         = "München"
+    addVM.pendingCoordinate   = .init(latitude: 48.1351, longitude: 11.5820)
 
     return NavigationStack {
         AddActivityTextScreen()
     }
     .environment(addVM)
     .environment(actVM)
-    // modelContext via @Environment(\.modelContext) wird im Preview
-    // vom SwiftUI-Previews-Container bereitgestellt
+    .environment(langMgr)
 }
+

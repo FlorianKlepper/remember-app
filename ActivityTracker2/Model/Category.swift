@@ -64,22 +64,21 @@ extension Category {
         Category(id: "beach",       nameDe: "Strand",         nameEn: "Beach",       iconName: "beach.umbrella.fill", colorHex: "#1D9E75", isPlusOnly: false),
         Category(id: "picnic",      nameDe: "Picknick",       nameEn: "Picnic",      iconName: "basket.fill",         colorHex: "#1D9E75", isPlusOnly: false),
         Category(id: "campsite",    nameDe: "Camping",        nameEn: "Camping",     iconName: "tent.fill",           colorHex: "#1D9E75", isPlusOnly: false),
-        Category(id: "viewpoint",   nameDe: "Aussichtspunkt", nameEn: "Viewpoint",   iconName: "binoculars.fill",     colorHex: "#1D9E75", isPlusOnly: false),
+        Category(id: "viewpoint",   nameDe: "Aussichtspunkt", nameEn: "Viewpoint",   iconName: "scope",               colorHex: "#1D9E75", isPlusOnly: false),
 
         // ── SPORT (13) ────────────────────────────────────────────────────────
         Category(id: "running",     nameDe: "Laufen",         nameEn: "Running",     iconName: "figure.run",               colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "hiking",      nameDe: "Wandern",        nameEn: "Hiking",      iconName: "figure.hiking",            colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "cycling",     nameDe: "Fahrrad",        nameEn: "Cycling",     iconName: "bicycle",                  colorHex: "#D85A30", isPlusOnly: false),
+        Category(id: "cycling",     nameDe: "Fahrrad",        nameEn: "Cycling",     iconName: "figure.outdoor.cycle",     colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "skiing",      nameDe: "Ski",            nameEn: "Skiing",      iconName: "figure.skiing.downhill",   colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "fitness",     nameDe: "Fitness",        nameEn: "Fitness",     iconName: "dumbbell.fill",            colorHex: "#D85A30", isPlusOnly: false),
+        Category(id: "fitness",     nameDe: "Fitness",        nameEn: "Fitness",     iconName: "figure.strengthtraining.traditional", colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "football",    nameDe: "Fussball",       nameEn: "Football",    iconName: "soccerball",               colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "gym",         nameDe: "Stadion",        nameEn: "Stadium",     iconName: "sportscourt.fill",         colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "climbing",    nameDe: "Klettern",       nameEn: "Climbing",    iconName: "figure.climbing",          colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "swimming",    nameDe: "Schwimmen",      nameEn: "Swimming",    iconName: "figure.pool.swim",         colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "yoga",        nameDe: "Yoga",           nameEn: "Yoga",        iconName: "figure.mind.and.body",     colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "tennis",      nameDe: "Tennis",         nameEn: "Tennis",      iconName: "figure.tennis",            colorHex: "#D85A30", isPlusOnly: false),
         Category(id: "golf",        nameDe: "Golf",           nameEn: "Golf",        iconName: "figure.golf",              colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "dancing",     nameDe: "Tanzen",         nameEn: "Dancing",     iconName: "music.note",               colorHex: "#D85A30", isPlusOnly: false),
+        Category(id: "dancing",     nameDe: "Tanzen",         nameEn: "Dancing",     iconName: "figure.socialdance",       colorHex: "#D85A30", isPlusOnly: false),
 
         // ── FOOD (4) ──────────────────────────────────────────────────────────
         Category(id: "restaurant",   nameDe: "Restaurant",  nameEn: "Restaurant",   iconName: "fork.knife",          colorHex: "#BA7517", isPlusOnly: false),
@@ -90,9 +89,9 @@ extension Category {
         // ── KULTUR (5) ────────────────────────────────────────────────────────
         Category(id: "museum",      nameDe: "Museum",    nameEn: "Museum",   iconName: "building.columns.fill", colorHex: "#7F77DD", isPlusOnly: false),
         Category(id: "cinema",      nameDe: "Kino",      nameEn: "Cinema",   iconName: "film.fill",             colorHex: "#7F77DD", isPlusOnly: false),
-        Category(id: "concert",     nameDe: "Konzert",   nameEn: "Concert",  iconName: "music.note.list",       colorHex: "#7F77DD", isPlusOnly: false),
+        Category(id: "concert",     nameDe: "Konzert",   nameEn: "Concert",  iconName: "music.quarternote.3",   colorHex: "#7F77DD", isPlusOnly: false),
         Category(id: "theater",     nameDe: "Theater",   nameEn: "Theater",  iconName: "theatermasks.fill",     colorHex: "#7F77DD", isPlusOnly: false),
-        Category(id: "festival",    nameDe: "Festival",  nameEn: "Festival", iconName: "star.fill",             colorHex: "#7F77DD", isPlusOnly: false),
+        Category(id: "festival",    nameDe: "Festival",  nameEn: "Festival", iconName: "party.popper",          colorHex: "#7F77DD", isPlusOnly: false),
 
         // ── KREATIV (2) ───────────────────────────────────────────────────────
         Category(id: "journal",     nameDe: "Tagebuch",  nameEn: "Journal",     iconName: "book.fill",  colorHex: "#378ADD", isPlusOnly: false),

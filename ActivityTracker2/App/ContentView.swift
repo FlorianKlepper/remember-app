@@ -109,13 +109,17 @@ struct ContentView: View {
     @Environment(FilterViewModel.self)    private var filterVM
     @Environment(MapViewModel.self)       private var mapVM
     @Environment(UserSettings.self)       private var userSettings
+    @Environment(StoreKitManager.self)    private var storeKitManager
     @Environment(\.modelContext)          private var modelContext
+
+    @Query private var activities: [Activity]
 
     // MARK: State
 
-    @State private var selectedTab:  Int  = 0
-    @State private var showAddFlow        = false
-    @State private var isSheetLarge: Bool = false
+    @State private var selectedTab:    Int  = 0
+    @State private var showAddFlow          = false
+    @State private var showLimitReached     = false
+    @State private var isSheetLarge:   Bool = false
 
     /// Nur `true` wenn der User den Overlay noch nie gesehen hat.
     @State private var showWelcome: Bool =
@@ -146,7 +150,16 @@ struct ContentView: View {
 
             // ━━━ 2. FloatingPlusButton — nur auf Map/Liste ━━━
             if selectedTab == 0 || selectedTab == 1 {
-                FloatingPlusButton(action: { showAddFlow = true }, color: fabColor)
+                FloatingPlusButton(
+                    action: {
+                        if hasReachedLimit {
+                            showLimitReached = true
+                        } else {
+                            showAddFlow = true
+                        }
+                    },
+                    color: fabColor
+                )
                     .padding(.trailing, 20)
                     .padding(.bottom, 110)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
@@ -203,6 +216,9 @@ struct ContentView: View {
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()
         }
+        .sheet(isPresented: $showLimitReached) {
+            LimitReachedSheet(isShowing: $showLimitReached)
+        }
         // Sheet-Drag → isSheetLarge + Tab Bar Farbe sync
         .onReceive(NotificationCenter.default.publisher(for: .sheetBecameLarge)) { _ in
             isSheetLarge = true
@@ -218,6 +234,14 @@ struct ContentView: View {
     }
 
     // MARK: Private Helpers
+
+    private var isPlusUser: Bool {
+        storeKitManager.isPlusActive || userSettings.subscriptionStatus == .plus
+    }
+
+    private var hasReachedLimit: Bool {
+        !isPlusUser && activities.count >= AppConstants.freeActivityLimit
+    }
 
     /// FloatingPlusButton-Farbe: aktive Kategorie-Farbe wenn Filter gesetzt, sonst systemGray2.
     private var fabColor: Color {

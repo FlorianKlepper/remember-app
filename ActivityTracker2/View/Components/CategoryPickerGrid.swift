@@ -1,14 +1,14 @@
 // CategoryPickerGrid.swift
 // ActivityTracker2 — Remember
-// Kategorie-Auswahl mit gemischten MVP + Plus Clustern
+// Kategorie-Auswahl mit Clustern — Plus/Free unterschiedliches Layout
 
 import SwiftUI
 
 // MARK: - CategoryPickerGrid
 
-/// Scrollbare Kategorie-Auswahl mit 8 Clustern.
-/// Jeder Cluster enthält MVP- und Plus-Kategorien gemischt.
-/// Plus-Kategorien erscheinen einzeln gesperrt wenn kein Plus-Abo aktiv.
+/// Scrollbare Kategorie-Auswahl.
+/// Plus-User: alle Cluster gemischt (MVP + Plus).
+/// Free-User: MVP-Cluster einzeln + alle Plus-Kategorien gesperrt am Ende.
 struct CategoryPickerGrid: View {
 
     // MARK: Parameter
@@ -19,73 +19,250 @@ struct CategoryPickerGrid: View {
 
     // MARK: Environment
 
-    @Environment(ActivityViewModel.self)  private var activityVM
-    @Environment(StoreKitManager.self)    private var storeKitManager
+    @Environment(ActivityViewModel.self)    private var activityVM
+    @Environment(AddActivityViewModel.self) private var addActivityVM
+    @Environment(StoreKitManager.self)      private var storeKitManager
 
     // MARK: State
 
-    @State private var showPlusScreen = false
+    @State private var showPlusScreen  = false
+    @State private var showHomePrompt  = false
 
     // MARK: Private
 
     private var isPlusUser: Bool {
-        storeKitManager.isPlusActive || userSettings.subscriptionStatus.isPremium
+        storeKitManager.isPlusActive ||
+        userSettings.subscriptionStatus == .plus
     }
 
-    // MARK: Computed Category Groups
+    // MARK: Computed — Gemeinsam
 
-    private var usedCategories: [Category] {
-        let usedIds = Set(activityVM.activities.map { $0.categoryId })
-        return Category.all.filter { usedIds.contains($0.id) }
+    /// IDs aller bereits verwendeten Kategorien — werden aus Clustern herausgefiltert.
+    private var usedCategoryIds: Set<String> {
+        Set(activityVM.activities.map { $0.categoryId })
+    }
+
+    private var usedCategoriesWithoutJournal: [Category] {
+        Category.all.filter {
+            usedCategoryIds.contains($0.id) && $0.id != "journal"
+        }
     }
 
     private var journalCategories: [Category] {
-        Category.mvpCategories.filter { $0.id == "journal" }
+        Category.mvpCategories.filter {
+            $0.id == "journal" && !usedCategoryIds.contains($0.id)
+        }
     }
 
-    private var foodAllCategories: [Category] {
-        let mvp = Category.mvpCategories.filter {
-            ["restaurant", "cafe", "bar", "wine_tasting"].contains($0.id)
+    // MARK: Tagebuch Section (immer sichtbar — immer beide Buttons)
+
+    private var journalIconName: String {
+        Category.mvpCategories.first { $0.id == "journal" }?.iconName ?? "book.fill"
+    }
+
+    private var journalColor: Color {
+        Color(hex: Category.mvpCategories.first { $0.id == "journal" }?.colorHex ?? "#378ADD")
+    }
+
+    @ViewBuilder
+    private var tagebuchSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(String(localized: "category.section.journal", defaultValue: "Tagebuch"))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text(String(localized: "category.section.journal.subtitle", defaultValue: "Persönliche Einträge"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(alignment: .top, spacing: 16) {
+
+                // ── Journal Home ───────────────────────────────────────
+                Button {
+                    if userSettings.hasHomeLocation {
+                        addActivityVM.useHomeLocation(from: userSettings)
+                        addActivityVM.skipLocationScreen = true
+                        selectedCategoryId = "journal"
+                        HapticManager.selectionChanged()
+                    } else {
+                        showHomePrompt = true
+                    }
+                } label: {
+                    VStack(spacing: 6) {
+                        ZStack {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 52, height: 52)
+                                .overlay(
+                                    Circle().strokeBorder(journalColor, lineWidth: 2)
+                                )
+                            Image(systemName: journalIconName)
+                                .font(.system(size: 22))
+                                .foregroundStyle(journalColor)
+                        }
+                        Text(String(localized: "category.journal.home.label",
+                                    defaultValue: "Journal - Home"))
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.8)
+                            .frame(width: 60)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // ── Journal On the Road ────────────────────────────────
+                Button {
+                    addActivityVM.skipLocationScreen = false
+                    selectedCategoryId = "journal"
+                    HapticManager.selectionChanged()
+                } label: {
+                    VStack(spacing: 6) {
+                        ZStack {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 52, height: 52)
+                                .overlay(
+                                    Circle().strokeBorder(journalColor, lineWidth: 2)
+                                )
+                            Image(systemName: journalIconName)
+                                .font(.system(size: 22))
+                                .foregroundStyle(journalColor)
+                        }
+                        Text("Journal -\nOn the Road")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.8)
+                            .frame(width: 60)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+            }
         }
-        let plus = Category.plusCategories.filter { $0.colorHex == "#BA7517" }
+    }
+
+    // MARK: Computed — Plus (MVP + Plus gemischt, ohne bereits verwendete)
+
+    private var foodAllCategories: [Category] {
+        let mvp  = Category.mvpCategories.filter {
+            ["restaurant", "cafe", "bar", "wine_tasting"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
+        }
+        let plus = Category.plusCategories.filter {
+            $0.colorHex == "#BA7517" && !usedCategoryIds.contains($0.id)
+        }
         return mvp + plus
     }
 
     private var sportAllCategories: [Category] {
-        let mvp = Category.mvpCategories.filter {
+        let mvp  = Category.mvpCategories.filter {
             ["running", "hiking", "cycling", "skiing", "fitness", "football",
-             "gym", "climbing", "swimming", "yoga", "tennis", "golf", "dancing"].contains($0.id)
+             "climbing", "swimming", "yoga", "tennis", "golf", "dancing"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
         }
-        let plus = Category.plusCategories.filter { $0.colorHex == "#D85A30" }
+        let plus = Category.plusCategories.filter {
+            $0.colorHex == "#D85A30" && !usedCategoryIds.contains($0.id)
+        }
         return mvp + plus
     }
 
     private var outdoorAllCategories: [Category] {
-        let mvp = Category.mvpCategories.filter {
+        let mvp  = Category.mvpCategories.filter {
             ["park", "beach", "picnic", "campsite", "viewpoint"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
         }
-        let plus = Category.plusCategories.filter { $0.colorHex == "#1D9E75" }
+        let plus = Category.plusCategories.filter {
+            $0.colorHex == "#1D9E75" && !usedCategoryIds.contains($0.id)
+        }
         return mvp + plus
     }
 
     private var kulturAllCategories: [Category] {
-        let mvp = Category.mvpCategories.filter {
+        let mvp  = Category.mvpCategories.filter {
             ["museum", "cinema", "concert", "theater", "festival"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
         }
-        let plus = Category.plusCategories.filter { $0.colorHex == "#7F77DD" }
+        let plus = Category.plusCategories.filter {
+            $0.colorHex == "#7F77DD" && !usedCategoryIds.contains($0.id)
+        }
         return mvp + plus
     }
 
     private var kreativAllCategories: [Category] {
-        let mvp = Category.mvpCategories.filter { $0.id == "photography" }
-        let plus = Category.plusCategories.filter { $0.colorHex == "#378ADD" }
+        let mvp  = Category.mvpCategories.filter {
+            $0.id == "photography" && !usedCategoryIds.contains($0.id)
+        }
+        let plus = Category.plusCategories.filter {
+            $0.colorHex == "#378ADD" && !usedCategoryIds.contains($0.id)
+        }
         return mvp + plus
     }
 
     private var lifestyleAllCategories: [Category] {
-        let mvp = Category.mvpCategories.filter { $0.id == "travel" }
-        let plus = Category.plusCategories.filter { $0.colorHex == "#D4537E" }
+        let mvp  = Category.mvpCategories.filter {
+            $0.id == "travel" && !usedCategoryIds.contains($0.id)
+        }
+        let plus = Category.plusCategories.filter {
+            $0.colorHex == "#D4537E" && !usedCategoryIds.contains($0.id)
+        }
         return mvp + plus
+    }
+
+    // MARK: Computed — Free (nur MVP, ohne bereits verwendete)
+
+    private var foodMVPCategories: [Category] {
+        Category.mvpCategories.filter {
+            ["restaurant", "cafe", "bar", "wine_tasting"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
+        }
+    }
+
+    private var sportMVPCategories: [Category] {
+        Category.mvpCategories.filter {
+            ["running", "hiking", "cycling", "skiing", "fitness", "football",
+             "climbing", "swimming", "yoga", "tennis", "golf", "dancing"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
+        }
+    }
+
+    private var outdoorMVPCategories: [Category] {
+        Category.mvpCategories.filter {
+            ["park", "beach", "picnic", "campsite", "viewpoint"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
+        }
+    }
+
+    private var kulturMVPCategories: [Category] {
+        Category.mvpCategories.filter {
+            ["museum", "cinema", "concert", "theater", "festival"].contains($0.id)
+            && !usedCategoryIds.contains($0.id)
+        }
+    }
+
+    private var kreativMVPCategories: [Category] {
+        Category.mvpCategories.filter {
+            $0.id == "photography" && !usedCategoryIds.contains($0.id)
+        }
+    }
+
+    private var lifestyleMVPCategories: [Category] {
+        Category.mvpCategories.filter {
+            $0.id == "travel" && !usedCategoryIds.contains($0.id)
+        }
+    }
+
+    /// Alle Plus-Kategorien (ohne bereits verwendete), sortiert nach Farbe.
+    private var allPlusCategories: [Category] {
+        Category.plusCategories
+            .filter { !usedCategoryIds.contains($0.id) }
+            .sorted { $0.colorHex < $1.colorHex }
     }
 
     // MARK: Body
@@ -94,73 +271,132 @@ struct CategoryPickerGrid: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
 
-                if !usedCategories.isEmpty {
+                // ── 1. Tagebuch (immer zuerst) ───────────────────────
+                tagebuchSection
+
+                // ── 2. Verwendete Kategorien (ohne Tagebuch) ─────────
+                if !usedCategoriesWithoutJournal.isEmpty {
                     categorySection(
                         title: String(localized: "category.section.used",
                                       defaultValue: "Verwendete Kategorien"),
-                        subtitle: nil,
-                        categories: usedCategories
+                        categories: usedCategoriesWithoutJournal
                     )
                 }
 
-                categorySection(
-                    title: String(localized: "category.section.journal",
-                                  defaultValue: "Tagebuch"),
-                    subtitle: String(localized: "category.section.journal.subtitle",
-                                     defaultValue: "Persönliche Einträge"),
-                    categories: journalCategories
-                )
+                if isPlusUser {
 
-                categorySection(
-                    title: String(localized: "category.section.food",
-                                  defaultValue: "Essen & Trinken"),
-                    subtitle: String(localized: "category.section.food.subtitle",
-                                     defaultValue: "Restaurants, Cafés & Bars"),
-                    categories: foodAllCategories
-                )
+                    // ── PLUS: alle Cluster gemischt MVP + Plus ───────
 
-                categorySection(
-                    title: String(localized: "category.section.sport",
-                                  defaultValue: "Sport"),
-                    subtitle: String(localized: "category.section.sport.subtitle",
-                                     defaultValue: "Aktivitäten & Fitness"),
-                    categories: sportAllCategories
-                )
+                    categorySection(
+                        title: String(localized: "category.section.food",
+                                      defaultValue: "Essen & Trinken"),
+                        subtitle: String(localized: "category.section.food.subtitle",
+                                         defaultValue: "Restaurants, Cafés & Bars"),
+                        categories: foodAllCategories
+                    )
 
-                categorySection(
-                    title: String(localized: "category.section.outdoor",
-                                  defaultValue: "Outdoor"),
-                    subtitle: String(localized: "category.section.outdoor.subtitle",
-                                     defaultValue: "Natur & Abenteuer"),
-                    categories: outdoorAllCategories
-                )
+                    categorySection(
+                        title: String(localized: "category.section.sport",
+                                      defaultValue: "Sport"),
+                        subtitle: String(localized: "category.section.sport.subtitle",
+                                         defaultValue: "Aktivitäten & Fitness"),
+                        categories: sportAllCategories
+                    )
 
-                categorySection(
-                    title: String(localized: "category.section.kultur",
-                                  defaultValue: "Kultur"),
-                    subtitle: String(localized: "category.section.kultur.subtitle",
-                                     defaultValue: "Musik, Kunst & Entertainment"),
-                    categories: kulturAllCategories
-                )
+                    categorySection(
+                        title: String(localized: "category.section.outdoor",
+                                      defaultValue: "Outdoor"),
+                        subtitle: String(localized: "category.section.outdoor.subtitle",
+                                         defaultValue: "Natur & Abenteuer"),
+                        categories: outdoorAllCategories
+                    )
 
-                categorySection(
-                    title: String(localized: "category.section.kreativ",
-                                  defaultValue: "Kreativ"),
-                    subtitle: String(localized: "category.section.kreativ.subtitle",
-                                     defaultValue: "Fotografie & mehr"),
-                    categories: kreativAllCategories
-                )
+                    categorySection(
+                        title: String(localized: "category.section.kultur",
+                                      defaultValue: "Kultur"),
+                        subtitle: String(localized: "category.section.kultur.subtitle",
+                                         defaultValue: "Musik, Kunst & mehr"),
+                        categories: kulturAllCategories
+                    )
 
-                categorySection(
-                    title: String(localized: "category.section.lifestyle",
-                                  defaultValue: "Lifestyle"),
-                    subtitle: String(localized: "category.section.lifestyle.subtitle",
-                                     defaultValue: "Reisen, Shopping & Wellness"),
-                    categories: lifestyleAllCategories
-                )
+                    categorySection(
+                        title: String(localized: "category.section.kreativ",
+                                      defaultValue: "Kreativ"),
+                        subtitle: String(localized: "category.section.kreativ.subtitle",
+                                         defaultValue: "Fotografie & Kunst"),
+                        categories: kreativAllCategories
+                    )
 
-                if !isPlusUser {
-                    plusCtaSection
+                    categorySection(
+                        title: String(localized: "category.section.lifestyle",
+                                      defaultValue: "Lifestyle"),
+                        subtitle: String(localized: "category.section.lifestyle.subtitle",
+                                         defaultValue: "Reisen & Wellness"),
+                        categories: lifestyleAllCategories
+                    )
+
+                } else {
+
+                    // ── FREE: nur MVP-Cluster + gesperrte Plus-Section ─
+
+                    categorySection(
+                        title: String(localized: "category.section.food",
+                                      defaultValue: "Essen & Trinken"),
+                        subtitle: String(localized: "category.section.food.subtitle",
+                                         defaultValue: "Restaurants, Cafés & Bars"),
+                        categories: foodMVPCategories
+                    )
+
+                    categorySection(
+                        title: String(localized: "category.section.sport",
+                                      defaultValue: "Sport"),
+                        subtitle: String(localized: "category.section.sport.subtitle",
+                                         defaultValue: "Aktivitäten & Fitness"),
+                        categories: sportMVPCategories
+                    )
+
+                    categorySection(
+                        title: String(localized: "category.section.outdoor",
+                                      defaultValue: "Outdoor"),
+                        subtitle: String(localized: "category.section.outdoor.subtitle",
+                                         defaultValue: "Natur & Abenteuer"),
+                        categories: outdoorMVPCategories
+                    )
+
+                    categorySection(
+                        title: String(localized: "category.section.kultur",
+                                      defaultValue: "Kultur"),
+                        subtitle: String(localized: "category.section.kultur.subtitle",
+                                         defaultValue: "Musik, Kunst & mehr"),
+                        categories: kulturMVPCategories
+                    )
+
+                    categorySection(
+                        title: String(localized: "category.section.kreativ",
+                                      defaultValue: "Kreativ"),
+                        subtitle: String(localized: "category.section.kreativ.subtitle",
+                                         defaultValue: "Fotografie & Kunst"),
+                        categories: kreativMVPCategories
+                    )
+
+                    categorySection(
+                        title: String(localized: "category.section.lifestyle",
+                                      defaultValue: "Lifestyle"),
+                        subtitle: String(localized: "category.section.lifestyle.subtitle",
+                                         defaultValue: "Reisen & Wellness"),
+                        categories: lifestyleMVPCategories
+                    )
+
+                    // Alle Plus-Kategorien gesperrt ganz unten
+                    categorySection(
+                        title: String(localized: "category.section.plus",
+                                      defaultValue: "Plus Kategorien"),
+                        subtitle: String(localized: "category.section.plus.subtitle",
+                                         defaultValue: "Mit Remember Plus freischalten"),
+                        categories: allPlusCategories,
+                        isLocked: true,
+                        showPlusCTA: true
+                    )
                 }
             }
             .padding(.horizontal, 16)
@@ -169,6 +405,9 @@ struct CategoryPickerGrid: View {
         .sheet(isPresented: $showPlusScreen) {
             PlusScreen(source: "category_locked")
         }
+        .sheet(isPresented: $showHomePrompt) {
+            HomeLocationSheet(isShowing: $showHomePrompt)
+        }
     }
 
     // MARK: Section Helper
@@ -176,16 +415,26 @@ struct CategoryPickerGrid: View {
     @ViewBuilder
     private func categorySection(
         title: String,
-        subtitle: String?,
-        categories: [Category]
+        subtitle: String? = nil,
+        categories: [Category],
+        isLocked: Bool = false,
+        showPlusCTA: Bool = false
     ) -> some View {
         if !categories.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
 
+                // Header
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                    HStack(spacing: 6) {
+                        Text(title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        if isLocked {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color(hex: "#FFD700"))
+                        }
+                    }
                     if let subtitle {
                         Text(subtitle)
                             .font(.caption)
@@ -193,13 +442,39 @@ struct CategoryPickerGrid: View {
                     }
                 }
 
+                // Grid
                 LazyVGrid(
                     columns: Array(repeating: GridItem(.flexible()), count: 4),
                     spacing: 12
                 ) {
                     ForEach(categories) { category in
-                        categoryCell(category: category)
+                        categoryCell(category: category, isLocked: isLocked)
                     }
+                }
+
+                // Plus CTA Button
+                if showPlusCTA {
+                    Button {
+                        showPlusScreen = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "crown.fill")
+                                .foregroundStyle(Color(hex: "#FFD700"))
+                            Text(String(localized: "category.plus.cta.button",
+                                        defaultValue: "Plus freischalten"))
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(hex: "#E8593C"))
+                        )
+                    }
+                    .padding(.top, 8)
                 }
             }
         }
@@ -208,8 +483,8 @@ struct CategoryPickerGrid: View {
     // MARK: Cell Helper
 
     @ViewBuilder
-    private func categoryCell(category: Category) -> some View {
-        let locked     = category.isPlusOnly && !isPlusUser
+    private func categoryCell(category: Category, isLocked: Bool = false) -> some View {
+        let locked     = isLocked || (category.isPlusOnly && !isPlusUser)
         let isSelected = selectedCategoryId == category.id
         let color      = Color(hex: category.colorHex)
         let name       = category.localizedName(for: language)
@@ -254,7 +529,7 @@ struct CategoryPickerGrid: View {
                                 : (isSelected ? color : color.opacity(0.7))
                         )
 
-                    // Lock-Badge für gesperrte Plus-Kategorien
+                    // Lock-Badge
                     if locked {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 10, weight: .semibold))
@@ -294,44 +569,6 @@ struct CategoryPickerGrid: View {
         .scaleEffect(isSelected ? 1.08 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
     }
-
-    // MARK: Plus CTA
-
-    @ViewBuilder
-    private var plusCtaSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "crown.fill")
-                .font(.system(size: 28))
-                .foregroundStyle(Color(hex: "#FFD700"))
-
-            Text(String(localized: "plus.cta.title", defaultValue: "Remember Plus"))
-                .font(.headline)
-
-            Text(String(localized: "plus.cta.subtitle",
-                        defaultValue: "Schalte 70 weitere Kategorien und unbegrenzte Aktivitäten frei."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button {
-                showPlusScreen = true
-            } label: {
-                Text(String(localized: "plus.cta.button", defaultValue: "Plus freischalten"))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Capsule().fill(Color(hex: "#E8593C")))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-    }
 }
 
 // MARK: - Preview
@@ -341,6 +578,7 @@ struct CategoryPickerGrid: View {
     let settings        = UserSettings()
     let analytics       = AnalyticsManager()
     let activityVM      = ActivityViewModel(analytics: analytics)
+    let addActivityVM   = AddActivityViewModel()
     let storeKitManager = StoreKitManager()
     activityVM.activities = Activity.samples
 
@@ -350,6 +588,7 @@ struct CategoryPickerGrid: View {
         language: "de"
     )
     .environment(activityVM)
+    .environment(addActivityVM)
     .environment(storeKitManager)
 }
 
@@ -358,6 +597,7 @@ struct CategoryPickerGrid: View {
     let settings        = UserSettings()
     let analytics       = AnalyticsManager()
     let activityVM      = ActivityViewModel(analytics: analytics)
+    let addActivityVM   = AddActivityViewModel()
     let storeKitManager = StoreKitManager()
     settings.subscriptionStatus = .plus
     activityVM.activities = Activity.samples
@@ -368,5 +608,6 @@ struct CategoryPickerGrid: View {
         language: "de"
     )
     .environment(activityVM)
+    .environment(addActivityVM)
     .environment(storeKitManager)
 }

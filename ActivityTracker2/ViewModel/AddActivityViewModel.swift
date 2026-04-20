@@ -65,6 +65,11 @@ final class AddActivityViewModel {
     /// Wird von `AddActivityCategoryScreen` beobachtet, das als Sheet-Root `dismiss()` aufruft.
     var isSaved: Bool = false
 
+    // MARK: Navigation-Overrides
+
+    /// `true` wenn der Location-Screen übersprungen werden soll (z.B. bei journal_home).
+    var skipLocationScreen: Bool = false
+
     // MARK: Init
 
     init() {}
@@ -75,9 +80,11 @@ final class AddActivityViewModel {
 extension AddActivityViewModel {
 
     /// `true` wenn die gewählte Kategorie Tagebuch- oder Journal-Charakter hat.
-    /// Löst beim Ortsschritt die Abfrage nach der gespeicherten Heimat-Location aus.
     var isJournalCategory: Bool {
-        selectedCategoryId == "journal" || selectedCategoryId == "personal_note"
+        selectedCategoryId == "journal"        ||
+        selectedCategoryId == "journal_home"   ||
+        selectedCategoryId == "journal_travel" ||
+        selectedCategoryId == "personal_note"
     }
 
     /// `true` wenn Step 2 (Ort) vollständig ist — Koordinate muss gesetzt sein.
@@ -212,5 +219,6 @@ extension AddActivityViewModel {
         starRating = 0
         isLoading = false
         isSaved = false
+        skipLocationScreen = false
     }
 }

@@ -20,7 +20,8 @@ struct SettingsScreen: View {
 
     // MARK: State
 
-    @State private var showPlus = false
+    @State private var showPlus       = false
+    @State private var showHomeSearch = false
 
     // MARK: Private
 
@@ -35,23 +36,19 @@ struct SettingsScreen: View {
             List {
 
                 // ── Mitgliedschaft ────────────────────────────────
-                Section(String(localized: "settings.section.membership",
-                               defaultValue: "Mitgliedschaft")) {
+                Section(String(localized: "settings.section.membership")) {
 
                     // Aktueller Plan
                     HStack {
                         Label(
-                            String(localized: "settings.plan.current",
-                                   defaultValue: "Aktueller Plan"),
+                            String(localized: "settings.plan.current"),
                             systemImage: "crown.fill"
                         )
                         .foregroundStyle(.primary)
                         Spacer()
                         Text(isPlusUser
-                             ? String(localized: "settings.plan.plus",
-                                      defaultValue: "Remember Plus")
-                             : String(localized: "settings.plan.free",
-                                      defaultValue: "Kostenlos"))
+                             ? String(localized: "settings.plan.plus")
+                             : String(localized: "settings.plan.free"))
                             .foregroundStyle(.secondary)
                     }
 
@@ -62,8 +59,7 @@ struct SettingsScreen: View {
                         } label: {
                             HStack {
                                 Label(
-                                    String(localized: "settings.plan.discover",
-                                           defaultValue: "Remember Plus entdecken"),
+                                    String(localized: "settings.plan.discover"),
                                     systemImage: "star.fill"
                                 )
                                 .foregroundStyle(Color(hex: "#E8593C"))
@@ -78,14 +74,12 @@ struct SettingsScreen: View {
                 }
 
                 // ── Nutzung ───────────────────────────────────────
-                Section(String(localized: "settings.section.usage",
-                               defaultValue: "Nutzung")) {
+                Section(String(localized: "settings.section.usage")) {
 
                     VStack(spacing: 8) {
                         HStack {
                             Label(
-                                String(localized: "settings.activities",
-                                       defaultValue: "Aktivitäten"),
+                                String(localized: "settings.activities"),
                                 systemImage: "chart.bar.fill"
                             )
                             Spacer()
@@ -117,45 +111,56 @@ struct SettingsScreen: View {
                 }
 
                 // ── Standort ─────────────────────────────────────
-                Section(String(localized: "settings.section.location",
-                               defaultValue: "Standort")) {
+                Section(String(localized: "settings.section.location")) {
 
                     if userSettings.hasHomeLocation {
                         HStack {
                             Label(
                                 userSettings.homeLocationName.isEmpty
-                                    ? String(localized: "settings.home.default",
-                                             defaultValue: "Zuhause")
+                                    ? String(localized: "settings.home.default")
                                     : userSettings.homeLocationName,
                                 systemImage: "house.fill"
                             )
                             .lineLimit(1)
                             Spacer()
-                            Button(String(localized: "settings.home.remove",
-                                         defaultValue: "Entfernen")) {
-                                userSettings.clearHomeLocation()
+                            Button(String(localized: "settings.home.change",
+                                          defaultValue: "Ändern")) {
+                                showHomeSearch = true
                             }
                             .foregroundStyle(Color(hex: "#E8593C"))
                             .font(.caption)
+
+                            Button {
+                                userSettings.clearHomeLocation()
+                                UserDefaults.standard.removeObject(forKey: "hasSeenHomePrompt")
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(.red)
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.plain)
                         }
                     } else {
-                        Label(
-                            String(localized: "settings.home.empty",
-                                   defaultValue: "Kein Zuhause gesetzt"),
-                            systemImage: "house"
-                        )
-                        .foregroundStyle(.secondary)
+                        Button {
+                            showHomeSearch = true
+                        } label: {
+                            Label(
+                                String(localized: "settings.home.add",
+                                       defaultValue: "Zuhause hinzufügen"),
+                                systemImage: "house.badge.plus"
+                            )
+                            .foregroundStyle(Color(hex: "#E8593C"))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
 
                 // ── Darstellung ───────────────────────────────────
-                Section(String(localized: "settings.section.appearance",
-                               defaultValue: "Darstellung")) {
+                Section(String(localized: "settings.section.appearance")) {
 
                     HStack {
                         Label(
-                            String(localized: "settings.color.scheme",
-                                   defaultValue: "Erscheinungsbild"),
+                            String(localized: "settings.color.scheme"),
                             systemImage: "circle.lefthalf.filled"
                         )
                         Spacer()
@@ -163,20 +168,16 @@ struct SettingsScreen: View {
                             get: { userSettings.colorScheme },
                             set: { userSettings.colorScheme = $0 }
                         )) {
-                            Text(String(localized: "settings.scheme.system",
-                                        defaultValue: "System")).tag("system")
-                            Text(String(localized: "settings.scheme.light",
-                                        defaultValue: "Hell")).tag("light")
-                            Text(String(localized: "settings.scheme.dark",
-                                        defaultValue: "Dunkel")).tag("dark")
+                            Text(String(localized: "settings.scheme.system")).tag("system")
+                            Text(String(localized: "settings.scheme.light")).tag("light")
+                            Text(String(localized: "settings.scheme.dark")).tag("dark")
                         }
                         .pickerStyle(.menu)
                     }
 
                     HStack {
                         Label(
-                            String(localized: "settings.map.style",
-                                   defaultValue: "Karten-Stil"),
+                            String(localized: "settings.map.style"),
                             systemImage: "map"
                         )
                         Spacer()
@@ -184,25 +185,20 @@ struct SettingsScreen: View {
                             get: { userSettings.mapStyle },
                             set: { userSettings.mapStyle = $0 }
                         )) {
-                            Text(String(localized: "settings.map.standard",
-                                        defaultValue: "Standard")).tag("standard")
-                            Text(String(localized: "settings.map.satellite",
-                                        defaultValue: "Satellit")).tag("satellite")
-                            Text(String(localized: "settings.map.hybrid",
-                                        defaultValue: "Hybrid")).tag("hybrid")
+                            Text(String(localized: "settings.map.standard")).tag("standard")
+                            Text(String(localized: "settings.map.satellite")).tag("satellite")
+                            Text(String(localized: "settings.map.hybrid")).tag("hybrid")
                         }
                         .pickerStyle(.menu)
                     }
                 }
 
                 // ── App Info ──────────────────────────────────────
-                Section(String(localized: "settings.section.info",
-                               defaultValue: "App Info")) {
+                Section(String(localized: "settings.section.info")) {
 
                     HStack {
                         Label(
-                            String(localized: "settings.version",
-                                   defaultValue: "Version"),
+                            String(localized: "settings.version"),
                             systemImage: "info.circle"
                         )
                         Spacer()
@@ -212,8 +208,7 @@ struct SettingsScreen: View {
 
                     HStack {
                         Label(
-                            String(localized: "settings.developer",
-                                   defaultValue: "Entwickler"),
+                            String(localized: "settings.developer"),
                             systemImage: "person.fill"
                         )
                         Spacer()
@@ -223,8 +218,7 @@ struct SettingsScreen: View {
 
                     HStack {
                         Label(
-                            String(localized: "settings.website",
-                                   defaultValue: "Website"),
+                            String(localized: "settings.website"),
                             systemImage: "globe"
                         )
                         Spacer()
@@ -235,18 +229,15 @@ struct SettingsScreen: View {
                 }
 
                 // ── Rechtliches ───────────────────────────────────
-                Section(String(localized: "settings.section.legal",
-                               defaultValue: "Rechtliches")) {
+                Section(String(localized: "settings.section.legal")) {
 
                     // Impressum
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(String(localized: "settings.legal.imprint",
-                                    defaultValue: "Impressum"))
+                        Text(String(localized: "settings.legal.imprint"))
                             .font(.headline)
                             .padding(.bottom, 4)
 
-                        Text(String(localized: "settings.legal.imprint.type",
-                                    defaultValue: "Hard- und Software Development"))
+                        Text(String(localized: "settings.legal.imprint.type"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Text("F. Klepper")
@@ -277,8 +268,7 @@ struct SettingsScreen: View {
                     Link(destination: URL(string: "https://remember-journal.com/datenschutz.html")!) {
                         HStack {
                             Label(
-                                String(localized: "settings.privacy",
-                                       defaultValue: "Datenschutzerklärung"),
+                                String(localized: "settings.privacy"),
                                 systemImage: "hand.raised.fill"
                             )
                             Spacer()
@@ -293,8 +283,7 @@ struct SettingsScreen: View {
                     Link(destination: URL(string: "https://remember-journal.com/nutzungsbedingungen.html")!) {
                         HStack {
                             Label(
-                                String(localized: "settings.terms",
-                                       defaultValue: "Nutzungsbedingungen"),
+                                String(localized: "settings.terms"),
                                 systemImage: "doc.text.fill"
                             )
                             Spacer()
@@ -309,8 +298,7 @@ struct SettingsScreen: View {
                     Link(destination: URL(string: "mailto:support@remember-journal.com")!) {
                         HStack {
                             Label(
-                                String(localized: "settings.feedback",
-                                       defaultValue: "Feedback senden"),
+                                String(localized: "settings.feedback"),
                                 systemImage: "envelope.fill"
                             )
                             Spacer()
@@ -323,22 +311,19 @@ struct SettingsScreen: View {
                 }
 
                 // ── Daten ─────────────────────────────────────────
-                Section(String(localized: "settings.section.data",
-                               defaultValue: "Daten")) {
+                Section(String(localized: "settings.section.data")) {
 
                     Button(role: .destructive) {
                         userSettings.hasCompletedOnboarding = false
                     } label: {
                         Label(
-                            String(localized: "settings.reset.onboarding",
-                                   defaultValue: "Onboarding zurücksetzen"),
+                            String(localized: "settings.reset.onboarding"),
                             systemImage: "arrow.counterclockwise"
                         )
                     }
                 }
             }
-            .navigationTitle(String(localized: "settings.title",
-                                    defaultValue: "Einstellungen"))
+            .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -357,6 +342,9 @@ struct SettingsScreen: View {
         )
         .sheet(isPresented: $showPlus) {
             PlusScreen(source: "settings")
+        }
+        .sheet(isPresented: $showHomeSearch) {
+            HomeLocationSheet(isShowing: $showHomeSearch)
         }
     }
 

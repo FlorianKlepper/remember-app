@@ -8,7 +8,8 @@ import SwiftUI
 
 /// Sheet-Root des 3-Screen-Add-Flows.
 /// Zeigt das Kategorie-Grid, navigiert bei Auswahl zu `AddActivityLocationScreen`
-/// und schließt das Sheet sobald `addActivityVM.isSaved` gesetzt wird.
+/// oder direkt zu `AddActivityTextScreen` (bei journal_home).
+/// Schließt das Sheet sobald `addActivityVM.isSaved` gesetzt wird.
 struct AddActivityCategoryScreen: View {
 
     // MARK: Environment
@@ -20,11 +21,14 @@ struct AddActivityCategoryScreen: View {
 
     // MARK: State
 
-    /// NavigationPath für den Step 2 → Step 3 Übergang innerhalb des Flows.
-    @State private var navigationPath = NavigationPath()
-
-    /// Bool-gesteuerter Übergang zu Step 2 — verhindert Doppel-Navigation.
+    /// Bool-gesteuerter Übergang zu Step 2 (Location).
     @State private var navigateToLocation = false
+
+    /// Bool-gesteuerter Übergang direkt zu Step 3 (Text) — bei journal_home.
+    @State private var navigateToText = false
+
+    /// Zeigt den HomeLocationSheet beim ersten Tippen auf "journal" ohne gespeichertes Zuhause.
+    @State private var showHomePrompt = false
 
     // MARK: Private
 
@@ -35,15 +39,30 @@ struct AddActivityCategoryScreen: View {
     // MARK: Body
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             CategoryPickerGrid(
                 selectedCategoryId: Binding(
                     get: { addActivityVM.selectedCategoryId },
                     set: { newId in
+                        guard let newId else { return }
                         addActivityVM.selectedCategoryId = newId
-                        if newId != nil, !navigateToLocation {
+
+                        if addActivityVM.skipLocationScreen {
+                            // Zuhause-Button in journalSection wurde getippt
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                navigateToLocation = true
+                                navigateToText = true
+                            }
+                        } else {
+                            // Erstes Tippen auf "journal" ohne gespeichertes Zuhause → Prompt
+                            if newId == "journal" &&
+                               !userSettings.hasHomeLocation &&
+                               !UserDefaults.standard.bool(forKey: "hasSeenHomePrompt") {
+                                showHomePrompt = true
+                            }
+                            if !navigateToLocation {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    navigateToLocation = true
+                                }
                             }
                         }
                     }
@@ -65,10 +84,17 @@ struct AddActivityCategoryScreen: View {
                     }
                 }
             }
-            // Navigation zu Step 2 via Bool — nie doppelt
+            // Navigation zu Step 2 (Ort)
             .navigationDestination(isPresented: $navigateToLocation) {
                 AddActivityLocationScreen()
             }
+            // Navigation direkt zu Step 3 (Text) — bei journal_home
+            .navigationDestination(isPresented: $navigateToText) {
+                AddActivityTextScreen()
+            }
+        }
+        .sheet(isPresented: $showHomePrompt) {
+            HomeLocationSheet(isShowing: $showHomePrompt)
         }
         .onAppear {
             #if DEBUG
@@ -76,8 +102,14 @@ struct AddActivityCategoryScreen: View {
             print("subscriptionStatus: \(userSettings.subscriptionStatus)")
             #endif
         }
-        // LocationScreen dismissed → Auswahl zurücksetzen für Neu-Auswahl
+        // Location-Screen dismissed → Auswahl zurücksetzen für Neu-Auswahl
         .onChange(of: navigateToLocation) { _, isActive in
+            if !isActive {
+                addActivityVM.selectedCategoryId = nil
+            }
+        }
+        // Text-Screen dismissed (direkt) → Auswahl zurücksetzen
+        .onChange(of: navigateToText) { _, isActive in
             if !isActive {
                 addActivityVM.selectedCategoryId = nil
             }
@@ -87,6 +119,15 @@ struct AddActivityCategoryScreen: View {
             if saved {
                 addActivityVM.reset()
                 dismiss()
+            }
+        }
+        // Zuhause wurde im HomeLocationSheet gesetzt → direkt zu TextScreen
+        .onReceive(NotificationCenter.default.publisher(for: .homeLocationSetNavigate)) { _ in
+            addActivityVM.useHomeLocation(from: userSettings)
+            addActivityVM.skipLocationScreen = true
+            addActivityVM.selectedCategoryId = "journal"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                navigateToText = true
             }
         }
     }

@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xcodebuild -scheme ActivityTracker2 -destination 'platform=iOS Simulator,name=iPhone 17' build)"
+      "Bash(xcodebuild -scheme ActivityTracker2 -destination 'platform=iOS Simulator,name=iPhone 17' build)",
+      "Bash(python3:*)"
     ]
   }
 }

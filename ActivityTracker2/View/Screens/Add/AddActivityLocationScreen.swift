@@ -17,6 +17,7 @@ struct AddActivityLocationScreen: View {
     @Environment(AddActivityViewModel.self) private var addActivityVM
     @Environment(LocationManager.self)      private var locationManager
     @Environment(GeocodeManager.self)       private var geocodeManager
+    @Environment(UserSettings.self)         private var userSettings
     @Environment(\.dismiss)                 private var dismiss
 
     // MARK: State
@@ -82,6 +83,43 @@ struct AddActivityLocationScreen: View {
 
             // ── Liste ─────────────────────────────────────────────
             List {
+
+                // Zuhause (wenn gespeichert)
+                if userSettings.hasHomeLocation {
+                    Button {
+                        addActivityVM.pendingCoordinate   = userSettings.homeCoordinate
+                        addActivityVM.pendingLocationName = userSettings.homeLocationName
+                        addActivityVM.pendingCity         = userSettings.homeLocationName
+                        navigateToText = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(hex: "#E8593C").opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "house.fill")
+                                    .foregroundStyle(Color(hex: "#E8593C"))
+                                    .font(.system(size: 15))
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(String(localized: "add.location.home",
+                                            defaultValue: "Zuhause"))
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                                Text(userSettings.homeLocationName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .listRowBackground(Color.clear)
+                }
 
                 // Aktueller Standort
                 Button {
@@ -324,7 +362,7 @@ private struct NearbyPlace: Identifiable {
 
 /// Einfacher MKLocalSearchCompleter-Wrapper ohne @Observable.
 /// Callback-basiert — thread-sicher via DispatchQueue.main.
-private class SearchCompleter: NSObject, MKLocalSearchCompleterDelegate {
+class SearchCompleter: NSObject, MKLocalSearchCompleterDelegate {
 
     private let completer  = MKLocalSearchCompleter()
     private var onResults: (([MKLocalSearchCompletion]) -> Void)?

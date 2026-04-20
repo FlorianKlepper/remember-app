@@ -156,14 +156,10 @@ struct MapScreen: View {
             )
         }
         .onChange(of: mapVM.region.center.latitude) { _, _ in
-            withAnimation(.easeInOut(duration: AppConstants.animationStandard)) {
-                cameraPosition = .region(mapVM.region)
-            }
+            cameraPosition = .region(mapVM.region)
         }
         .onChange(of: mapVM.region.center.longitude) { _, _ in
-            withAnimation(.easeInOut(duration: AppConstants.animationStandard)) {
-                cameraPosition = .region(mapVM.region)
-            }
+            cameraPosition = .region(mapVM.region)
         }
         // Sheet-Größe tracken (von PermanentBottomSheet gesendet)
         .onReceive(NotificationCenter.default.publisher(for: .sheetSizeChanged)) { notification in
@@ -258,21 +254,23 @@ struct MapScreen: View {
                 .padding(.vertical, 4)
 
             // Zoom In
-            Button { zoomIn() } label: {
+            Button(action: zoomIn) {
                 Image(systemName: "plus")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.primary)
                     .frame(width: 42, height: 42)
+                    .contentShape(Rectangle())
             }
 
             Divider().frame(width: 42)
 
             // Zoom Out
-            Button { zoomOut() } label: {
+            Button(action: zoomOut) {
                 Image(systemName: "minus")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.primary)
                     .frame(width: 42, height: 42)
+                    .contentShape(Rectangle())
             }
 
             // Trennlinie zwischen Zoom und GPS
@@ -304,25 +302,21 @@ struct MapScreen: View {
     // MARK: Zoom + GPS Actions
 
     private func zoomIn() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            let span = MKCoordinateSpan(
-                latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.002),
-                longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.002)
-            )
-            mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
-            cameraPosition = .region(mapVM.region)
-        }
+        let span = MKCoordinateSpan(
+            latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.001),
+            longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.001)
+        )
+        mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
+        cameraPosition = .region(mapVM.region)
     }
 
     private func zoomOut() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            let span = MKCoordinateSpan(
-                latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 50.0),
-                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 50.0)
-            )
-            mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
-            cameraPosition = .region(mapVM.region)
-        }
+        let span = MKCoordinateSpan(
+            latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 100.0),
+            longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 100.0)
+        )
+        mapVM.region   = MKCoordinateRegion(center: mapVM.region.center, span: span)
+        cameraPosition = .region(mapVM.region)
     }
 
     private func refocusOnGPS() {

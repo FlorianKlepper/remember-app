@@ -57,7 +57,6 @@ struct StatsScreen: View {
                         topCategoryId: topCategory?.id,
                         topCategoryName: topCategory?.name
                     )
-                    .padding(.horizontal)
 
                     // ── Section 2: Nutzung / Limit ───────────────────
                     if !isPlusUser {
@@ -132,8 +131,21 @@ struct StatsScreen: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.04), radius: 3,  x: 0, y: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        colors: [.white.opacity(0.5), .clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                )
+                .allowsHitTesting(false)
         )
         .padding(.horizontal, 16)
     }
@@ -184,10 +196,23 @@ struct StatsScreen: View {
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                        .shadow(color: .black.opacity(0.04), radius: 3,  x: 0, y: 1)
                 )
-                .padding(.horizontal)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            LinearGradient(
+                                colors: [.white.opacity(0.5), .clear],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+                        .allowsHitTesting(false)
+                )
+                .padding(.horizontal, 16)
             }
         }
     }
@@ -225,16 +250,32 @@ struct StatsScreen: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 16)
                         .padding(.vertical, 10)
 
                         if city.id != statsVM.topCities.last?.id {
-                            Divider().padding(.leading)
+                            Divider().padding(.leading, 16)
                         }
                     }
                 }
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                .padding(.horizontal)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                        .shadow(color: .black.opacity(0.04), radius: 3,  x: 0, y: 1)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            LinearGradient(
+                                colors: [.white.opacity(0.5), .clear],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+                        .allowsHitTesting(false)
+                )
+                .padding(.horizontal, 16)
             }
         }
     }
@@ -287,9 +328,27 @@ struct StatsScreen: View {
                     }
                 }
             }
-            .padding(.horizontal)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.04), radius: 3,  x: 0, y: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        colors: [.white.opacity(0.5), .clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                )
+                .allowsHitTesting(false)
+        )
+        .padding(.horizontal, 16)
     }
 
     // MARK: Helper
