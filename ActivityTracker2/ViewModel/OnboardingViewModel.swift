@@ -69,5 +69,6 @@ extension OnboardingViewModel {
         settings.selectedLanguage =
             Locale.current.language.languageCode?.identifier ?? "de"
         settings.hasCompletedOnboarding = true
+        NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
     }
 }

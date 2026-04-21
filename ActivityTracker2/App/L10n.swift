@@ -295,4 +295,22 @@ enum L10n {
     static var homeSkip: String {
         isDe ? "Kein Zuhause eingeben" : "Skip for now"
     }
+
+    // MARK: Journal / Tagebuch
+
+    static var journalHome: String {
+        isDe ? "Tagebuch -\nZuhause" : "Journal -\nHome"
+    }
+
+    static var journalOnTheRoad: String {
+        isDe ? "Tagebuch -\nUnterwegs" : "Journal -\nOn the Road"
+    }
+
+    static var journalSectionTitle: String {
+        isDe ? "Tagebuch" : "Journal"
+    }
+
+    static var journalSectionSubtitle: String {
+        isDe ? "Was bewegt dich heute?" : "What moves you today?"
+    }
 }

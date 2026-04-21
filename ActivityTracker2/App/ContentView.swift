@@ -121,9 +121,7 @@ struct ContentView: View {
     @State private var showLimitReached     = false
     @State private var isSheetLarge:   Bool = false
 
-    /// Nur `true` wenn der User den Overlay noch nie gesehen hat.
-    @State private var showWelcome: Bool =
-        !UserDefaults.standard.bool(forKey: "hasSeenWelcome")
+    @State private var showWelcome: Bool = false
 
     // MARK: Body
 
@@ -168,11 +166,10 @@ struct ContentView: View {
             }
 
             // ━━━ 3. Welcome Overlay — nur beim allerersten Start ━━━
-            if showWelcome
-                && userSettings.hasCompletedOnboarding
-                && activityVM.activities.isEmpty {
+            if showWelcome {
                 WelcomeOverlayView(isShowing: $showWelcome)
                     .zIndex(99999)
+                    .transition(.opacity)
             }
 
             // ━━━ 4. Tab Bar — oberste Ebene ━━━
@@ -213,6 +210,10 @@ struct ContentView: View {
         .onAppear {
             activityVM.fetchActivities(context: modelContext)
             activityVM.normalizeExistingLocations(context: modelContext)
+            #if DEBUG
+            UserDefaults.standard.removeObject(forKey: "hasSeenWelcome")
+            UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+            #endif
         }
         .sheet(isPresented: $showAddFlow) {
             AddActivityCategoryScreen()
@@ -231,6 +232,10 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .setSheetMedium)) { _ in
             isSheetLarge = false
             selectedTab = 0
+        }
+        // Add-Flow komplett schließen (aus AddActivityTextScreen)
+        .onReceive(NotificationCenter.default.publisher(for: .dismissAddActivity)) { _ in
+            showAddFlow = false
         }
     }
 

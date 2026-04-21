@@ -175,7 +175,7 @@ struct MapScreen: View {
                 filterVM.clearFilter()
             }
         }
-        // Neue Aktivität gespeichert → Karte auf neuen Pin zentrieren
+        // Neue Aktivität gespeichert → Karte auf neuen Pin mit Standard-Zoom zentrieren
         .onReceive(NotificationCenter.default.publisher(for: .activitySaved)) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 guard let newest  = activityVM.activities
@@ -183,16 +183,21 @@ struct MapScreen: View {
                       let location = newest.location
                 else { return }
 
+                let standardSpan = MKCoordinateSpan(
+                    latitudeDelta:  0.05,
+                    longitudeDelta: 0.05
+                )
+
                 mapVM.highlightedActivityId = newest.id
                 mapVM.selectedLocation      = location
 
                 mapVM.region = MKCoordinateRegion(
                     center: mapVM.adjustedCenter(
                         for: location.coordinate,
-                        span: mapVM.region.span,
+                        span: standardSpan,
                         sheetDetent: 0.45
                     ),
-                    span: mapVM.region.span
+                    span: standardSpan
                 )
             }
         }
@@ -285,7 +290,6 @@ struct MapScreen: View {
     // MARK: Zoom + GPS Actions
 
     private func zoomIn() {
-        // Kein withAnimation — SmoothMapView animiert via UIView.animate ✓
         mapVM.region = MKCoordinateRegion(
             center: mapVM.region.center,
             span: MKCoordinateSpan(
@@ -300,7 +304,7 @@ struct MapScreen: View {
             center: mapVM.region.center,
             span: MKCoordinateSpan(
                 latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 80.0),
-                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 80.0)
+                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 160.0)
             )
         )
     }

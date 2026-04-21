@@ -13,37 +13,35 @@ struct ActivityRowView: View {
     // MARK: Parameter
 
     let activity: Activity
-    var onCategoryTap: (() -> Void)? = nil
+
+    // MARK: Environment
+
+    @Environment(FilterViewModel.self) private var filterVM
+    @Environment(MapViewModel.self)    private var mapVM
 
     // MARK: Body
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
 
             // ── Datum links ──────────────────────────────────────
             VStack(alignment: .center, spacing: 0) {
                 Text(activity.dayString)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.primary)
                 Text(activity.monthString)
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
-            .frame(width: 40)
+            .frame(width: 34)
 
-            // ── Titel + Ort + Text mitte ─────────────────────────
+            // ── Titel + Text + Ort mitte ─────────────────────────
             VStack(alignment: .leading, spacing: 2) {
                 Text(activity.displayTitle)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
                     .lineLimit(1)
-
-                if let city = activity.location?.city, !city.isBlank {
-                    Text(city)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                    .foregroundStyle(.primary)
 
                 if let text = activity.text, !text.isBlank {
                     Text(text)
@@ -52,50 +50,59 @@ struct ActivityRowView: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
+
+                if let city = activity.location?.city, !city.isBlank {
+                    Text(city)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 4)
 
-            // ── Sterne + Icon nebeneinander ──────────────────────
-            HStack(alignment: .center, spacing: 6) {
+            // ── Sterne oben + Icon unten ─────────────────────────
+            VStack(alignment: .trailing, spacing: 4) {
 
-                // Sterne links vom Icon
                 if activity.starRating > 0 {
                     HStack(spacing: 2) {
                         ForEach(1...activity.starRating, id: \.self) { _ in
                             Image(systemName: "star.fill")
-                                .font(.system(size: 9))
+                                .font(.system(size: 8))
                                 .foregroundStyle(Color(hex: "#FFD700"))
                         }
                     }
+                } else {
+                    Color.clear.frame(height: 10)
                 }
 
-                // Icon rechts (tippbar wenn Callback vorhanden)
-                if let onCategoryTap {
-                    Button {
-                        onCategoryTap()
+                CategoryIconView(categoryId: activity.categoryId, size: 34)
+                    .onTapGesture {
+                        filterVM.setFilter(categoryId: activity.categoryId)
+                        mapVM.highlightedActivityId = activity.id
                         HapticManager.selectionChanged()
-                    } label: {
-                        CategoryIconView(categoryId: activity.categoryId, size: 36)
                     }
-                    .buttonStyle(.plain)
-                } else {
-                    CategoryIconView(categoryId: activity.categoryId, size: 36)
-                }
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
     }
 }
 
 // MARK: - Preview
 
 #Preview("Activity Rows") {
-    List {
+    let analytics  = AnalyticsManager()
+    let filterVM   = FilterViewModel(analytics: analytics)
+    let mapVM      = MapViewModel(analytics: analytics)
+
+    return List {
         ForEach(Activity.samples) { activity in
             ActivityRowView(activity: activity)
         }
     }
     .listStyle(.plain)
+    .environment(filterVM)
+    .environment(mapVM)
 }

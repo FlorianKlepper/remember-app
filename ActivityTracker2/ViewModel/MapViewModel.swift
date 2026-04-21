@@ -216,7 +216,7 @@ extension MapViewModel {
             )
         }
         animationTask = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: task)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: task)
     }
 
     // MARK: Private

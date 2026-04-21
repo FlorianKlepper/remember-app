@@ -166,20 +166,6 @@ struct SettingsScreen: View {
                 Section(L10n.settingsAppearance) {
 
                     HStack {
-                        Label(L10n.settingsAppearanceMode, systemImage: "circle.lefthalf.filled")
-                        Spacer()
-                        Picker("", selection: Binding(
-                            get: { userSettings.colorScheme },
-                            set: { userSettings.colorScheme = $0 }
-                        )) {
-                            Text(L10n.settingsSystem).tag("system")
-                            Text(L10n.settingsLight).tag("light")
-                            Text(L10n.settingsDark).tag("dark")
-                        }
-                        .pickerStyle(.menu)
-                    }
-
-                    HStack {
                         Label(L10n.settingsMapStyle, systemImage: "map")
                         Spacer()
                         Picker("", selection: Binding(
@@ -292,16 +278,6 @@ struct SettingsScreen: View {
                         }
                     }
                     .foregroundStyle(.primary)
-                }
-
-                // ── Daten ─────────────────────────────────────────
-                Section(L10n.settingsData) {
-
-                    Button(role: .destructive) {
-                        userSettings.hasCompletedOnboarding = false
-                    } label: {
-                        Label(L10n.settingsResetOnboarding, systemImage: "arrow.counterclockwise")
-                    }
                 }
 
                 // ── Made in Munich ────────────────────────────────

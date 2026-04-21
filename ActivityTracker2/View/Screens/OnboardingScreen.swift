@@ -46,17 +46,22 @@ struct OnboardingScreen: View {
     // MARK: Page 1 — App-Wert
 
     private var page1: some View {
-        VStack(spacing: 28) {
-            Spacer()
+        VStack(spacing: 0) {
 
-            Image(systemName: "map.fill")
-                .font(.system(size: 72))
-                .foregroundStyle(Color(hex: "#E8593C"))
+            Image("onboarding_preview")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .layoutPriority(1)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 8)
+                .padding(.horizontal, 32)
+                .padding(.top, 16)
 
-            VStack(spacing: 10) {
+            VStack(spacing: 6) {
                 Text(String(localized: "onboarding.screen1.title",
                             defaultValue: "Dein Leben. Deine Karte."))
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
@@ -65,10 +70,11 @@ struct OnboardingScreen: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
             }
+            .padding(.horizontal, 32)
+            .padding(.top, 20)
 
-            Spacer()
+            Spacer(minLength: 12)
 
             nextButton { onboardingVM.nextPage() }
             skipButton

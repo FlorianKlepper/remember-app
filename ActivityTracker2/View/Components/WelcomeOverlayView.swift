@@ -25,62 +25,49 @@ struct WelcomeOverlayView: View {
             // ── Card ──────────────────────────────────────────────
             VStack(spacing: 0) {
 
-                // ── Illustration ──────────────────────────────────
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(.systemGray6))
-                        .frame(height: 340)
-
-                    // Placeholder — später durch echten Screenshot ersetzen:
-                    // Image("welcome_screenshot")
-                    //     .resizable()
-                    //     .aspectRatio(contentMode: .fit)
-                    //     .frame(height: 340)
-                    //     .clipShape(RoundedRectangle(cornerRadius: 20))
-                    VStack(spacing: 16) {
-                        Image(systemName: "map.fill")
-                            .font(.system(size: 60))
-                            .foregroundStyle(Color(hex: "#E8593C"))
-                        Text(String(localized: "welcome.illustration.label",
-                                    defaultValue: "Deine Erlebnisse\nauf der Karte"))
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .multilineTextAlignment(.center)
-                            .foregroundStyle(.primary)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 32)
+                // ── Screenshot ────────────────────────────────────
+                Image("welcome_preview")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(
+                        maxWidth:  UIScreen.main.bounds.width  * 0.85,
+                        maxHeight: UIScreen.main.bounds.height * 0.48
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                    .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 8)
+                    .padding(.horizontal, 20)
 
                 // ── Titel + Text ──────────────────────────────────
-                VStack(spacing: 12) {
+                VStack(spacing: 0) {
                     Text(String(localized: "welcome.title",
                                 defaultValue: "Hier entsteht deine\npersönliche Weltkarte."))
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
+                        .padding(.top, 16)
 
                     Text(String(localized: "welcome.body",
                                 defaultValue: "Fang mit deinem ersten\nErlebnis an."))
-                        .font(.body)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 8)
+                        .padding(.top, 4)
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 24)
 
                 // ── CTA Button ────────────────────────────────────
                 Button {
-                    UserDefaults.standard.set(true, forKey: "hasSeenWelcome")
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         isShowing = false
                     }
+                    UserDefaults.standard.set(true, forKey: "hasSeenWelcome")
                 } label: {
-                    Text(String(localized: "welcome.cta",
-                                defaultValue: "Ersten Moment festhalten +"))
-                        .font(.headline)
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark")
+                        Text("Los geht's!")
+                            .fontWeight(.semibold)
+                    }
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
@@ -90,7 +77,6 @@ struct WelcomeOverlayView: View {
                     )
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 24)
                 .padding(.bottom, 32)
             }
             .background(

@@ -94,15 +94,26 @@ struct ActivityTracker2App: App {
         #endif
     }
 
+    // MARK: State
+
+    @State private var showWelcome: Bool = false
+
     // MARK: Scene
 
     var body: some Scene {
         WindowGroup {
-            Group {
+            ZStack {
                 if userSettings.hasCompletedOnboarding {
                     ContentView()
                 } else {
                     OnboardingScreen()
+                }
+
+                if showWelcome {
+                    WelcomeOverlayView(isShowing: $showWelcome)
+                        .zIndex(99999)
+                        .transition(.opacity)
+                        .animation(.easeInOut(duration: 0.4), value: showWelcome)
                 }
             }
             .modelContainer(modelContainer)
@@ -122,6 +133,18 @@ struct ActivityTracker2App: App {
             .onAppear {
                 analyticsManager.track(.appOpened)
                 locationManager.startUpdating()
+                #if DEBUG
+                UserDefaults.standard.removeObject(forKey: "hasSeenWelcome")
+                print("hasSeenWelcome: \(UserDefaults.standard.bool(forKey: "hasSeenWelcome"))")
+                print("hasCompletedOnboarding: \(userSettings.hasCompletedOnboarding)")
+                #endif
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if !UserDefaults.standard.bool(forKey: "hasSeenWelcome") {
+                        showWelcome = true
+                    }
+                }
             }
             // App kommt aus dem Hintergrund (z.B. nach iOS Einstellungen) → Location neu prüfen
             .onReceive(NotificationCenter.default.publisher(

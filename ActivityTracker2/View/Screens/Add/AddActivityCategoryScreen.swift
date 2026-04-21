@@ -97,6 +97,7 @@ struct AddActivityCategoryScreen: View {
             HomeLocationSheet(isShowing: $showHomePrompt)
         }
         .onAppear {
+            addActivityVM.reset()
             #if DEBUG
             print("isPlusActive: \(storeKitManager.isPlusActive)")
             print("subscriptionStatus: \(userSettings.subscriptionStatus)")

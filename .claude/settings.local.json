@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(xcodebuild -scheme ActivityTracker2 -destination 'platform=iOS Simulator,name=iPhone 17' build)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(ls \"/Users/florianklepper/Documents/_ActivityTracker2/4-Screenshots/onboarding\"*)"
     ]
   }
 }

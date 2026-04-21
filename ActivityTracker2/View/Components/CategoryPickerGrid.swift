@@ -69,15 +69,18 @@ struct CategoryPickerGrid: View {
         VStack(alignment: .leading, spacing: 12) {
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "journal.section_title", defaultValue: "Tagebuch"))
+                Text(L10n.journalSectionTitle)
                     .font(.headline)
                     .foregroundStyle(.primary)
-                Text(String(localized: "journal.section_subtitle", defaultValue: "Was bewegt dich heute?"))
+                Text(L10n.journalSectionSubtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            HStack(alignment: .top, spacing: 16) {
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible()), count: 4),
+                spacing: 12
+            ) {
 
                 // ── Journal Home ───────────────────────────────────────
                 Button {
@@ -102,13 +105,13 @@ struct CategoryPickerGrid: View {
                                 .font(.system(size: 22))
                                 .foregroundStyle(journalColor)
                         }
-                        Text(String(localized: "journal.home", defaultValue: "Journal -\nHome"))
+                        Text(L10n.journalHome)
                             .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                             .multilineTextAlignment(.center)
                             .minimumScaleFactor(0.8)
-                            .frame(width: 60)
+                            .frame(maxWidth: .infinity)
                     }
                 }
                 .buttonStyle(.plain)
@@ -131,18 +134,20 @@ struct CategoryPickerGrid: View {
                                 .font(.system(size: 22))
                                 .foregroundStyle(journalColor)
                         }
-                        Text(String(localized: "journal.on_the_road", defaultValue: "Journal -\nOn the Road"))
+                        Text(L10n.journalOnTheRoad)
                             .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                             .multilineTextAlignment(.center)
                             .minimumScaleFactor(0.8)
-                            .frame(width: 60)
+                            .frame(maxWidth: .infinity)
                     }
                 }
                 .buttonStyle(.plain)
 
-                Spacer()
+                // Leere Zellen für Ausrichtung
+                Color.clear
+                Color.clear
             }
         }
     }

@@ -19,6 +19,7 @@ struct AddActivityTextScreen: View {
     @Environment(ActivityViewModel.self)    private var activityVM
     @Environment(LanguageManager.self)      private var languageManager
     @Environment(\.modelContext)            private var modelContext
+    @Environment(\.dismiss)                 private var dismiss
 
     // MARK: State
 
@@ -241,10 +242,13 @@ struct AddActivityTextScreen: View {
                 context: modelContext
             )
 
-            // 1. Filter zurücksetzen
+            // 1. Felder zurücksetzen — vor dismiss damit beim nächsten Öffnen alles leer ist
+            addActivityVM.reset()
+
+            // 2. Filter zurücksetzen
             NotificationCenter.default.post(name: .filterCleared, object: nil)
 
-            // 2. Neue Aktivität auf Karte zeigen
+            // 3. Neue Aktivität auf Karte zeigen
             NotificationCenter.default.post(name: .activitySaved, object: nil)
 
             // 3. Sheet auf medium (0.45) hochfahren
@@ -259,11 +263,11 @@ struct AddActivityTextScreen: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     withAnimation { showFirstActivityToast = false }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        addActivityVM.isSaved = true
+                        NotificationCenter.default.post(name: .dismissAddActivity, object: nil)
                     }
                 }
             } else {
-                addActivityVM.isSaved = true
+                NotificationCenter.default.post(name: .dismissAddActivity, object: nil)
             }
 
         } catch {

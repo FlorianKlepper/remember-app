@@ -35,6 +35,7 @@ struct SmoothMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        guard isValidRegion(region) else { return }
         applyMapType(to: mapView)
         updateRegion(on: mapView)
         updateAnnotations(on: mapView)
@@ -56,7 +57,7 @@ struct SmoothMapView: UIViewRepresentable {
         if mapView.mapType != target { mapView.mapType = target }
     }
 
-    /// Animiert die Region — weit entfernt (>0.005°) → Google-Style, nah → sanftes Gleiten.
+    /// Gleitet smooth zur neuen Region — kein Zoom-Out/In.
     /// Threshold 0.0001° verhindert Feedback-Loop bei User-Drag.
     private func updateRegion(on mapView: MKMapView) {
         let current  = mapView.region
@@ -64,76 +65,23 @@ struct SmoothMapView: UIViewRepresentable {
         let lonDiff  = abs(current.center.longitude - region.center.longitude)
         let spanDiff = abs(current.span.latitudeDelta - region.span.latitudeDelta)
 
-        guard latDiff > 0.0001 || lonDiff > 0.0001 || spanDiff > 0.0001 else { return }
+        guard latDiff > 0.00001 || lonDiff > 0.00001 || spanDiff > 0.00001 else { return }
 
-        if latDiff > 0.005 || lonDiff > 0.005 {
-            // Weit entfernt → Zoom Out → rüberfahren → Zoom In (Google Maps Style)
-            animateGoogleStyle(mapView: mapView, to: region)
-        } else {
-            // Nah → sanftes Gleiten ohne Zoom-Änderung
-            UIView.animate(
-                withDuration: 0.9,
-                delay: 0,
-                usingSpringWithDamping: 0.88,
-                initialSpringVelocity: 0.2,
-                options: .curveEaseInOut
-            ) {
-                mapView.setRegion(self.region, animated: true)
-            }
-        }
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.8)
+        CATransaction.setAnimationTimingFunction(
+            CAMediaTimingFunction(name: .easeInEaseOut)
+        )
+        mapView.setRegion(self.region, animated: true)
+        CATransaction.commit()
     }
 
-    /// Zweiphasige Übergangs-Animation: Zoom Out zur Mitte → Zoom In auf Ziel.
-    /// Wird übersprungen wenn der aktuelle Span bereits sehr groß ist (>30°).
-    private func animateGoogleStyle(mapView: MKMapView, to newRegion: MKCoordinateRegion) {
-        let currentRegion = mapView.region
-
-        // Bei großem Span kein Zoom-Out — würde ungültige Region erzeugen
-        guard currentRegion.span.latitudeDelta < 30 else {
-            UIView.animate(
-                withDuration: 0.9,
-                delay: 0,
-                usingSpringWithDamping: 0.88,
-                initialSpringVelocity: 0.2,
-                options: .curveEaseInOut
-            ) {
-                mapView.setRegion(newRegion, animated: true)
-            }
-            return
-        }
-
-        let midCenter = CLLocationCoordinate2D(
-            latitude:  (currentRegion.center.latitude  + newRegion.center.latitude)  / 2,
-            longitude: (currentRegion.center.longitude + newRegion.center.longitude) / 2
-        )
-        // Span auf gültige MKMapView-Grenzen clampen (max 85° / 170°)
-        let zoomedOutSpan = MKCoordinateSpan(
-            latitudeDelta:  min(max(currentRegion.span.latitudeDelta,  newRegion.span.latitudeDelta)  * 2.5, 85.0),
-            longitudeDelta: min(max(currentRegion.span.longitudeDelta, newRegion.span.longitudeDelta) * 2.5, 170.0)
-        )
-
-        // Phase 1: Rauszoomen zur Mitte
-        UIView.animate(
-            withDuration: 0.45,
-            delay: 0,
-            usingSpringWithDamping: 0.9,
-            initialSpringVelocity: 0.2
-        ) {
-            mapView.setRegion(
-                MKCoordinateRegion(center: midCenter, span: zoomedOutSpan),
-                animated: true
-            )
-        } completion: { _ in
-            // Phase 2: Reinzoomen auf Ziel
-            UIView.animate(
-                withDuration: 0.55,
-                delay: 0,
-                usingSpringWithDamping: 0.85,
-                initialSpringVelocity: 0.2
-            ) {
-                mapView.setRegion(newRegion, animated: true)
-            }
-        }
+    /// Prüft ob eine Region gültige Werte hat bevor sie an MKMapView übergeben wird.
+    private func isValidRegion(_ r: MKCoordinateRegion) -> Bool {
+        r.span.latitudeDelta  > 0 && r.span.latitudeDelta  <= 85  &&
+        r.span.longitudeDelta > 0 && r.span.longitudeDelta <= 170 &&
+        r.center.latitude  >= -90  && r.center.latitude  <= 90    &&
+        r.center.longitude >= -180 && r.center.longitude <= 180
     }
 
     /// Diff-basiertes Annotation-Update: nur hinzufügen/entfernen/aktualisieren was nötig.

@@ -48,19 +48,7 @@ struct PlusScreen: View {
     private var paywallView: some View {
         VStack(spacing: 0) {
 
-            // ── Dismiss ───────────────────────────────────────────
-            HStack {
-                Spacer()
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 16)
+
 
             // ── Header ────────────────────────────────────────────
             VStack(spacing: 8) {
@@ -165,21 +153,25 @@ struct PlusScreen: View {
             Spacer()
 
             // ── Made in Munich ────────────────────────────────────
-            VStack(spacing: 4) {
-                Text("🇩🇪 \(L10n.indieApp)")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                Text(L10n.madeIn)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-                Text(L10n.privacyFooter)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 2)
+            Divider()
+                .padding(.horizontal, 40)
+                .padding(.vertical, 12)
+
+            HStack(spacing: 8) {
+                Text("🇩🇪")
+                    .font(.title3)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.indieApp)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    Text(L10n.madeIn)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.bottom, 24)
         }
     }

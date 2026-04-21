@@ -136,9 +136,22 @@
 		15388CCE2F967949000A024E /* SmoothMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmoothMapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		15388CD12F979C1B000A024E /* Exceptions for "ActivityTracker2" folder in "ActivityTracker2" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 15388B9E2F8C99AE000A024E /* ActivityTracker2 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		15388BA12F8C99AE000A024E /* ActivityTracker2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				15388CD12F979C1B000A024E /* Exceptions for "ActivityTracker2" folder in "ActivityTracker2" target */,
+			);
 			path = ActivityTracker2;
 			sourceTree = "<group>";
 		};
@@ -574,11 +587,11 @@
 				DEVELOPMENT_TEAM = 3LJ3TU7N8L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ActivityTracker2/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Remember – Life Journal";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Remember benötigt deinen Standort um Aktivitäten auf der Karte zu speichern.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -609,11 +622,11 @@
 				DEVELOPMENT_TEAM = 3LJ3TU7N8L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ActivityTracker2/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Remember – Life Journal";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Remember benötigt deinen Standort um Aktivitäten auf der Karte zu speichern.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

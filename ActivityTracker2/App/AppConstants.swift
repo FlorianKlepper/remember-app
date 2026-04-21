@@ -92,4 +92,8 @@ extension Notification.Name {
     static let homeLocationSetNavigate = Notification.Name("homeLocationSetNavigate")
     /// LocationManager → MapScreen/AddActivityLocationScreen: GPS-Berechtigung wurde erteilt.
     static let locationPermissionGranted = Notification.Name("locationPermissionGranted")
+    /// AddActivityTextScreen → ContentView: Add-Flow komplett schließen.
+    static let dismissAddActivity = Notification.Name("dismissAddActivity")
+    /// OnboardingViewModel → ActivityTracker2App/ContentView: Onboarding wurde abgeschlossen.
+    static let onboardingCompleted = Notification.Name("onboardingCompleted")
 }

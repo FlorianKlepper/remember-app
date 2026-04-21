@@ -273,13 +273,9 @@ struct PermanentBottomSheet: View {
                             Divider().padding(.leading, 16)
                         }
 
-                        // Leerraum am Ende — exakt so viel dass letzte Row oben einrastet.
-                        // Sheet-Höhe (0.45) minus Handle (40) minus ChipBar (50) minus 1 Row (72).
-                        GeometryReader { geo in
-                            Color.clear
-                                .frame(height: max(geo.size.height - 72, 0))
-                        }
-                        .frame(height: UIScreen.main.bounds.height * 0.45 - 40 - 50 - 72)
+                        // Leerraum am Ende — letzte Row snappt sauber nach oben.
+                        Color.clear
+                            .frame(height: UIScreen.main.bounds.height * 0.28)
                     }
                 }
                 .scrollTargetLayout()
