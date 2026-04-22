@@ -52,13 +52,14 @@ struct OnboardingScreen: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .layoutPriority(1)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
-                .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 8)
-                .padding(.horizontal, 32)
-                .padding(.top, 16)
+                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
+                .padding(.horizontal, 36)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .layoutPriority(1)
 
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Text(String(localized: "onboarding.screen1.title",
                             defaultValue: "Dein Leben. Deine Karte."))
                     .font(.title2)
@@ -66,89 +67,88 @@ struct OnboardingScreen: View {
                     .multilineTextAlignment(.center)
 
                 Text(String(localized: "onboarding.screen1.subtitle",
-                            defaultValue: "Jeder Moment zählt."))
-                    .font(.body)
+                            defaultValue: "Halte deine schönsten Momente fest —\nauf einer interaktiven Karte."))
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal, 32)
-            .padding(.top, 20)
-
-            Spacer(minLength: 12)
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
 
             nextButton { onboardingVM.nextPage() }
+                .padding(.top, 12)
+                .padding(.bottom, 8)
             skipButton
+                .padding(.top, 12)
+                .padding(.bottom, 24)
         }
-        .padding(.bottom, 56)
+        .padding(.bottom, 32)
     }
 
     // MARK: Page 2 — Datenschutz
 
     private var page2: some View {
         VStack(spacing: 28) {
-            Spacer()
-
-            Image(systemName: "lock.shield.fill")
-                .font(.system(size: 72))
-                .foregroundStyle(.blue)
+            Image("onboarding2_preview")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
+                .padding(.horizontal, 36)
+                .padding(.top, 8)
+                .layoutPriority(1)
 
             VStack(spacing: 10) {
                 Text(String(localized: "onboarding.screen2.title",
-                            defaultValue: "Halte fest, was bleibt."))
+                            defaultValue: "Einfach & schnell erfassen."))
                     .font(.title)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
                 Text(String(localized: "onboarding.screen2.subtitle",
-                            defaultValue: "Remember merkt sich wo du warst,\nwas du erlebt hast —\ndamit du es nie vergisst."))
+                            defaultValue: "Wähle eine Kategorie,\ndeinen Standort und los."))
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
 
-            privacyPoints
-
-            Spacer()
-
             nextButton { onboardingVM.nextPage() }
+                .padding(.top, 16)
             skipButton
         }
-        .padding(.bottom, 56)
+        .padding(.bottom, 32)
     }
 
     // MARK: Page 3 — Standort-Berechtigung
 
     private var page3: some View {
         VStack(spacing: 28) {
-            Spacer()
-
-            Image(systemName: "location.fill")
-                .font(.system(size: 72))
-                .foregroundStyle(Color(hex: "#E8593C"))
+            Image("onboarding3_preview")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
+                .padding(.horizontal, 36)
+                .padding(.top, 8)
+                .layoutPriority(1)
 
             VStack(spacing: 10) {
-                Text("onboarding.screen3.title")
-                    .font(.title)
+                Text(String(localized: "onboarding.screen3.title",
+                            defaultValue: "Deine Erinnerungen. Für immer."))
+                    .font(.title3)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("onboarding.screen3.subtitle")
-                    .font(.body)
+                Text(String(localized: "onboarding.screen3.subtitle",
+                            defaultValue: "Titel, Text und Bewertung —\njeder Moment wird unvergesslich."))
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
-
-            // ── Made in Munich Footer ─────────────────────────────
-            Text(String(localized: "onboarding.screen3.footer",
-                        defaultValue: "Remember wurde in München gebaut —\nvon jemandem der glaubt,\ndass die kleinen Momente\ndie grossen ausmachen."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Spacer()
 
             // ── Primärer CTA: Berechtigung anfragen ───────────────
             Button {
@@ -182,8 +182,9 @@ struct OnboardingScreen: View {
             }
             .disabled(onboardingVM.isRequestingPermission)
             .padding(.horizontal, 32)
+            .padding(.top, 16)
         }
-        .padding(.bottom, 56)
+        .padding(.bottom, 32)
     }
 
     // MARK: Reusable Sub-Views
@@ -232,8 +233,8 @@ struct OnboardingScreen: View {
             onboardingVM.skipToLocationPage()
         } label: {
             Text("button.skip")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                .font(.subheadline)
+                .foregroundStyle(.gray)
         }
     }
 }

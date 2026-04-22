@@ -64,7 +64,7 @@ extension Category {
         Category(id: "beach",       nameDe: "Strand",         nameEn: "Beach",       iconName: "beach.umbrella.fill", colorHex: "#1D9E75", isPlusOnly: false),
         Category(id: "picnic",      nameDe: "Picknick",       nameEn: "Picnic",      iconName: "basket.fill",         colorHex: "#1D9E75", isPlusOnly: false),
         Category(id: "campsite",    nameDe: "Camping",        nameEn: "Camping",     iconName: "tent.fill",           colorHex: "#1D9E75", isPlusOnly: false),
-        Category(id: "viewpoint",   nameDe: "Aussichtspunkt", nameEn: "Viewpoint",   iconName: "scope",               colorHex: "#1D9E75", isPlusOnly: false),
+        Category(id: "viewpoint",   nameDe: "Aussichtspunkt", nameEn: "Viewpoint",   iconName: "binoculars.fill",     colorHex: "#1D9E75", isPlusOnly: false),
 
         // ── SPORT (13) ────────────────────────────────────────────────────────
         Category(id: "running",     nameDe: "Laufen",         nameEn: "Running",     iconName: "figure.run",               colorHex: "#D85A30", isPlusOnly: false),
@@ -111,7 +111,7 @@ extension Category {
 
         // ── OUTDOOR PLUS (8) ──────────────────────────────────────────────────
         Category(id: "camping",       nameDe: "Zelten",           nameEn: "Camping",       iconName: "tent.fill",        colorHex: "#1D9E75", isPlusOnly: true),
-        Category(id: "fishing",       nameDe: "Angeln",           nameEn: "Fishing",       iconName: "fish.fill",        colorHex: "#1D9E75", isPlusOnly: true),
+        Category(id: "fishing",       nameDe: "Angeln",           nameEn: "Fishing",       iconName: "figure.fishing",   colorHex: "#1D9E75", isPlusOnly: true),
         Category(id: "gardening",     nameDe: "Gärtnern",         nameEn: "Gardening",     iconName: "leaf.fill",        colorHex: "#1D9E75", isPlusOnly: true),
         Category(id: "foraging",      nameDe: "Sammeln",          nameEn: "Foraging",      iconName: "leaf.circle.fill", colorHex: "#1D9E75", isPlusOnly: true),
         Category(id: "bird_watching", nameDe: "Vogelbeobachtung", nameEn: "Bird Watching", iconName: "bird.fill",        colorHex: "#1D9E75", isPlusOnly: true),
@@ -122,8 +122,8 @@ extension Category {
         Category(id: "kayaking",         nameDe: "Kajak",            nameEn: "Kayaking",          iconName: "figure.water.fitness",             colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "sailing",          nameDe: "Segeln",           nameEn: "Sailing",           iconName: "sailboat.fill",                    colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "horse_riding",     nameDe: "Reiten",           nameEn: "Horse Riding",      iconName: "figure.equestrian.sports",         colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "paragliding",      nameDe: "Paragliding",      nameEn: "Paragliding",       iconName: "figure.paragliding",               colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "canoeing",         nameDe: "Kanu",             nameEn: "Canoeing",          iconName: "figure.rowing",                    colorHex: "#D85A30", isPlusOnly: true),
+        Category(id: "paragliding",      nameDe: "Paragliding",      nameEn: "Paragliding",       iconName: "bird.fill",                        colorHex: "#D85A30", isPlusOnly: true),
+        Category(id: "canoeing",         nameDe: "Kanu",             nameEn: "Canoeing",          iconName: "oar.2.crossed",                    colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "basketball",       nameDe: "Basketball",       nameEn: "Basketball",       iconName: "basketball.fill",       colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "volleyball",       nameDe: "Volleyball",       nameEn: "Volleyball",       iconName: "volleyball.fill",       colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "boxing",           nameDe: "Boxen",            nameEn: "Boxing",           iconName: "figure.boxing",         colorHex: "#D85A30", isPlusOnly: true),
@@ -147,7 +147,7 @@ extension Category {
         Category(id: "tea_house",      nameDe: "Teehaus",        nameEn: "Tea House",      iconName: "cup.and.saucer.fill",              colorHex: "#BA7517", isPlusOnly: true),
         Category(id: "rooftop_bar",    nameDe: "Rooftop Bar",    nameEn: "Rooftop Bar",    iconName: "building.2.fill",                  colorHex: "#BA7517", isPlusOnly: true),
         Category(id: "cooking_class",  nameDe: "Kochkurs",       nameEn: "Cooking Class",  iconName: "frying.pan.fill",                  colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "bakery",         nameDe: "Bäckerei",       nameEn: "Bakery",         iconName: "birthday.cake.fill",               colorHex: "#BA7517", isPlusOnly: true),
+
         Category(id: "ice_cream_shop", nameDe: "Eiscafé",        nameEn: "Ice Cream Shop", iconName: "birthday.cake.fill",               colorHex: "#BA7517", isPlusOnly: true),
 
         // ── KULTUR PLUS ───────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ extension Category {
         Category(id: "karaoke",         nameDe: "Karaoke",      nameEn: "Karaoke",         iconName: "mic.fill",                colorHex: "#7F77DD", isPlusOnly: true),
         Category(id: "gaming",          nameDe: "Gaming",       nameEn: "Gaming",          iconName: "gamecontroller.fill",     colorHex: "#7F77DD", isPlusOnly: true),
         Category(id: "casino",          nameDe: "Casino",       nameEn: "Casino",          iconName: "dollarsign.circle.fill",  colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "amusement_park",  nameDe: "Freizeitpark", nameEn: "Amusement Park",  iconName: "ferriswheel",             colorHex: "#7F77DD", isPlusOnly: true),
+        Category(id: "amusement_park",  nameDe: "Freizeitpark", nameEn: "Amusement Park",  iconName: "figure.jumprope",         colorHex: "#7F77DD", isPlusOnly: true),
 
         // ── KREATIV PLUS ──────────────────────────────────────────────────────
         Category(id: "reading",           nameDe: "Lesen",         nameEn: "Reading",           iconName: "book.fill",                        colorHex: "#378ADD", isPlusOnly: true),

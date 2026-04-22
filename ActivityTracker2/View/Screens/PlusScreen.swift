@@ -46,12 +46,12 @@ struct PlusScreen: View {
     // MARK: Layout A — Paywall (Free User)
 
     private var paywallView: some View {
-        VStack(spacing: 0) {
+        ScrollView {
+            VStack(spacing: 0) {
 
+                Spacer().frame(minHeight: 20)
 
-
-            // ── Header ────────────────────────────────────────────
-            VStack(spacing: 8) {
+                // ── Header ────────────────────────────────────────────
                 Image(systemName: "crown.fill")
                     .font(.system(size: 36))
                     .foregroundStyle(Color(hex: "#FFD700"))
@@ -59,120 +59,123 @@ struct PlusScreen: View {
                 Text(L10n.plusTitle)
                     .font(.title2)
                     .fontWeight(.bold)
+                    .padding(.top, 8)
 
                 Text(L10n.plusSubtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-            }
-            .padding(.top, 16)
-            .padding(.bottom, 20)
+                    .padding(.top, 4)
+                    .padding(.bottom, 20)
 
-            // ── Features — kompakt ────────────────────────────────
-            VStack(spacing: 10) {
-                plusRow(icon: "infinity",              text: L10n.plusFeatureUnlimited)
-                plusRow(icon: "square.grid.3x3.fill", text: L10n.plusFeatureCategories)
-                plusRow(icon: "lock.open.fill",        text: L10n.plusFeatureOnetime)
-                plusRow(icon: "hand.raised.fill",      text: L10n.plusFeaturePrivacy)
-            }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 24)
-
-            // ── Preis ─────────────────────────────────────────────
-            Text(L10n.plusPrice)
-                .font(.headline)
-                .foregroundStyle(.primary)
-
-            Text(L10n.plusLaunchPrice)
-                .font(.caption)
-                .foregroundStyle(Color(hex: "#E8593C"))
-                .padding(.top, 4)
+                // ── Features ─────────────────────────────────────────
+                VStack(spacing: 10) {
+                    plusRow(icon: "infinity",              text: L10n.plusFeatureUnlimited)
+                    plusRow(icon: "square.grid.3x3.fill", text: L10n.plusFeatureCategories)
+                    plusRow(icon: "lock.open.fill",        text: L10n.plusFeatureOnetime)
+                    plusRow(icon: "hand.raised.fill",      text: L10n.plusFeaturePrivacy)
+                }
+                .padding(.horizontal, 32)
                 .padding(.bottom, 20)
 
-            // ── Kauf Button ───────────────────────────────────────
-            Button {
-                Task {
-                    await plusVM.purchasePlus(
-                        manager: storeKitManager,
-                        settings: userSettings
-                    )
-                }
-            } label: {
-                Group {
-                    if plusVM.isPurchasing {
-                        HStack(spacing: 8) {
-                            ProgressView().tint(.white)
-                            Text("Wird verarbeitet…")
-                        }
-                    } else {
-                        HStack(spacing: 8) {
-                            Image(systemName: "crown.fill")
-                                .foregroundStyle(Color(hex: "#FFD700"))
-                            Text(L10n.plusCta)
-                                .fontWeight(.semibold)
+                // ── Preis ─────────────────────────────────────────────
+                Text(L10n.plusPrice)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text(L10n.plusLaunchPrice)
+                    .font(.caption)
+                    .foregroundStyle(Color(hex: "#E8593C"))
+                    .padding(.top, 4)
+                    .padding(.bottom, 20)
+
+                // ── Kauf Button ───────────────────────────────────────
+                Button {
+                    Task {
+                        await plusVM.purchasePlus(
+                            manager: storeKitManager,
+                            settings: userSettings
+                        )
+                    }
+                } label: {
+                    Group {
+                        if plusVM.isPurchasing {
+                            HStack(spacing: 8) {
+                                ProgressView().tint(.white)
+                                Text("Wird verarbeitet…")
+                            }
+                        } else {
+                            HStack(spacing: 8) {
+                                Image(systemName: "crown.fill")
+                                    .foregroundStyle(Color(hex: "#FFD700"))
+                                Text(L10n.plusCta)
+                                    .fontWeight(.semibold)
+                            }
                         }
                     }
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(plusVM.isPurchasing
-                              ? Color(hex: "#E8593C").opacity(0.6)
-                              : Color(hex: "#E8593C"))
-                )
-            }
-            .disabled(plusVM.isPurchasing)
-            .padding(.horizontal, 24)
-
-            // ── Restore ───────────────────────────────────────────
-            Button {
-                Task {
-                    try? await plusVM.restorePurchases(
-                        manager: storeKitManager,
-                        settings: userSettings
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(plusVM.isPurchasing
+                                  ? Color(hex: "#E8593C").opacity(0.6)
+                                  : Color(hex: "#E8593C"))
                     )
                 }
-            } label: {
-                Text(L10n.plusRestore)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 8)
+                .disabled(plusVM.isPurchasing)
+                .padding(.horizontal, 24)
 
-            // ── Fehler ────────────────────────────────────────────
-            if let error = plusVM.errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                    .padding(.top, 4)
-            }
-
-            Spacer()
-
-            // ── Made in Munich ────────────────────────────────────
-            Divider()
-                .padding(.horizontal, 40)
-                .padding(.vertical, 12)
-
-            HStack(spacing: 8) {
-                Text("🇩🇪")
-                    .font(.title3)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.indieApp)
+                // ── Restore ───────────────────────────────────────────
+                Button {
+                    Task {
+                        try? await plusVM.restorePurchases(
+                            manager: storeKitManager,
+                            settings: userSettings
+                        )
+                    }
+                } label: {
+                    Text(L10n.plusRestore)
                         .font(.caption)
-                        .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
-                    Text(L10n.madeIn)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
                 }
+                .padding(.top, 8)
+
+                // ── Fehler ────────────────────────────────────────────
+                if let error = plusVM.errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 4)
+                }
+
+                // ── Made in Munich ────────────────────────────────────
+                Divider()
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 16)
+
+                HStack(spacing: 8) {
+                    Text("🇩🇪")
+                        .font(.title3)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.indieApp)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                        Text(L10n.madeIn)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+
+                Spacer().frame(minHeight: 20)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.bottom, 24)
+            .frame(minHeight: UIScreen.main.bounds.height * 0.85)
         }
     }
 

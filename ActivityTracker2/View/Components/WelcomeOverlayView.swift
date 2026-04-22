@@ -30,12 +30,13 @@ struct WelcomeOverlayView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(
-                        maxWidth:  UIScreen.main.bounds.width  * 0.85,
-                        maxHeight: UIScreen.main.bounds.height * 0.48
+                        maxWidth:  UIScreen.main.bounds.width  * 0.92,
+                        maxHeight: UIScreen.main.bounds.height * 0.56
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 24))
-                    .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 8)
-                    .padding(.horizontal, 20)
+                    .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 24)
 
                 // ── Titel + Text ──────────────────────────────────
                 VStack(spacing: 0) {
@@ -77,14 +78,18 @@ struct WelcomeOverlayView: View {
                     )
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 32)
+                .padding(.top, 16)
+
+                Spacer().frame(height: 20)
             }
+            .padding(.top, 16)
+            .padding(.bottom, 16)
             .background(
                 RoundedRectangle(cornerRadius: 28)
                     .fill(Color(.systemBackground))
             )
-            .padding(.horizontal, 20)
-            .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
+            .padding(.horizontal, 16)
+            .shadow(color: .black.opacity(0.2), radius: 24, x: 0, y: 8)
         }
         .transition(.opacity)
     }

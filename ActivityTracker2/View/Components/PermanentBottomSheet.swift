@@ -275,7 +275,7 @@ struct PermanentBottomSheet: View {
 
                         // Leerraum am Ende — letzte Row snappt sauber nach oben.
                         Color.clear
-                            .frame(height: UIScreen.main.bounds.height * 0.28)
+                            .frame(height: UIScreen.main.bounds.height * 0.32)
                     }
                 }
                 .scrollTargetLayout()
@@ -312,6 +312,14 @@ struct PermanentBottomSheet: View {
                         proxy.scrollTo(id, anchor: UnitPoint.top)
                     }
                 }
+            }
+            // Nach Speichern → zur neuen Aktivität scrollen
+            .onReceive(NotificationCenter.default.publisher(for: .scrollToActivity)) { notification in
+                guard let id = notification.object as? Activity.ID else { return }
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    proxy.scrollTo(id, anchor: UnitPoint.top)
+                }
+                mapVM.highlightedActivityId = id
             }
         }
         .clipped()
@@ -536,50 +544,50 @@ struct PermanentBottomSheet: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
-                .frame(width: 40)
+                .frame(width: 28)
 
-                // ── Titel + Ort + Text mitte ─────────────────────
+                // ── Titel → Text → Location mitte ───────────────
                 VStack(alignment: .leading, spacing: 2) {
                     Text(activity.displayTitle)
-                        .font(.body)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(1)
+                        .foregroundStyle(.primary)
 
-                    if let city = activity.location?.city, !city.isBlank {
-                        Text(city)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    if let text = activity.text, !text.isBlank {
+                    if let text = activity.text, !text.isEmpty {
                         Text(text)
                             .font(.caption)
-                            .fontWeight(.medium)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+
+                    if let city = activity.location?.city, !city.isEmpty {
+                        Text(city)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer(minLength: 4)
+                // ── Sterne oben, Icon darunter — feste Breite ───
+                VStack(alignment: .trailing, spacing: 4) {
 
-                // ── Sterne + Kategorie Icon nebeneinander ────────
-                HStack(alignment: .center, spacing: 6) {
-
-                    // Sterne links vom Icon
+                    // Sterne ganz oben — Platzhalter wenn keine
                     if activity.starRating > 0 {
                         HStack(spacing: 2) {
                             ForEach(1...activity.starRating, id: \.self) { _ in
                                 Image(systemName: "star.fill")
-                                    .font(.system(size: 9))
+                                    .font(.system(size: 8))
                                     .foregroundStyle(Color(hex: "#FFD700"))
                             }
                         }
+                    } else {
+                        Color.clear.frame(width: 1, height: 10)
                     }
 
-                    // Icon rechts (tippbar → Kategorie-Filter)
+                    // Icon darunter (tippbar → Kategorie-Filter)
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             filterVM.setFilter(categoryId: activity.categoryId)
@@ -599,6 +607,7 @@ struct PermanentBottomSheet: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .frame(width: 40)
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
             .padding(.vertical, 6)

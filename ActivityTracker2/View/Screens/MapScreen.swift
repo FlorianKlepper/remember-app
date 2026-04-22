@@ -175,30 +175,45 @@ struct MapScreen: View {
                 filterVM.clearFilter()
             }
         }
-        // Neue Aktivität gespeichert → Karte auf neuen Pin mit Standard-Zoom zentrieren
+        // Neue Aktivität gespeichert → Filter reset, Karte zentrieren, Liste scrollen
         .onReceive(NotificationCenter.default.publisher(for: .activitySaved)) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 guard let newest  = activityVM.activities
                     .sorted(by: { $0.date > $1.date }).first,
                       let location = newest.location
                 else { return }
 
-                let standardSpan = MKCoordinateSpan(
-                    latitudeDelta:  0.05,
-                    longitudeDelta: 0.05
-                )
+                // 1. Filter zurücksetzen
+                filterVM.clearFilter()
 
-                mapVM.highlightedActivityId = newest.id
-                mapVM.selectedLocation      = location
+                // 2. Als aktive Aktivität setzen
+                withAnimation {
+                    mapVM.highlightedActivityId = newest.id
+                    mapVM.selectedLocation      = location
+                }
 
+                // 3. Zoom: Standard wenn zu weit rausgezoomt (> 0.2), sonst behalten
+                let currentSpan  = mapVM.region.span
+                let standardSpan = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                let targetSpan   = currentSpan.latitudeDelta > 0.2 ? standardSpan : currentSpan
+
+                // 4. Karte zentrieren
                 mapVM.region = MKCoordinateRegion(
                     center: mapVM.adjustedCenter(
                         for: location.coordinate,
-                        span: standardSpan,
+                        span: targetSpan,
                         sheetDetent: 0.45
                     ),
-                    span: standardSpan
+                    span: targetSpan
                 )
+
+                // 5. Liste zur Aktivität scrollen
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    NotificationCenter.default.post(name: .scrollToActivity, object: newest.id)
+                }
+
+                // 6. Bottom Sheet auf medium
+                NotificationCenter.default.post(name: .setSheetMedium, object: nil)
             }
         }
     }
@@ -290,23 +305,37 @@ struct MapScreen: View {
     // MARK: Zoom + GPS Actions
 
     private func zoomIn() {
+        let center = activeCenter()
+        let newSpan = MKCoordinateSpan(
+            latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.001),
+            longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.001)
+        )
         mapVM.region = MKCoordinateRegion(
-            center: mapVM.region.center,
-            span: MKCoordinateSpan(
-                latitudeDelta:  max(mapVM.region.span.latitudeDelta  * 0.5, 0.001),
-                longitudeDelta: max(mapVM.region.span.longitudeDelta * 0.5, 0.001)
-            )
+            center: mapVM.adjustedCenter(for: center, span: newSpan, sheetDetent: 0.45),
+            span: newSpan
         )
     }
 
     private func zoomOut() {
-        mapVM.region = MKCoordinateRegion(
-            center: mapVM.region.center,
-            span: MKCoordinateSpan(
-                latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 80.0),
-                longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 160.0)
-            )
+        let center = activeCenter()
+        let newSpan = MKCoordinateSpan(
+            latitudeDelta:  min(mapVM.region.span.latitudeDelta  * 2.0, 80.0),
+            longitudeDelta: min(mapVM.region.span.longitudeDelta * 2.0, 160.0)
         )
+        mapVM.region = MKCoordinateRegion(
+            center: mapVM.adjustedCenter(for: center, span: newSpan, sheetDetent: 0.45),
+            span: newSpan
+        )
+    }
+
+    /// Gibt den aktiven Pin als Zoom-Zentrum zurück — Fallback: aktueller Map Center.
+    private func activeCenter() -> CLLocationCoordinate2D {
+        if let id = mapVM.highlightedActivityId,
+           let activity = activityVM.activities.first(where: { $0.id == id }),
+           let location = activity.location {
+            return location.coordinate
+        }
+        return mapVM.region.center
     }
 
     private func refocusOnGPS() {

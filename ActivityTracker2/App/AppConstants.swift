@@ -96,4 +96,6 @@ extension Notification.Name {
     static let dismissAddActivity = Notification.Name("dismissAddActivity")
     /// OnboardingViewModel → ActivityTracker2App/ContentView: Onboarding wurde abgeschlossen.
     static let onboardingCompleted = Notification.Name("onboardingCompleted")
+    /// MapScreen → PermanentBottomSheet: Nach Speichern zur neuen Aktivität scrollen (object: Activity.ID).
+    static let scrollToActivity = Notification.Name("scrollToActivity")
 }

@@ -169,7 +169,7 @@ struct AddActivityLocationScreen: View {
                 .disabled(locationManager.currentLocation == nil)
 
                 // Suchergebnisse
-                ForEach(suggestions.prefix(6), id: \.self) { suggestion in
+                ForEach(suggestions.prefix(10), id: \.self) { suggestion in
                     Button {
                         selectSuggestion(suggestion)
                     } label: {
@@ -328,41 +328,68 @@ struct AddActivityLocationScreen: View {
     private func loadNearbyPlaces() {
         guard let coord = locationManager.currentLocation else { return }
 
-        let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = "restaurant cafe bar shop"
-        request.region = MKCoordinateRegion(
-            center: coord,
-            span: MKCoordinateSpan(latitudeDelta: 0.004, longitudeDelta: 0.004)
-        )
-        request.resultTypes = .pointOfInterest
+        let userLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
 
-        let userLocation = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+        let queries = [
+            "restaurant",
+            "cafe coffee",
+            "bar",
+            "supermarket shop",
+            "hotel",
+            "museum",
+            "park",
+            "pharmacy"
+        ]
 
-        MKLocalSearch(request: request).start { response, _ in
-            guard let items = response?.mapItems else { return }
-            DispatchQueue.main.async {
-                nearbyPlaces = items
-                    .compactMap { item -> NearbyPlace? in
-                        guard let name = item.name else { return nil }
-                        let itemLocation = CLLocation(
-                            latitude: item.placemark.coordinate.latitude,
-                            longitude: item.placemark.coordinate.longitude
-                        )
-                        let distance = userLocation.distance(from: itemLocation)
-                        guard distance <= 500 else { return nil }
-                        return NearbyPlace(
-                            name: name,
-                            subtitle: item.placemark.thoroughfare ?? "",
-                            distance: distance,
-                            coordinate: item.placemark.coordinate,
-                            city: item.placemark.locality,
-                            country: item.placemark.country
-                        )
-                    }
-                    .sorted { $0.distance < $1.distance }
-                    .prefix(5)
-                    .map { $0 }
+        var allPlaces: [NearbyPlace] = []
+        let group = DispatchGroup()
+
+        for query in queries {
+            group.enter()
+
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = query
+            request.region = MKCoordinateRegion(
+                center: coord,
+                span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+            )
+            request.resultTypes = .pointOfInterest
+
+            MKLocalSearch(request: request).start { response, _ in
+                defer { group.leave() }
+                guard let items = response?.mapItems else { return }
+
+                let places = items.prefix(3).compactMap { item -> NearbyPlace? in
+                    guard let name = item.name else { return nil }
+                    let dist = userLoc.distance(from: CLLocation(
+                        latitude:  item.placemark.coordinate.latitude,
+                        longitude: item.placemark.coordinate.longitude
+                    ))
+                    guard dist <= 1000 else { return nil }
+                    return NearbyPlace(
+                        name:       name,
+                        subtitle:   item.placemark.thoroughfare ?? "",
+                        distance:   dist,
+                        coordinate: item.placemark.coordinate,
+                        city:       item.placemark.locality,
+                        country:    item.placemark.country
+                    )
+                }
+                allPlaces.append(contentsOf: places)
             }
+        }
+
+        group.notify(queue: .main) {
+            var seen = Set<String>()
+            nearbyPlaces = allPlaces
+                .filter { place in
+                    guard !seen.contains(place.name) else { return false }
+                    seen.insert(place.name)
+                    return true
+                }
+                .sorted { $0.distance < $1.distance }
+                .prefix(8)
+                .map { $0 }
         }
     }
 
@@ -405,8 +432,9 @@ class SearchCompleter: NSObject, MKLocalSearchCompleterDelegate {
 
     override init() {
         super.init()
-        completer.delegate     = self
-        completer.resultTypes  = [.address, .pointOfInterest]
+        completer.delegate    = self
+        // Alle Typen inkl. query (Berge, Regionen) — kein regionFilter → weltweit
+        completer.resultTypes = [.address, .pointOfInterest, .query]
     }
 
     /// Startet eine neue Suche. Leerer Text → leeres Ergebnis sofort.

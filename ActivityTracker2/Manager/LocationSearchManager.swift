@@ -31,7 +31,8 @@ final class LocationSearchManager: NSObject, MKLocalSearchCompleterDelegate {
     override init() {
         super.init()
         completer.delegate = self
-        completer.resultTypes = [.address, .pointOfInterest]
+        // Alle Typen inkl. query (Bergnamen, Regionen etc.) — kein regionFilter → weltweit
+        completer.resultTypes = [.address, .pointOfInterest, .query]
     }
 
     // MARK: Search
@@ -61,7 +62,7 @@ final class LocationSearchManager: NSObject, MKLocalSearchCompleterDelegate {
     // MARK: MKLocalSearchCompleterDelegate
 
     nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
-        let results = completer.results.prefix(6).map { $0 }
+        let results = completer.results.prefix(10).map { $0 }
         DispatchQueue.main.async { [weak self] in
             self?.suggestions = Array(results)
             self?.isSearching = false
@@ -89,6 +90,11 @@ final class LocationSearchManager: NSObject, MKLocalSearchCompleterDelegate {
         ) -> Void
     ) {
         let request = MKLocalSearch.Request(completion: suggestion)
+        // Weltweiter Suchbereich — verhindert dass Apple auf lokale Region einschränkt
+        request.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+            span: MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
+        )
         let search  = MKLocalSearch(request: request)
 
         search.start { response, error in
