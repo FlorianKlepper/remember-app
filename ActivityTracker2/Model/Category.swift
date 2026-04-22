@@ -129,7 +129,7 @@ extension Category {
         Category(id: "boxing",           nameDe: "Boxen",            nameEn: "Boxing",           iconName: "figure.boxing",         colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "martial_arts",     nameDe: "Kampfsport",       nameEn: "Martial Arts",     iconName: "figure.martial.arts",   colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "badminton",        nameDe: "Badminton",        nameEn: "Badminton",        iconName: "figure.badminton",      colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "ice_skating",      nameDe: "Eislaufen",        nameEn: "Ice Skating",      iconName: "figure.skating",        colorHex: "#D85A30", isPlusOnly: true),
+        Category(id: "ice_skating",      nameDe: "Eislaufen",        nameEn: "Ice Skating",      iconName: "snowflake",             colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "skateboarding",    nameDe: "Skateboarden",     nameEn: "Skateboarding",    iconName: "figure.skateboarding",  colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "table_tennis",     nameDe: "Tischtennis",      nameEn: "Table Tennis",     iconName: "figure.table.tennis",   colorHex: "#D85A30", isPlusOnly: true),
         Category(id: "archery",          nameDe: "Bogenschiessen",   nameEn: "Archery",          iconName: "figure.archery",        colorHex: "#D85A30", isPlusOnly: true),

@@ -150,6 +150,28 @@ struct OnboardingScreen: View {
                     .padding(.horizontal, 32)
             }
 
+            // ── Preis-Info ────────────────────────────────────────
+            VStack(spacing: 4) {
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.system(size: 12))
+                    Text("Kostenlos: bis zu 100 Aktivitäten")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "crown.fill")
+                        .foregroundStyle(Color(hex: "#FFD700"))
+                        .font(.system(size: 12))
+                    Text("Plus: Unbegrenzt — einmalig 4,99€")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 8)
+
             // ── Primärer CTA: Berechtigung anfragen ───────────────
             Button {
                 Task {

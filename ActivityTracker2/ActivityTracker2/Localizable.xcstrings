@@ -84,6 +84,12 @@
         }
       }
     },
+    "80 / 100" : {
+
+    },
+    "80%" : {
+
+    },
     "82418 Murnau am Staffelsee" : {
 
     },
@@ -1143,6 +1149,9 @@
         }
       }
     },
+    "Du hast 80 von 100 kostenlosen Aktivitäten verwendet.\nNoch 20 verfügbar." : {
+
+    },
     "edit.favorite.label" : {
       "comment" : "Toggle label for marking an activity as favorite",
       "extractionState" : "stale",
@@ -1463,6 +1472,9 @@
     "F. Klepper" : {
 
     },
+    "Fast voll!" : {
+
+    },
     "filter.active" : {
       "comment" : "Label shown in the filter status banner when a filter is active",
       "extractionState" : "manual",
@@ -1672,6 +1684,12 @@
           }
         }
       }
+    },
+    "Jetzt upgraden — 4,99€" : {
+
+    },
+    "Kostenlos: bis zu 100 Aktivitäten" : {
+
     },
     "language.de" : {
       "comment" : "Display name for the German language option",
@@ -2397,6 +2415,9 @@
           }
         }
       }
+    },
+    "Plus: Unbegrenzt — einmalig 4,99€" : {
+
     },
     "plus.benefit1.description" : {
       "extractionState" : "stale",
@@ -3394,6 +3415,9 @@
           }
         }
       }
+    },
+    "Später" : {
+
     },
     "stats.categories" : {
       "comment" : "Label for the categories section in stats",

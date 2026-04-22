@@ -37,7 +37,7 @@ struct SmoothMapView: UIViewRepresentable {
     func updateUIView(_ mapView: MKMapView, context: Context) {
         guard isValidRegion(region) else { return }
         applyMapType(to: mapView)
-        updateRegion(on: mapView)
+        updateRegion(on: mapView, coordinator: context.coordinator)
         updateAnnotations(on: mapView)
     }
 
@@ -58,8 +58,10 @@ struct SmoothMapView: UIViewRepresentable {
     }
 
     /// Gleitet smooth zur neuen Region — kein Zoom-Out/In.
-    /// Threshold 0.0001° verhindert Feedback-Loop bei User-Drag.
-    private func updateRegion(on mapView: MKMapView) {
+    /// Animation Guard verhindert Feedback-Loop während laufender Animation.
+    private func updateRegion(on mapView: MKMapView, coordinator: Coordinator) {
+        guard !coordinator.isAnimating else { return }
+
         let current  = mapView.region
         let latDiff  = abs(current.center.latitude  - region.center.latitude)
         let lonDiff  = abs(current.center.longitude - region.center.longitude)
@@ -67,11 +69,16 @@ struct SmoothMapView: UIViewRepresentable {
 
         guard latDiff > 0.00001 || lonDiff > 0.00001 || spanDiff > 0.00001 else { return }
 
+        coordinator.isAnimating = true
+
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.8)
         CATransaction.setAnimationTimingFunction(
             CAMediaTimingFunction(name: .easeInEaseOut)
         )
+        CATransaction.setCompletionBlock {
+            coordinator.isAnimating = false
+        }
         mapView.setRegion(self.region, animated: true)
         CATransaction.commit()
     }
@@ -119,13 +126,16 @@ extension SmoothMapView {
     final class Coordinator: NSObject, MKMapViewDelegate {
 
         var parent: SmoothMapView
+        /// Verhindert Feedback-Loop: während eigener Animation keine Region-Updates zurückmelden.
+        var isAnimating = false
 
         init(_ parent: SmoothMapView) {
             self.parent = parent
         }
 
-        /// User hat Karte gedragen — Region zurückmelden.
+        /// User hat Karte gedragen — Region nur zurückmelden wenn wir nicht selbst animieren.
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            guard !isAnimating else { return }
             DispatchQueue.main.async {
                 self.parent.onRegionChange(mapView.region)
             }

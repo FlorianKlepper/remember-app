@@ -544,7 +544,7 @@ struct PermanentBottomSheet: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
-                .frame(width: 28)
+                .frame(width: 32)
 
                 // ── Titel → Text → Location mitte ───────────────
                 VStack(alignment: .leading, spacing: 2) {

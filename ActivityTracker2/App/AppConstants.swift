@@ -31,14 +31,14 @@ enum AppConstants {
     /// Radius in Metern, innerhalb dem zwei Koordinaten zur selben Location zusammengefasst werden.
     static let locationGroupingRadius: Double = 100.0
 
-    /// Standardmittelpunkt der Karte (München Stadtmitte) – Fallback wenn kein GPS.
-    static let defaultLatitude: Double = 48.1351
+    /// Standardmittelpunkt der Karte (München Marienplatz) – Fallback wenn kein GPS.
+    static let defaultLatitude: Double = 48.1374
 
-    /// Standardmittelpunkt der Karte (München Stadtmitte) – Fallback wenn kein GPS.
-    static let defaultLongitude: Double = 11.5820
+    /// Standardmittelpunkt der Karte (München Marienplatz) – Fallback wenn kein GPS.
+    static let defaultLongitude: Double = 11.5755
 
     /// Standardzoom der Karte als MKCoordinateSpan-Delta.
-    static let defaultMapSpan: Double = 0.12
+    static let defaultMapSpan: Double = 0.05
 
     // MARK: Eingabelimits
 

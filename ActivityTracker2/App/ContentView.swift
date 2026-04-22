@@ -5,6 +5,77 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - TabItemView
+
+/// Einzelner Tab-Button mit App-Store-Bounce-Animation:
+/// Icon springt auf 1.4x → Bubble erscheint → Bubble verschwindet.
+private struct TabItemView: View {
+
+    let icon:     String
+    let labelKey: LocalizedStringKey
+    let isActive: Bool
+    let color:    Color
+    let action:   () -> Void
+
+    @State private var scale:         CGFloat = 1.0
+    @State private var bubbleOpacity: Double  = 0.0
+    @State private var bubbleScale:   CGFloat = 0.4
+
+    var body: some View {
+        Button {
+            action()
+            animate()
+        } label: {
+            ZStack {
+                // ── Farbiger Bubble ──────────────────────────────
+                Circle()
+                    .fill(color.opacity(0.18))
+                    .frame(width: 44, height: 44)
+                    .scaleEffect(bubbleScale)
+                    .opacity(bubbleOpacity)
+
+                // ── Icon + Label ─────────────────────────────────
+                VStack(spacing: 3) {
+                    Image(systemName: icon)
+                        .font(.system(size: 22))
+                        .scaleEffect(scale)
+                    Text(labelKey)
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(isActive ? color : Color(.systemGray2))
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 10)
+    }
+
+    private func animate() {
+        // 1. Icon auf 1.4x zoomen
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+            scale = 1.4
+        }
+        // 2. Bubble einblenden
+        withAnimation(.easeOut(duration: 0.15)) {
+            bubbleOpacity = 1.0
+            bubbleScale   = 1.0
+        }
+        // 3. Icon zurück auf 1.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                scale = 1.0
+            }
+        }
+        // 4. Bubble ausblenden
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            withAnimation(.easeIn(duration: 0.2)) {
+                bubbleOpacity = 0.0
+                bubbleScale   = 0.4
+            }
+        }
+    }
+}
+
 // MARK: - AppTabBar
 
 /// Separate View damit SwiftUI @Binding-Änderungen zuverlässig trackt.
@@ -17,73 +88,18 @@ struct AppTabBar: View {
     var onPlus:      () -> Void
     var onStatistik: () -> Void
 
+    private var karteActive:    Bool { !isSheetLarge && selectedTab <= 1 }
+    private var listeActive:    Bool { isSheetLarge }
+    private var plusActive:     Bool { selectedTab == 2 }
+    private var statistikActive: Bool { selectedTab == 3 }
+
     var body: some View {
         HStack(spacing: 0) {
 
-            // Karte
-            Button(action: onKarte) {
-                VStack(spacing: 3) {
-                    Image(systemName: "map")
-                        .font(.system(size: 22))
-                    Text(LocalizedStringKey("tab.map"))
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(
-                    (!isSheetLarge && selectedTab <= 1) ? Color.blue : Color(.systemGray2)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 10)
-            }
-            .buttonStyle(.plain)
-
-            // Liste
-            Button(action: onListe) {
-                VStack(spacing: 3) {
-                    Image(systemName: "list.bullet")
-                        .font(.system(size: 22))
-                    Text(LocalizedStringKey("tab.list"))
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(
-                    isSheetLarge ? Color.blue : Color(.systemGray2)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 10)
-            }
-            .buttonStyle(.plain)
-
-            // Plus — Icon immer gold
-            Button(action: onPlus) {
-                VStack(spacing: 3) {
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(Color(hex: "#FFD700"))
-                    Text(LocalizedStringKey("tab.plus"))
-                        .font(.system(size: 10))
-                        .foregroundStyle(
-                            selectedTab == 2 ? Color.blue : Color(.systemGray2)
-                        )
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 10)
-            }
-            .buttonStyle(.plain)
-
-            // Statistik
-            Button(action: onStatistik) {
-                VStack(spacing: 3) {
-                    Image(systemName: "rectangle.3.group.fill")
-                        .font(.system(size: 22))
-                    Text(LocalizedStringKey("tab.stats"))
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(
-                    selectedTab == 3 ? Color.blue : Color(.systemGray2)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 10)
-            }
-            .buttonStyle(.plain)
+            TabItemView(icon: "map",                  labelKey: "tab.map",   isActive: karteActive,    color: .blue,                      action: onKarte)
+            TabItemView(icon: "list.bullet",          labelKey: "tab.list",  isActive: listeActive,    color: .blue,                      action: onListe)
+            TabItemView(icon: "crown.fill",           labelKey: "tab.plus",  isActive: plusActive,     color: Color(hex: "#FFD700"),       action: onPlus)
+            TabItemView(icon: "rectangle.3.group.fill", labelKey: "tab.stats", isActive: statistikActive, color: .blue,                   action: onStatistik)
         }
         .frame(height: 62)
         .background(
@@ -119,6 +135,8 @@ struct ContentView: View {
     @State private var selectedTab:    Int  = 0
     @State private var showAddFlow          = false
     @State private var showLimitReached     = false
+    @State private var showLimitWarning     = false
+    @State private var showPlus             = false
     @State private var isSheetLarge:   Bool = false
 
     @State private var showWelcome: Bool = false
@@ -220,6 +238,87 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showLimitReached) {
             LimitReachedSheet(isShowing: $showLimitReached)
+        }
+        .sheet(isPresented: $showPlus) {
+            PlusScreen(source: "limit_80_warning")
+        }
+        .sheet(isPresented: $showLimitWarning) {
+            VStack(spacing: 20) {
+
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color(.systemGray4))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.orange)
+                    .padding(.top, 8)
+
+                Text("Fast voll!")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Text("Du hast 80 von 100 kostenlosen Aktivitäten verwendet.\nNoch 20 verfügbar.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("80 / 100")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("80%")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                    ProgressView(value: 80, total: 100)
+                        .tint(.orange)
+                }
+                .padding(.horizontal, 32)
+
+                Button {
+                    showLimitWarning = false
+                    UserDefaults.standard.set(true, forKey: "hasSeenLimit80Warning")
+                    showPlus = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "crown.fill")
+                            .foregroundStyle(Color(hex: "#FFD700"))
+                        Text("Jetzt upgraden — 4,99€")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color(hex: "#E8593C"))
+                    )
+                }
+                .padding(.horizontal, 24)
+
+                Button {
+                    showLimitWarning = false
+                    UserDefaults.standard.set(true, forKey: "hasSeenLimit80Warning")
+                } label: {
+                    Text("Später")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, 32)
+            }
+            .presentationDetents([.medium])
+        }
+        .onChange(of: activities.count) { _, count in
+            if count == 80 &&
+               !isPlusUser &&
+               !UserDefaults.standard.bool(forKey: "hasSeenLimit80Warning") {
+                showLimitWarning = true
+            }
         }
         // Sheet-Drag → isSheetLarge + Tab Bar Farbe sync
         .onReceive(NotificationCenter.default.publisher(for: .sheetBecameLarge)) { _ in

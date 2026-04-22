@@ -161,11 +161,11 @@ struct PlusScreen: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(L10n.indieApp)
-                            .font(.caption)
+                            .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundStyle(.secondary)
                         Text(L10n.madeIn)
-                            .font(.system(size: 10))
+                            .font(.footnote)
                             .foregroundStyle(.tertiary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

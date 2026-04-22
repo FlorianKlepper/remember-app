@@ -88,23 +88,34 @@ struct CategoryChipBar: View {
             HStack(spacing: 4) {
                 CategoryIconView(categoryId: category.id, size: 16)
                 Text("\(category.localizedName(for: language)) (\(count))")
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(isSelected ? .semibold : .regular)
-                    .foregroundStyle(isSelected ? Color(.label) : Color(.secondaryLabel))
+                    .foregroundStyle(isSelected ? .white : .primary)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 14)
             .padding(.vertical, 7)
-            .background {
-                ZStack {
-                    Capsule().fill(isSelected ? Color(.systemGray5) : Color(.systemGray6))
-                    Capsule().strokeBorder(isSelected ? categoryColor : Color.clear, lineWidth: 1.5)
-                }
-            }
+            .background(
+                Capsule()
+                    .fill(isSelected ? categoryColor : Color(.systemBackground))
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(
+                        isSelected ? Color.clear : Color(.systemGray4),
+                        lineWidth: 1.0
+                    )
+            )
+            .shadow(
+                color: isSelected ? categoryColor.opacity(0.4) : Color.black.opacity(0.08),
+                radius: isSelected ? 8 : 4,
+                x: 0,
+                y: isSelected ? 4 : 2
+            )
         }
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.05 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
     }
 
     // MARK: Used Categories

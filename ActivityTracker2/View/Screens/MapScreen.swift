@@ -4,6 +4,7 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
 // MARK: - MapScreen
 
@@ -25,7 +26,8 @@ struct MapScreen: View {
     @Environment(FilterViewModel.self)   private var filterVM
     @Environment(ActivityViewModel.self) private var activityVM
     @Environment(LocationManager.self)   private var locationManager
-    @Environment(UserSettings.self)      private var userSettings
+    @Environment(UserSettings.self)       private var userSettings
+    @Environment(\.modelContext)          private var modelContext
 
     // MARK: State
 
@@ -175,44 +177,46 @@ struct MapScreen: View {
                 filterVM.clearFilter()
             }
         }
-        // Neue Aktivität gespeichert → Filter reset, Karte zentrieren, Liste scrollen
+        // Neue Aktivität gespeichert → direkt aus ModelContext laden, Karte zentrieren
         .onReceive(NotificationCenter.default.publisher(for: .activitySaved)) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                guard let newest  = activityVM.activities
-                    .sorted(by: { $0.date > $1.date }).first,
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                let descriptor = FetchDescriptor<Activity>(
+                    sortBy: [SortDescriptor(\.date, order: .reverse)]
+                )
+                guard let activities = try? modelContext.fetch(descriptor),
+                      let newest = activities.first,
                       let location = newest.location
-                else { return }
+                else {
+                    print("No activity found!")
+                    return
+                }
+
+                print("Found: \(newest.id)")
 
                 // 1. Filter zurücksetzen
                 filterVM.clearFilter()
 
                 // 2. Als aktive Aktivität setzen
-                withAnimation {
-                    mapVM.highlightedActivityId = newest.id
-                    mapVM.selectedLocation      = location
-                }
+                mapVM.highlightedActivityId = newest.id
+                mapVM.selectedLocation      = location
 
-                // 3. Zoom: Standard wenn zu weit rausgezoomt (> 0.2), sonst behalten
-                let currentSpan  = mapVM.region.span
+                // 3. Karte zentrieren (Standard-Zoom)
                 let standardSpan = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                let targetSpan   = currentSpan.latitudeDelta > 0.2 ? standardSpan : currentSpan
-
-                // 4. Karte zentrieren
                 mapVM.region = MKCoordinateRegion(
                     center: mapVM.adjustedCenter(
                         for: location.coordinate,
-                        span: targetSpan,
+                        span: standardSpan,
                         sheetDetent: 0.45
                     ),
-                    span: targetSpan
+                    span: standardSpan
                 )
 
-                // 5. Liste zur Aktivität scrollen
+                // 4. Liste zur Aktivität scrollen
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     NotificationCenter.default.post(name: .scrollToActivity, object: newest.id)
                 }
 
-                // 6. Bottom Sheet auf medium
+                // 5. Bottom Sheet auf medium
                 NotificationCenter.default.post(name: .setSheetMedium, object: nil)
             }
         }

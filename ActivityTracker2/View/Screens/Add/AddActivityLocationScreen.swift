@@ -331,14 +331,14 @@ struct AddActivityLocationScreen: View {
         let userLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
 
         let queries = [
-            "restaurant",
-            "cafe coffee",
-            "bar",
-            "supermarket shop",
+            "restaurant imbiss food",
+            "cafe coffee bar",
+            "shop store supermarket",
             "hotel",
-            "museum",
-            "park",
-            "pharmacy"
+            "bakery",
+            "fast food",
+            "pizza kebab",
+            "pharmacy apotheke"
         ]
 
         var allPlaces: [NearbyPlace] = []
@@ -351,21 +351,21 @@ struct AddActivityLocationScreen: View {
             request.naturalLanguageQuery = query
             request.region = MKCoordinateRegion(
                 center: coord,
-                span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+                span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
             )
-            request.resultTypes = .pointOfInterest
+            request.resultTypes = [.pointOfInterest, .address]
 
             MKLocalSearch(request: request).start { response, _ in
                 defer { group.leave() }
                 guard let items = response?.mapItems else { return }
 
-                let places = items.prefix(3).compactMap { item -> NearbyPlace? in
-                    guard let name = item.name else { return nil }
+                let places = items.compactMap { item -> NearbyPlace? in
+                    guard let name = item.name, !name.isEmpty else { return nil }
                     let dist = userLoc.distance(from: CLLocation(
                         latitude:  item.placemark.coordinate.latitude,
                         longitude: item.placemark.coordinate.longitude
                     ))
-                    guard dist <= 1000 else { return nil }
+                    guard dist <= 500 else { return nil }
                     return NearbyPlace(
                         name:       name,
                         subtitle:   item.placemark.thoroughfare ?? "",
