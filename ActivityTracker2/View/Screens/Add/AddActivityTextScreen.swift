@@ -208,27 +208,54 @@ struct AddActivityTextScreen: View {
         .onAppear {
             focusedField = .title
         }
-        // ── Erster-Moment-Toast ───────────────────────────────────────
-        .overlay(alignment: .top) {
-            if showFirstActivityToast {
-                HStack(spacing: 8) {
-                    Text("Dein erster Moment 🎉")
-                        .font(.subheadline)
+        // ── Erster-Moment-Sheet ───────────────────────────────────────
+        .sheet(isPresented: $showFirstActivityToast) {
+            VStack(spacing: 20) {
+
+                Text("🎉")
+                    .font(.system(size: 60))
+                    .padding(.top, 32)
+
+                Text("Dein erster Moment!")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+
+                Text("Du hast gerade deinen ersten Moment festgehalten.\nDeine persönliche Weltkarte hat begonnen. ✨")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+
+                Divider()
+                    .padding(.horizontal, 40)
+
+                Text("Jede Reise beginnt\nmit dem ersten Schritt.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .italic()
+                    .multilineTextAlignment(.center)
+
+                Button {
+                    showFirstActivityToast = false
+                    NotificationCenter.default.post(name: .dismissAddActivity, object: nil)
+                } label: {
+                    Text("Los geht's! 🚀")
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color(hex: "#E8593C"))
+                        )
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(
-                    Capsule()
-                        .fill(Color(hex: "#E8593C"))
-                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                )
-                .padding(.top, 16)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
             }
+            .presentationDetents([.medium])
+            .presentationCornerRadius(28)
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showFirstActivityToast)
     }
 
 
@@ -256,16 +283,10 @@ struct AddActivityTextScreen: View {
                 NotificationCenter.default.post(name: .setSheetMedium, object: nil)
             }
 
-            // 4. Erster-Moment-Toast (nur beim allerersten Eintrag)
+            // 4. Erster-Moment-Sheet (nur beim allerersten Eintrag)
             if activityVM.activities.count == 1 {
-                withAnimation { showFirstActivityToast = true }
+                showFirstActivityToast = true
                 HapticManager.success()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation { showFirstActivityToast = false }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        NotificationCenter.default.post(name: .dismissAddActivity, object: nil)
-                    }
-                }
             } else {
                 NotificationCenter.default.post(name: .dismissAddActivity, object: nil)
             }

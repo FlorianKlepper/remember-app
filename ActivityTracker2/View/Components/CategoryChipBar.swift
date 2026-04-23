@@ -90,27 +90,27 @@ struct CategoryChipBar: View {
                 Text("\(category.localizedName(for: language)) (\(count))")
                     .font(.subheadline)
                     .fontWeight(isSelected ? .semibold : .regular)
-                    .foregroundStyle(isSelected ? .white : .primary)
+                    .foregroundStyle(isSelected ? categoryColor : .primary)
                     .lineLimit(1)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .background(
                 Capsule()
-                    .fill(isSelected ? categoryColor : Color(.systemBackground))
+                    .fill(Color(.systemBackground))
             )
             .overlay(
                 Capsule()
                     .strokeBorder(
-                        isSelected ? Color.clear : Color(.systemGray4),
-                        lineWidth: 1.0
+                        isSelected ? categoryColor : Color(.systemGray4),
+                        lineWidth: isSelected ? 2.0 : 1.0
                     )
             )
             .shadow(
-                color: isSelected ? categoryColor.opacity(0.4) : Color.black.opacity(0.08),
-                radius: isSelected ? 8 : 4,
+                color: isSelected ? categoryColor.opacity(0.3) : Color.black.opacity(0.06),
+                radius: isSelected ? 6 : 3,
                 x: 0,
-                y: isSelected ? 4 : 2
+                y: isSelected ? 3 : 1
             )
         }
         .buttonStyle(.plain)

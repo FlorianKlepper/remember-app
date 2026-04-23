@@ -73,6 +73,8 @@ struct PlusScreen: View {
                     plusRow(icon: "square.grid.3x3.fill", text: L10n.plusFeatureCategories)
                     plusRow(icon: "lock.open.fill",        text: L10n.plusFeatureOnetime)
                     plusRow(icon: "hand.raised.fill",      text: L10n.plusFeaturePrivacy)
+                    plusRow(icon: "heart.fill",            text: L10n.plusFeatureSupport)
+                        .foregroundStyle(Color(hex: "#E8593C"))
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 20)
@@ -155,20 +157,21 @@ struct PlusScreen: View {
                     .padding(.horizontal, 40)
                     .padding(.vertical, 16)
 
-                HStack(spacing: 8) {
-                    Text("🇩🇪")
-                        .font(.title3)
+                VStack(spacing: 4) {
+                    Text(L10n.indieApp)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L10n.indieApp)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
-                        Text(L10n.madeIn)
-                            .font(.footnote)
-                            .foregroundStyle(.tertiary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    Text(L10n.madeIn)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
+
+                    Text(L10n.privacyFooter)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.bottom, 8)

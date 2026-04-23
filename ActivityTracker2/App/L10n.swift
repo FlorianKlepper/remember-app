@@ -72,6 +72,12 @@ enum L10n {
         isDe ? "Keine Werbung · Kein Tracking" : "No ads · No tracking"
     }
 
+    static var plusFeatureSupport: String {
+        isDe ?
+        "Unterstützt die Weiterentwicklung\neiner kleinen, unabhängig entwickelten App" :
+        "Supports the development\nof a small, independent app"
+    }
+
     static var plusPrice: String {
         isDe ? "4,99€ — einmalig" : "€4.99 — one-time"
     }
@@ -133,13 +139,13 @@ enum L10n {
 
     // MARK: Made in Munich
 
-    static var indieApp: String { "Indie App" }
-
-    static var madeIn: String {
-        isDe
-            ? "Entwickelt & programmiert\nin München, Deutschland"
-            : "Developed & built\nin Munich, Germany"
+    static var indieApp: String {
+        isDe ?
+        "🇩🇪 Mit ❤️ in München\nentwickelt & programmiert." :
+        "🇩🇪 Made with ❤️\nin Munich."
     }
+
+    static var madeIn: String { "" }
 
     static var privacyFooter: String {
         isDe
