@@ -146,11 +146,18 @@ struct ActivityTracker2App: App {
                     }
                 }
             }
-            // App kommt aus dem Hintergrund (z.B. nach iOS Einstellungen) → Location neu prüfen
+            // App kommt in Vordergrund → Location Updates neu starten
             .onReceive(NotificationCenter.default.publisher(
                 for: UIApplication.willEnterForegroundNotification)
             ) { _ in
                 locationManager.startUpdating()
+                print("App Foreground → GPS restart")
+            }
+            // App geht in Hintergrund → Location Updates stoppen (Akku sparen)
+            .onReceive(NotificationCenter.default.publisher(
+                for: UIApplication.didEnterBackgroundNotification)
+            ) { _ in
+                locationManager.stopUpdating()
             }
             .task {
                 // Entitlements prüfen und beide Stores synchronisieren

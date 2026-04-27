@@ -156,6 +156,20 @@ struct MapScreen: View {
                 allActivities: newActivities
             )
         }
+        // App kommt in Vordergrund → GPS neu starten, Karte ggf. zentrieren
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            locationManager.startUpdating()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                guard let coord = locationManager.currentLocation else { return }
+                if !mapVM.hasInitialLocation {
+                    mapVM.region = MKCoordinateRegion(
+                        center: coord,
+                        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                    )
+                    mapVM.hasInitialLocation = true
+                }
+            }
+        }
         // GPS-Berechtigung erteilt → Karte auf aktuellen Standort zentrieren
         .onReceive(NotificationCenter.default.publisher(for: .locationPermissionGranted)) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

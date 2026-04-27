@@ -39,10 +39,16 @@ private struct TabItemView: View {
                     Image(systemName: icon)
                         .font(.system(size: 22))
                         .scaleEffect(scale)
+                        .foregroundStyle(
+                            icon == "crown.fill" ? color :
+                            isActive ? color : Color(.systemGray2)
+                        )
                     Text(labelKey)
                         .font(.system(size: 10))
+                        .foregroundStyle(
+                            isActive ? Color(.label) : Color(.systemGray2)
+                        )
                 }
-                .foregroundStyle(isActive ? color : Color(.systemGray2))
             }
         }
         .buttonStyle(.plain)

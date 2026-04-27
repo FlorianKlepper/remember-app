@@ -53,14 +53,19 @@ extension LocationManager {
     /// Keine Aktion wenn die Berechtigung noch nicht erteilt wurde.
     func startUpdating() {
         guard authorizationStatus == .authorizedWhenInUse ||
-              authorizationStatus == .authorizedAlways else { return }
+              authorizationStatus == .authorizedAlways else {
+            print("GPS not authorized")
+            return
+        }
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.startUpdatingLocation()
+        print("GPS started")
     }
 
     /// Stoppt kontinuierliche Standort-Updates.
     func stopUpdating() {
         locationManager.stopUpdatingLocation()
+        print("GPS stopped")
     }
 
     /// Liefert die aktuelle GPS-Position asynchron.
