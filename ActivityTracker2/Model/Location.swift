@@ -27,6 +27,9 @@ final class Location {
 
     // MARK: Optionale Felder (via Reverse Geocoding)
 
+    /// POI-Name, z.B. "Pöllinger Hof" oder "Marienplatz".
+    var locationName: String?
+
     /// Stadtname, z.B. "München".
     var city: String?
 
@@ -49,6 +52,7 @@ final class Location {
         id: UUID = UUID(),
         latitude: Double,
         longitude: Double,
+        locationName: String? = nil,
         city: String? = nil,
         region: String? = nil,
         country: String? = nil
@@ -56,6 +60,7 @@ final class Location {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude
+        self.locationName = locationName
         self.city = city
         self.region = region
         self.country = country
@@ -71,9 +76,9 @@ extension Location {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
-    /// Bester verfügbarer Anzeigename: Stadt → Region → Land → Fallback.
+    /// Bester verfügbarer Anzeigename: POI-Name → Stadt → Region → Land → Fallback.
     var displayName: String {
-        city ?? region ?? country ?? String(localized: "location.unknown", defaultValue: "Unbekannt")
+        locationName ?? city ?? region ?? country ?? String(localized: "location.unknown", defaultValue: "Unbekannt")
     }
 }
 

@@ -97,6 +97,7 @@ struct ActivityTracker2App: App {
     // MARK: State
 
     @State private var showWelcome: Bool = false
+    @Environment(\.scenePhase) private var scenePhase
 
     // MARK: Scene
 
@@ -146,18 +147,20 @@ struct ActivityTracker2App: App {
                     }
                 }
             }
-            // App kommt in Vordergrund → Location Updates neu starten
-            .onReceive(NotificationCenter.default.publisher(
-                for: UIApplication.willEnterForegroundNotification)
-            ) { _ in
-                locationManager.startUpdating()
-                print("App Foreground → GPS restart")
-            }
-            // App geht in Hintergrund → Location Updates stoppen (Akku sparen)
-            .onReceive(NotificationCenter.default.publisher(
-                for: UIApplication.didEnterBackgroundNotification)
-            ) { _ in
-                locationManager.stopUpdating()
+            // ScenePhase → GPS starten/stoppen
+            .onChange(of: scenePhase) { _, newPhase in
+                switch newPhase {
+                case .active:
+                    locationManager.startUpdating()
+                    print("App active → GPS start")
+                case .background:
+                    locationManager.stopUpdating()
+                    print("App background → GPS stop")
+                case .inactive:
+                    break
+                @unknown default:
+                    break
+                }
             }
             .task {
                 // Entitlements prüfen und beide Stores synchronisieren

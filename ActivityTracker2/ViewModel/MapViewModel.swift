@@ -57,6 +57,14 @@ final class MapViewModel {
     /// Verhindert wiederholtes Zentrieren bei jedem Location-Update.
     var hasInitialLocation: Bool = false
 
+    /// `true` wenn die Karte dem aktuellen GPS-Standort folgen soll.
+    /// Wird via GPS-Button aktiviert, bei User-Drag automatisch deaktiviert.
+    var isFollowingUser: Bool = false
+
+    /// `true` während die Karte per GPS-Button zur User-Position animiert.
+    /// Verhindert dass `regionDidChangeAnimated` den Follow-Modus sofort wieder abbricht.
+    var isAnimatingToUser: Bool = false
+
     // MARK: Private
 
     private let analytics: AnalyticsManager
@@ -217,6 +225,24 @@ extension MapViewModel {
         }
         animationTask = task
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: task)
+    }
+
+    /// Zentriert die Karte auf den GPS-Standort und aktiviert den Follow-Modus.
+    ///
+    /// Setzt `isAnimatingToUser` für 1 Sekunde auf `true`, damit `regionDidChangeAnimated`
+    /// den Follow-Modus nicht sofort wieder deaktiviert.
+    ///
+    /// - Parameter coord: Aktuelle GPS-Koordinate des Geräts.
+    func focusOnUserLocation(coord: CLLocationCoordinate2D) {
+        isAnimatingToUser = true
+        isFollowingUser   = true
+        region = MKCoordinateRegion(
+            center: coord,
+            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        )
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.isAnimatingToUser = false
+        }
     }
 
     // MARK: Private

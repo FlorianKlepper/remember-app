@@ -300,9 +300,19 @@ struct AddActivityLocationScreen: View {
 
     private func useCurrentLocation() {
         guard let coord = locationManager.currentLocation else { return }
-        addActivityVM.pendingCoordinate   = coord
-        addActivityVM.pendingLocationName = locationName.isEmpty ? nil : locationName
-        navigateToText = true
+        // Reverse Geocode um POI-Name zu ermitteln
+        CLGeocoder().reverseGeocodeLocation(
+            CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+        ) { placemarks, _ in
+            guard let place = placemarks?.first else { return }
+            DispatchQueue.main.async {
+                addActivityVM.pendingCoordinate   = coord
+                addActivityVM.pendingLocationName = place.name ?? place.locality
+                addActivityVM.pendingCity         = place.locality
+                addActivityVM.pendingCountry      = place.country
+                navigateToText = true
+            }
+        }
     }
 
     private func selectSuggestion(_ suggestion: MKLocalSearchCompletion) {
@@ -311,15 +321,9 @@ struct AddActivityLocationScreen: View {
             guard error == nil, let item = response?.mapItems.first else { return }
             DispatchQueue.main.async {
                 addActivityVM.pendingCoordinate   = item.placemark.coordinate
+                addActivityVM.pendingLocationName = item.name ?? suggestion.title
                 addActivityVM.pendingCity         = item.placemark.locality
                 addActivityVM.pendingCountry      = item.placemark.country
-                addActivityVM.pendingLocationName = [
-                    item.name ?? suggestion.title,
-                    item.placemark.locality,
-                    item.placemark.country
-                ]
-                .compactMap { $0?.isEmpty == false ? $0 : nil }
-                .joined(separator: ", ")
                 navigateToText = true
             }
         }

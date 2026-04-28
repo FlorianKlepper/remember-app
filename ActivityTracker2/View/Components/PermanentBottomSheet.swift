@@ -5,6 +5,16 @@
 import SwiftUI
 import MapKit
 
+// MARK: - ScrollOffsetKey
+
+/// PreferenceKey zum Tracken des vertikalen Scroll-Offsets — iOS 17 kompatibel.
+struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 // MARK: - PermanentBottomSheet
 
 /// Permanentes Bottom Sheet das sich NIEMALS schließt.
@@ -57,6 +67,24 @@ struct PermanentBottomSheet: View {
     /// ID der Aktivität die gerade oben im ScrollView eingeschnappt ist.
     /// Wird von `.scrollPosition(id:)` automatisch aktualisiert.
     @State private var scrollPosition: Activity.ID? = nil
+
+    /// Aktueller vertikaler Scroll-Offset — via PreferenceKey getrackt.
+    @State private var scrollOffset: CGFloat = 0
+
+    /// Index der aktuell sichtbaren Aktivität in `currentActivities`.
+    @State private var currentIndex: Int = 0
+
+    /// Timer der nach dem Einsnappen feuert — forciert highlightedActivityId Update.
+    @State private var snapTimer: Timer? = nil
+
+    /// True während der User den ScrollView berührt — verhindert programmatisches Scrollen.
+    @State private var isUserScrolling: Bool = false
+
+    /// Vertikale Swipe-Geschwindigkeit — bestimmt Snap-Richtung.
+    @State private var dragVelocity: CGFloat = 0
+
+    /// Y-Offset beim Beginn des Drags — für Richtungsberechnung.
+    @State private var dragStartOffset: CGFloat = 0
 
     // MARK: Body
 
@@ -240,8 +268,8 @@ struct PermanentBottomSheet: View {
 
     // MARK: Content ScrollView
 
-    /// Vertikaler ScrollView mit allen Aktivitäten der aktiven Kategorie.
-    /// Horizontales Wischen wechselt die Kategorie (DragGesture auf dem ScrollView).
+    /// Vertikaler ScrollView mit manuell gesteuertem Paging.
+    /// Horizontales Wischen wechselt Kategorie, vertikales Wischen snappt zur nächsten/vorherigen Activity.
     @ViewBuilder
     private var contentScrollView: some View {
         ScrollViewReader { proxy in
@@ -255,69 +283,88 @@ struct PermanentBottomSheet: View {
                         )
                         .padding(.top, 40)
                     } else {
-                        ForEach(
-                            Array(currentActivities.enumerated()),
-                            id: \.element.id
-                        ) { index, activity in
-                            let showYear = index == 0
-                                || currentActivities[index - 1].yearInt != activity.yearInt
-
-                            if showYear {
-                                yearSeparator(yearInt: activity.yearInt)
-                            }
-
+                        ForEach(Array(currentActivities.enumerated()), id: \.element.id) { _, activity in
                             activityRow(activity: activity)
-                                .frame(minHeight: 72)
+                                .frame(height: 72)
                                 .id(activity.id)
-
                             Divider().padding(.leading, 16)
                         }
-
-                        // Leerraum am Ende — letzte Row snappt sauber nach oben.
                         Color.clear
                             .frame(height: UIScreen.main.bounds.height * 0.32)
                     }
                 }
-                .scrollTargetLayout()
             }
-            .scrollTargetBehavior(.viewAligned)
-            .scrollPosition(id: $scrollPosition)
+            .scrollPosition(id: $scrollPosition, anchor: .top)
             .id(listId)
             .offset(x: listOffset)
             .opacity(listOpacity)
-            // Externe Änderung (Pin-Tap, Row-Tap) → ScrollView zur Aktivität springen
+            // Unified Gesture: horizontal → Kategorie-Wechsel, vertikal → Paging
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 20)
+                    .onEnded { value in
+                        let h = value.translation.width
+                        let v = value.translation.height
+                        let vel = value.velocity.height
+
+                        // Horizontal → Kategorie wechseln
+                        if abs(h) > abs(v) * 1.5, abs(h) > 40 {
+                            if h < -40 { swipeToNext() }
+                            else if h > 40 { swipeToPrevious() }
+                            return
+                        }
+
+                        // Schneller Fling → warten bis ScrollView ausläuft, dann einsnappen
+                        if abs(vel) > 500 {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                snapToCurrentPosition(proxy: proxy)
+                            }
+                            return
+                        }
+
+                        // Kleine Bewegungen ignorieren
+                        guard abs(v) > 20 || abs(vel) > 100 else { return }
+
+                        // Normale Bewegung → Paging
+                        var newIndex = currentIndex
+                        if vel < -100 || v < -40 {
+                            newIndex = min(currentIndex + 1, currentActivities.count - 1)
+                        } else if vel > 100 || v > 40 {
+                            newIndex = max(currentIndex - 1, 0)
+                        } else {
+                            return // Unklare Richtung → bei aktuellem bleiben
+                        }
+
+                        snapTo(index: newIndex, proxy: proxy)
+                    }
+            )
+            // Externe Änderung (Pin-Tap, Row-Tap) → Index syncen + scrollen
             .onChange(of: mapVM.highlightedActivityId) { _, newId in
-                guard let newId else { return }
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    proxy.scrollTo(newId, anchor: UnitPoint.top)
-                }
-            }
-            // User scrollt und lässt los → eingesnappte Aktivität wird zur aktiven
-            .onChange(of: scrollPosition) { _, newId in
-                guard let newId else { return }
-                mapVM.highlightedActivityId = newId
-                guard let activity = currentActivities.first(where: { $0.id == newId }),
-                      let location  = activity.location
+                guard let newId,
+                      let index = currentActivities.firstIndex(where: { $0.id == newId })
                 else { return }
-                mapVM.animateToPin(
-                    from: mapVM.selectedLocation,
-                    to:   location,
-                    currentSpan: mapVM.region.span
-                )
-                mapVM.selectedLocation = location
+                currentIndex = index
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(newId, anchor: .top)
+                }
             }
             .onAppear {
                 if let id = mapVM.highlightedActivityId {
+                    if let index = currentActivities.firstIndex(where: { $0.id == id }) {
+                        currentIndex = index
+                    }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        proxy.scrollTo(id, anchor: UnitPoint.top)
+                        proxy.scrollTo(id, anchor: .top)
                     }
                 }
             }
             // Nach Speichern → zur neuen Aktivität scrollen
             .onReceive(NotificationCenter.default.publisher(for: .scrollToActivity)) { notification in
                 guard let id = notification.object as? Activity.ID else { return }
+                if let index = currentActivities.firstIndex(where: { $0.id == id }) {
+                    currentIndex = index
+                }
                 withAnimation(.easeInOut(duration: 0.4)) {
-                    proxy.scrollTo(id, anchor: UnitPoint.top)
+                    proxy.scrollTo(id, anchor: .top)
                 }
                 mapVM.highlightedActivityId = id
             }
@@ -325,6 +372,7 @@ struct PermanentBottomSheet: View {
         .clipped()
         // Filter von außen (ChipBar, CategoryIconView-Tap) → Index syncen
         .onChange(of: filterVM.selectedCategoryId) { _, newId in
+            currentIndex = 0
             if let newId {
                 if let idx = categoryPages.firstIndex(where: { $0?.id == newId }),
                    idx != selectedPageIndex {
@@ -334,23 +382,6 @@ struct PermanentBottomSheet: View {
                 selectedPageIndex = 0
             }
         }
-        // Kategorie-Swipe NUR auf der Liste — highPriorityGesture damit horizontale
-        // Swipes erkannt werden bevor ScrollView sie als Scroll-Versuch interpretiert
-        .highPriorityGesture(
-            DragGesture(minimumDistance: 30)
-                .onEnded { value in
-                    let h = value.translation.width
-                    let v = value.translation.height
-                    guard abs(h) > abs(v) * 2.0,
-                          abs(h) > 50
-                    else { return }
-                    if h < 0 {
-                        swipeToNext()
-                    } else {
-                        swipeToPrevious()
-                    }
-                }
-        )
     }
 
     // MARK: Small Content (15 %)
@@ -562,8 +593,8 @@ struct PermanentBottomSheet: View {
                             .truncationMode(.tail)
                     }
 
-                    if let city = activity.location?.city, !city.isEmpty {
-                        Text(city)
+                    if let place = activity.location?.locationName ?? activity.location?.city, !place.isEmpty {
+                        Text(place)
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                             .lineLimit(1)
@@ -615,8 +646,56 @@ struct PermanentBottomSheet: View {
         .background(isHighlighted ? Color(hex: "#E8593C").opacity(0.05) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture {
+            // 1. Highlight setzen
             mapVM.highlightedActivityId = activity.id
+            mapVM.selectedLocation      = activity.location
+
+            // 2. Karte zentrieren + Zoom
+            if let location = activity.location {
+                mapVM.smoothAnimateToPin(to: location.coordinate)
+                let currentSpan = mapVM.region.span
+                let targetSpan  = currentSpan.latitudeDelta > 0.2
+                    ? MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                    : currentSpan
+                mapVM.region = MKCoordinateRegion(
+                    center: mapVM.adjustedCenter(
+                        for: location.coordinate,
+                        span: targetSpan,
+                        sheetDetent: 0.45
+                    ),
+                    span: targetSpan
+                )
+            }
+
+            // 3. Detail-Sheet öffnen
             selectedActivity = activity
+        }
+    }
+
+    // MARK: Snap Helpers
+
+    /// Snappt zur Aktivität die nach einem Fling ganz oben sichtbar ist (via scrollPosition-Tracker).
+    private func snapToCurrentPosition(proxy: ScrollViewProxy) {
+        guard let currentId = scrollPosition,
+              let index = currentActivities.firstIndex(where: { $0.id == currentId })
+        else { return }
+        snapTo(index: index, proxy: proxy)
+    }
+
+    /// Scrollt zu einer Aktivität per Index und aktualisiert Map + Highlight.
+    private func snapTo(index: Int, proxy: ScrollViewProxy) {
+        currentIndex = index
+        guard currentActivities.indices.contains(index) else { return }
+        let target = currentActivities[index]
+        withAnimation(.easeInOut(duration: 0.3)) {
+            proxy.scrollTo(target.id, anchor: .top)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            mapVM.highlightedActivityId = target.id
+            if let location = target.location {
+                mapVM.smoothAnimateToPin(to: location.coordinate)
+                mapVM.selectedLocation = location
+            }
         }
     }
 

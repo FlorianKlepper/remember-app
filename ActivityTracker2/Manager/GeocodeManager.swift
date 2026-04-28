@@ -17,6 +17,8 @@ final class GeocodeManager {
 
     /// Ergebnis eines Reverse Geocoding-Vorgangs.
     struct GeocodeResult {
+        /// POI-Name, z.B. "Pöllinger Hof" oder "Marienplatz".
+        let locationName: String?
         /// Stadtname, z.B. "München".
         let city: String?
         /// Bundesland oder Region, z.B. "Bayern".
@@ -63,9 +65,10 @@ extension GeocodeManager {
         CLGeocoder().reverseGeocodeLocation(location) { [weak self] placemarks, _ in
             let p = placemarks?.first
             let result = GeocodeResult(
-                city:    Location.normalizeCity(p?.locality, country: p?.country),
-                region:  p?.administrativeArea,
-                country: p?.isoCountryCode
+                locationName: p?.name,
+                city:         Location.normalizeCity(p?.locality, country: p?.country),
+                region:       p?.administrativeArea,
+                country:      p?.isoCountryCode
             )
             DispatchQueue.main.async {
                 self?.cache[key] = result

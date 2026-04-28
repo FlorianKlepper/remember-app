@@ -15,6 +15,7 @@ struct SmoothMapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     var annotations: [ActivityAnnotation]
     var mapStyle: String
+    var isAnimatingToUser: Bool
     var onRegionChange: (MKCoordinateRegion) -> Void
     var onAnnotationTap: (ActivityAnnotation) -> Void
 
@@ -134,8 +135,9 @@ extension SmoothMapView {
         }
 
         /// User hat Karte gedragen — Region nur zurückmelden wenn wir nicht selbst animieren.
+        /// `isAnimatingToUser` schützt den Follow-Modus während der GPS-Button-Animation.
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-            guard !isAnimating else { return }
+            guard !isAnimating, !parent.isAnimatingToUser else { return }
             DispatchQueue.main.async {
                 self.parent.onRegionChange(mapView.region)
             }

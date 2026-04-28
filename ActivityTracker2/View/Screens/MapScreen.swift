@@ -141,14 +141,21 @@ struct MapScreen: View {
                 allActivities: activityVM.activities
             )
         }
-        // Erster GPS-Fix → Karte einmalig auf aktuellen Standort zentrieren
+        // GPS-Update → Karte beim ersten Fix zentrieren, danach nur wenn Follow-Modus aktiv
         .onChange(of: locationManager.currentLocation) { _, newLocation in
-            guard let coord = newLocation, !mapVM.hasInitialLocation else { return }
-            mapVM.hasInitialLocation = true
-            mapVM.region = MKCoordinateRegion(
-                center: coord,
-                span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-            )
+            guard let coord = newLocation else { return }
+            if !mapVM.hasInitialLocation {
+                mapVM.hasInitialLocation = true
+                mapVM.region = MKCoordinateRegion(
+                    center: coord,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                )
+            } else if mapVM.isFollowingUser, !mapVM.isAnimatingToUser {
+                mapVM.region = MKCoordinateRegion(
+                    center: coord,
+                    span: mapVM.region.span
+                )
+            }
         }
         .onChange(of: activityVM.activities) { _, newActivities in
             mapVM.onCategorySelected(
@@ -247,8 +254,10 @@ struct MapScreen: View {
             ),
             annotations: displayedAnnotations,
             mapStyle: userSettings.mapStyle,
+            isAnimatingToUser: mapVM.isAnimatingToUser,
             onRegionChange: { newRegion in
                 mapVM.region = newRegion
+                mapVM.isFollowingUser = false
             },
             onAnnotationTap: { annotation in
                 mapVM.highlightedActivityId = annotation.activity.id
@@ -302,9 +311,12 @@ struct MapScreen: View {
             // GPS Refokussierung
             Button { refocusOnGPS() } label: {
                 let hasLocation = locationManager.currentLocation != nil
-                Image(systemName: hasLocation ? "location.fill" : "location.slash")
+                let icon: String = mapVM.isFollowingUser
+                    ? "location.fill"
+                    : (hasLocation ? "location" : "location.slash")
+                Image(systemName: icon)
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(hasLocation ? Color(hex: "#E8593C") : Color(.systemGray3))
+                    .foregroundStyle(mapVM.isFollowingUser ? Color(hex: "#E8593C") : Color(.systemGray3))
                     .frame(width: 42, height: 42)
             }
         }
@@ -358,13 +370,7 @@ struct MapScreen: View {
 
     private func refocusOnGPS() {
         guard let coordinate = locationManager.currentLocation else { return }
-        mapVM.region = MKCoordinateRegion(
-            center: coordinate,
-            span: MKCoordinateSpan(
-                latitudeDelta:  AppConstants.defaultMapSpan,
-                longitudeDelta: AppConstants.defaultMapSpan
-            )
-        )
+        mapVM.focusOnUserLocation(coord: coordinate)
     }
 }
 

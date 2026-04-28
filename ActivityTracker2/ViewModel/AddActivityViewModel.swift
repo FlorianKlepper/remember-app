@@ -174,16 +174,15 @@ extension AddActivityViewModel {
 
         let location = try await findOrCreateLocation(coordinate: coordinate, context: context)
 
-        // Stadt und Land aus Nearby-Place-Auswahl nachpflegen
+        // POI-Name, Stadt und Land aus Auswahl nachpflegen
+        if let name = pendingLocationName, !name.isBlank {
+            location.locationName = name
+        }
         if location.city == nil, let city = pendingCity, !city.isBlank {
             location.city = city
         }
         if location.country == nil, let country = pendingCountry, !country.isBlank {
             location.country = country
-        }
-        // Fallback: pendingLocationName als Stadtname wenn kein pendingCity gesetzt
-        if location.city == nil, let name = pendingLocationName, !name.isBlank {
-            location.city = name
         }
 
         try await activityViewModel.addActivity(

@@ -29,6 +29,9 @@ final class LocationManager: NSObject {
     /// Offene Continuation für `fetchCurrentLocation()` — nur eine gleichzeitig aktiv.
     private var locationContinuation: CheckedContinuation<CLLocationCoordinate2D, Error>?
 
+    /// Verhindert doppelte Aufrufe von `startUpdatingLocation()`.
+    private var isUpdating = false
+
     // MARK: Init
 
     override init() {
@@ -50,20 +53,28 @@ extension LocationManager {
     }
 
     /// Startet kontinuierliche Standort-Updates — hält `currentLocation` aktuell.
-    /// Keine Aktion wenn die Berechtigung noch nicht erteilt wurde.
+    /// Stoppt zuerst und startet neu um sicherzustellen dass Updates nach Foreground ankommen.
     func startUpdating() {
-        guard authorizationStatus == .authorizedWhenInUse ||
-              authorizationStatus == .authorizedAlways else {
-            print("GPS not authorized")
-            return
+        switch authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationManager.stopUpdatingLocation()
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.distanceFilter = 10
+            locationManager.startUpdatingLocation()
+            isUpdating = true
+            print("GPS restarted ✓")
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .denied, .restricted:
+            print("GPS denied")
+        @unknown default:
+            break
         }
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.startUpdatingLocation()
-        print("GPS started")
     }
 
     /// Stoppt kontinuierliche Standort-Updates.
     func stopUpdating() {
+        isUpdating = false
         locationManager.stopUpdatingLocation()
         print("GPS stopped")
     }
@@ -97,6 +108,7 @@ extension LocationManager: CLLocationManagerDelegate {
     ) {
         guard let location = locations.last else { return }
         let coordinate = location.coordinate
+        print("GPS update: \(coordinate.latitude), \(coordinate.longitude)")
         Task { @MainActor [weak self] in
             self?.currentLocation = coordinate
             self?.locationContinuation?.resume(returning: coordinate)
