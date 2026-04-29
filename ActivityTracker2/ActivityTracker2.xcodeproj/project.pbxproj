@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		150395372FA28DD00004010B /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 150395362FA28DD00004010B /* PostHog */; };
 		15388BA32F8C99AE000A024E /* ActivityTracker2App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BA22F8C99AE000A024E /* ActivityTracker2App.swift */; };
 		15388BA52F8C99AE000A024E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BA42F8C99AE000A024E /* ContentView.swift */; };
 		15388BB92F8CA489000A024E /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15388BB82F8CA489000A024E /* Extensions.swift */; };
@@ -203,6 +204,7 @@
 				15388CA62F92701D000A024E /* Algorithms in Frameworks */,
 				15388CA92F9270BE000A024E /* TelemetryClient in Frameworks */,
 				15388CAB2F9270BE000A024E /* TelemetryDeck in Frameworks */,
+				150395372FA28DD00004010B /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +409,7 @@
 				15388CA52F92701D000A024E /* Algorithms */,
 				15388CA82F9270BE000A024E /* TelemetryClient */,
 				15388CAA2F9270BE000A024E /* TelemetryDeck */,
+				150395362FA28DD00004010B /* PostHog */,
 			);
 			productName = ActivityTracker2;
 			productReference = 15388B9F2F8C99AE000A024E /* ActivityTracker2.app */;
@@ -439,6 +442,7 @@
 			packageReferences = (
 				15388CA42F92701D000A024E /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				15388CA72F9270BE000A024E /* XCRemoteSwiftPackageReference "SwiftSDK" */,
+				150395352FA28DD00004010B /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 15388BA02F8C99AE000A024E /* Products */;
@@ -763,6 +767,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		150395352FA28DD00004010B /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.57.2;
+			};
+		};
 		15388CA42F92701D000A024E /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-algorithms.git";
@@ -782,6 +794,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		150395362FA28DD00004010B /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 150395352FA28DD00004010B /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
 		15388CA52F92701D000A024E /* Algorithms */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 15388CA42F92701D000A024E /* XCRemoteSwiftPackageReference "swift-algorithms" */;

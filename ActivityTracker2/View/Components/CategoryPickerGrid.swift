@@ -152,121 +152,26 @@ struct CategoryPickerGrid: View {
         }
     }
 
-    // MARK: Computed — Plus (MVP + Plus gemischt, ohne bereits verwendete)
+    // MARK: Computed — Cluster-Filter (direkt aus Category.cluster)
 
-    private var foodAllCategories: [Category] {
-        let mvp  = Category.mvpCategories.filter {
-            ["restaurant", "cafe", "bar", "wine_tasting"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
-        }
-        let plus = Category.plusCategories.filter {
-            $0.colorHex == "#BA7517" && !usedCategoryIds.contains($0.id)
-        }
-        return mvp + plus
-    }
-
-    private var sportAllCategories: [Category] {
-        let mvp  = Category.mvpCategories.filter {
-            ["running", "hiking", "cycling", "skiing", "fitness", "football",
-             "climbing", "swimming", "yoga", "tennis", "golf", "dancing"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
-        }
-        let plus = Category.plusCategories.filter {
-            $0.colorHex == "#D85A30" && !usedCategoryIds.contains($0.id)
-        }
-        return mvp + plus
-    }
-
-    private var outdoorAllCategories: [Category] {
-        let mvp  = Category.mvpCategories.filter {
-            ["park", "beach", "picnic", "campsite", "viewpoint"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
-        }
-        let plus = Category.plusCategories.filter {
-            $0.colorHex == "#1D9E75" && !usedCategoryIds.contains($0.id)
-        }
-        return mvp + plus
-    }
-
-    private var kulturAllCategories: [Category] {
-        let mvp  = Category.mvpCategories.filter {
-            ["museum", "cinema", "concert", "theater", "festival"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
-        }
-        let plus = Category.plusCategories.filter {
-            $0.colorHex == "#7F77DD" && !usedCategoryIds.contains($0.id)
-        }
-        return mvp + plus
-    }
-
-    private var kreativAllCategories: [Category] {
-        let mvp  = Category.mvpCategories.filter {
-            $0.id == "photography" && !usedCategoryIds.contains($0.id)
-        }
-        let plus = Category.plusCategories.filter {
-            $0.colorHex == "#378ADD" && !usedCategoryIds.contains($0.id)
-        }
-        return mvp + plus
-    }
-
-    private var lifestyleAllCategories: [Category] {
-        let mvp  = Category.mvpCategories.filter {
-            $0.id == "travel" && !usedCategoryIds.contains($0.id)
-        }
-        let plus = Category.plusCategories.filter {
-            $0.colorHex == "#D4537E" && !usedCategoryIds.contains($0.id)
-        }
-        return mvp + plus
-    }
-
-    // MARK: Computed — Free (nur MVP, ohne bereits verwendete)
-
-    private var foodMVPCategories: [Category] {
+    private func freeCats(_ cluster: String) -> [Category] {
         Category.mvpCategories.filter {
-            ["restaurant", "cafe", "bar", "wine_tasting"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
+            $0.cluster == cluster &&
+            $0.id != "journal" &&
+            !usedCategoryIds.contains($0.id)
         }
     }
 
-    private var sportMVPCategories: [Category] {
-        Category.mvpCategories.filter {
-            ["running", "hiking", "cycling", "skiing", "fitness", "football",
-             "climbing", "swimming", "yoga", "tennis", "golf", "dancing"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
+    private func allCats(_ cluster: String) -> [Category] {
+        (Category.mvpCategories + Category.plusCategories).filter {
+            $0.cluster == cluster &&
+            $0.id != "journal" &&
+            !usedCategoryIds.contains($0.id)
         }
     }
 
-    private var outdoorMVPCategories: [Category] {
-        Category.mvpCategories.filter {
-            ["park", "beach", "picnic", "campsite", "viewpoint"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
-        }
-    }
-
-    private var kulturMVPCategories: [Category] {
-        Category.mvpCategories.filter {
-            ["museum", "cinema", "concert", "theater", "festival"].contains($0.id)
-            && !usedCategoryIds.contains($0.id)
-        }
-    }
-
-    private var kreativMVPCategories: [Category] {
-        Category.mvpCategories.filter {
-            $0.id == "photography" && !usedCategoryIds.contains($0.id)
-        }
-    }
-
-    private var lifestyleMVPCategories: [Category] {
-        Category.mvpCategories.filter {
-            $0.id == "travel" && !usedCategoryIds.contains($0.id)
-        }
-    }
-
-    /// Alle Plus-Kategorien (ohne bereits verwendete), sortiert nach Farbe.
     private var allPlusCategories: [Category] {
-        Category.plusCategories
-            .filter { !usedCategoryIds.contains($0.id) }
-            .sorted { $0.colorHex < $1.colorHex }
+        Category.plusCategories.filter { !usedCategoryIds.contains($0.id) }
     }
 
     // MARK: Body
@@ -275,10 +180,10 @@ struct CategoryPickerGrid: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
 
-                // ── 1. Tagebuch (immer zuerst) ───────────────────────
+                // 1. Tagebuch (immer zuerst)
                 tagebuchSection
 
-                // ── 2. Verwendete Kategorien (ohne Tagebuch) ─────────
+                // 2. Verwendete Kategorien (ohne Tagebuch)
                 if !usedCategoriesWithoutJournal.isEmpty {
                     categorySection(
                         title: L10n.categoryUsed,
@@ -286,109 +191,34 @@ struct CategoryPickerGrid: View {
                     )
                 }
 
+                // 3–8. Freie Cluster (immer sichtbar)
+                let clusterOrder: [(id: String, title: String)] = [
+                    ("outdoor", String(localized: "category.section.outdoor", defaultValue: "Outdoor")),
+                    ("sport",   String(localized: "category.section.sport",   defaultValue: "Sport")),
+                    ("food",    String(localized: "category.section.food",    defaultValue: "Essen & Trinken")),
+                    ("kultur",  String(localized: "category.section.kultur",  defaultValue: "Kultur")),
+                    ("kreativ", String(localized: "category.section.kreativ", defaultValue: "Kreativ")),
+                    ("lifestyle",String(localized: "category.section.lifestyle",defaultValue: "Lifestyle")),
+                ]
+
+                ForEach(clusterOrder, id: \.id) { cluster in
+                    let cats = freeCats(cluster.id)
+                    if !cats.isEmpty {
+                        categorySection(title: cluster.title, categories: cats)
+                    }
+                }
+
                 if isPlusUser {
 
-                    // ── PLUS: alle Cluster gemischt MVP + Plus ───────
-
-                    categorySection(
-                        title: String(localized: "category.section.food",
-                                      defaultValue: "Essen & Trinken"),
-                        subtitle: String(localized: "category.section.food.subtitle",
-                                         defaultValue: "Restaurants, Cafés & Bars"),
-                        categories: foodAllCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.sport",
-                                      defaultValue: "Sport"),
-                        subtitle: String(localized: "category.section.sport.subtitle",
-                                         defaultValue: "Aktivitäten & Fitness"),
-                        categories: sportAllCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.outdoor",
-                                      defaultValue: "Outdoor"),
-                        subtitle: String(localized: "category.section.outdoor.subtitle",
-                                         defaultValue: "Natur & Abenteuer"),
-                        categories: outdoorAllCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.kultur",
-                                      defaultValue: "Kultur"),
-                        subtitle: String(localized: "category.section.kultur.subtitle",
-                                         defaultValue: "Musik, Kunst & mehr"),
-                        categories: kulturAllCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.kreativ",
-                                      defaultValue: "Kreativ"),
-                        subtitle: String(localized: "category.section.kreativ.subtitle",
-                                         defaultValue: "Fotografie & Kunst"),
-                        categories: kreativAllCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.lifestyle",
-                                      defaultValue: "Lifestyle"),
-                        subtitle: String(localized: "category.section.lifestyle.subtitle",
-                                         defaultValue: "Reisen & Wellness"),
-                        categories: lifestyleAllCategories
-                    )
+                    // Plus-User: FREE + PLUS zusammen pro Cluster
+                    ForEach(clusterOrder, id: \.id) { cluster in
+                        let cats = allCats(cluster.id)
+                        if !cats.isEmpty {
+                            categorySection(title: cluster.title, categories: cats)
+                        }
+                    }
 
                 } else {
-
-                    // ── FREE: nur MVP-Cluster + gesperrte Plus-Section ─
-
-                    categorySection(
-                        title: String(localized: "category.section.food",
-                                      defaultValue: "Essen & Trinken"),
-                        subtitle: String(localized: "category.section.food.subtitle",
-                                         defaultValue: "Restaurants, Cafés & Bars"),
-                        categories: foodMVPCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.sport",
-                                      defaultValue: "Sport"),
-                        subtitle: String(localized: "category.section.sport.subtitle",
-                                         defaultValue: "Aktivitäten & Fitness"),
-                        categories: sportMVPCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.outdoor",
-                                      defaultValue: "Outdoor"),
-                        subtitle: String(localized: "category.section.outdoor.subtitle",
-                                         defaultValue: "Natur & Abenteuer"),
-                        categories: outdoorMVPCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.kultur",
-                                      defaultValue: "Kultur"),
-                        subtitle: String(localized: "category.section.kultur.subtitle",
-                                         defaultValue: "Musik, Kunst & mehr"),
-                        categories: kulturMVPCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.kreativ",
-                                      defaultValue: "Kreativ"),
-                        subtitle: String(localized: "category.section.kreativ.subtitle",
-                                         defaultValue: "Fotografie & Kunst"),
-                        categories: kreativMVPCategories
-                    )
-
-                    categorySection(
-                        title: String(localized: "category.section.lifestyle",
-                                      defaultValue: "Lifestyle"),
-                        subtitle: String(localized: "category.section.lifestyle.subtitle",
-                                         defaultValue: "Reisen & Wellness"),
-                        categories: lifestyleMVPCategories
-                    )
 
                     // Alle Plus-Kategorien gesperrt ganz unten
                     categorySection(

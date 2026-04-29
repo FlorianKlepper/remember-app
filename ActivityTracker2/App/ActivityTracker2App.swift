@@ -5,6 +5,7 @@
 import SwiftUI
 import SwiftData
 import TelemetryDeck
+import PostHog
 
 // MARK: - ActivityTracker2App
 
@@ -47,8 +48,16 @@ struct ActivityTracker2App: App {
     /// `AnalyticsManager` wird zuerst erstellt, da `ActivityViewModel`
     /// und `PlusViewModel` ihn als Parameter benötigen.
     init() {
-        // 0. TelemetryDeck — muss als erstes initialisiert werden
+        // 0. Analytics SDKs — müssen als erstes initialisiert werden
         TelemetryDeck.initialize(config: .init(appID: "DB2C7E9A-F056-413C-B648-A062D6E037A7"))
+
+        let postHogConfig = PostHogConfig(
+            apiKey: "phc_qGRQJPTub2QqdxjLzGNf5tknH8Bkf699UBX6aPCzYPkM",
+            host: "https://eu.i.posthog.com"
+        )
+        postHogConfig.captureScreenViews = false                  // manuelles Screen-Tracking via AnalyticsManager
+        postHogConfig.captureApplicationLifecycleEvents = false   // app_opened wird manuell getrackt
+        PostHogSDK.shared.setup(postHogConfig)
 
         // 1. Analytics zuerst — wird von mehreren ViewModels benötigt
         let analytics = AnalyticsManager()

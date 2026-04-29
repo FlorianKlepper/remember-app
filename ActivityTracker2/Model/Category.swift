@@ -1,188 +1,167 @@
 // Category.swift
 // ActivityTracker2 — Remember
-// Statisches Kategorie-Modell (kein SwiftData) — 100 Kategorien in 6 Clustern
+// Kategorie-Modell
 
 import Foundation
+import SwiftData
 
 // MARK: - Category
 
-/// Repräsentiert eine Aktivitätskategorie.
-/// Wird **nicht** in SwiftData gespeichert — `Activity` speichert nur die `id` als String.
-/// Alle verfügbaren Kategorien werden zur Laufzeit aus den statischen Arrays nachgeschlagen.
-///
-/// Cluster-Farben:
-/// - Outdoor   #1D9E75
-/// - Sport     #D85A30
-/// - Food      #BA7517
-/// - Kultur    #7F77DD
-/// - Kreativ   #378ADD
-/// - Lifestyle #D4537E
-struct Category: Identifiable, Hashable {
+@Model
+final class Category {
 
-    /// Eindeutiger String-Schlüssel, entspricht `Activity.categoryId`.
-    let id: String
+    var id:         String
+    var nameDe:     String
+    var nameEn:     String
+    var iconName:   String
+    var colorHex:   String
+    var isPlusOnly: Bool
+    var cluster:    String
 
-    /// Kategoriename auf Deutsch.
-    let nameDe: String
+    init(id: String, nameDe: String, nameEn: String,
+         iconName: String, colorHex: String,
+         isPlusOnly: Bool, cluster: String) {
+        self.id         = id
+        self.nameDe     = nameDe
+        self.nameEn     = nameEn
+        self.iconName   = iconName
+        self.colorHex   = colorHex
+        self.isPlusOnly = isPlusOnly
+        self.cluster    = cluster
+    }
 
-    /// Kategoriename auf Englisch.
-    let nameEn: String
-
-    /// SF-Symbol-Name für das Kategorie-Icon.
-    let iconName: String
-
-    /// Hex-Farbwert des Kategorie-Akzents, z.B. `"#1D9E75"`.
-    let colorHex: String
-
-    /// `true` wenn die Kategorie nur mit Plus-Abo verfügbar ist.
-    let isPlusOnly: Bool
-
-    // MARK: Lokalisierung
-
-    /// Gibt den Kategorienamen für die angegebene Sprache zurück.
-    /// - Parameter language: `"de"`, `"en"` oder `"system"` (folgt iOS-Systemsprache).
-    func localizedName(for language: String) -> String {
-        switch language {
-        case "de": return nameDe
-        case "en": return nameEn
-        default:
-            let langCode = Locale.current.language.languageCode?.identifier ?? "en"
-            return langCode == "de" ? nameDe : nameEn
-        }
+    /// Lokalisierter Kategoriename anhand des Sprachcodes.
+    func localizedName(for code: String) -> String {
+        code == "de" ? nameDe : nameEn
     }
 }
 
-// MARK: - MVP Categories (30 — isPlusOnly: false)
+// MARK: - MVP Categories (Free — isPlusOnly: false)
 
 extension Category {
 
-    /// Kategorien im kostenlosen Plan — 30 Kategorien in 6 Clustern.
     static let mvpCategories: [Category] = [
 
-        // ── OUTDOOR (5) ───────────────────────────────────────────────────────
-        Category(id: "park",        nameDe: "Park",           nameEn: "Park",        iconName: "tree.fill",           colorHex: "#1D9E75", isPlusOnly: false),
-        Category(id: "beach",       nameDe: "Strand",         nameEn: "Beach",       iconName: "beach.umbrella.fill", colorHex: "#1D9E75", isPlusOnly: false),
-        Category(id: "picnic",      nameDe: "Picknick",       nameEn: "Picnic",      iconName: "basket.fill",         colorHex: "#1D9E75", isPlusOnly: false),
-        Category(id: "campsite",    nameDe: "Camping",        nameEn: "Camping",     iconName: "tent.fill",           colorHex: "#1D9E75", isPlusOnly: false),
-        Category(id: "viewpoint",   nameDe: "Aussichtspunkt", nameEn: "Viewpoint",   iconName: "binoculars.fill",     colorHex: "#1D9E75", isPlusOnly: false),
+        // Outdoor
+        Category(id: "park",       nameDe: "Park",     nameEn: "Park",    iconName: "leaf.fill",           colorHex: "3A7D44", isPlusOnly: false, cluster: "outdoor"),
+        Category(id: "beach",      nameDe: "Strand",   nameEn: "Beach",   iconName: "beach.umbrella.fill", colorHex: "3A7D44", isPlusOnly: false, cluster: "outdoor"),
+        Category(id: "picnic",     nameDe: "Picknick", nameEn: "Picnic",  iconName: "basket.fill",         colorHex: "3A7D44", isPlusOnly: false, cluster: "outdoor"),
+        Category(id: "camping",    nameDe: "Camping",  nameEn: "Camping", iconName: "tent.fill",           colorHex: "3A7D44", isPlusOnly: false, cluster: "outdoor"),
 
-        // ── SPORT (13) ────────────────────────────────────────────────────────
-        Category(id: "running",     nameDe: "Laufen",         nameEn: "Running",     iconName: "figure.run",               colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "hiking",      nameDe: "Wandern",        nameEn: "Hiking",      iconName: "figure.hiking",            colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "cycling",     nameDe: "Fahrrad",        nameEn: "Cycling",     iconName: "figure.outdoor.cycle",     colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "skiing",      nameDe: "Ski",            nameEn: "Skiing",      iconName: "figure.skiing.downhill",   colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "fitness",     nameDe: "Fitness",        nameEn: "Fitness",     iconName: "figure.strengthtraining.traditional", colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "football",    nameDe: "Fussball",       nameEn: "Soccer",      iconName: "soccerball",               colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "climbing",    nameDe: "Klettern",       nameEn: "Climbing",    iconName: "figure.climbing",          colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "swimming",    nameDe: "Schwimmen",      nameEn: "Swimming",    iconName: "figure.pool.swim",         colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "yoga",        nameDe: "Yoga",           nameEn: "Yoga",        iconName: "figure.mind.and.body",     colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "tennis",      nameDe: "Tennis",         nameEn: "Tennis",      iconName: "figure.tennis",            colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "golf",        nameDe: "Golf",           nameEn: "Golf",        iconName: "figure.golf",              colorHex: "#D85A30", isPlusOnly: false),
-        Category(id: "dancing",     nameDe: "Tanzen",         nameEn: "Dancing",     iconName: "figure.socialdance",       colorHex: "#D85A30", isPlusOnly: false),
+        // Sport
+        Category(id: "running",     nameDe: "Laufen",     nameEn: "Running",    iconName: "figure.run",                          colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "hiking",      nameDe: "Wandern",    nameEn: "Hiking",     iconName: "figure.hiking",                       colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "cycling",     nameDe: "Fahrrad",    nameEn: "Cycling",    iconName: "figure.outdoor.cycle",                colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "skiing",      nameDe: "Ski",        nameEn: "Skiing",     iconName: "figure.skiing.downhill",              colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "fitness",     nameDe: "Fitness",    nameEn: "Fitness",    iconName: "figure.strengthtraining.traditional", colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "football",    nameDe: "Fussball",   nameEn: "Soccer",     iconName: "soccerball",                          colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "climbing",    nameDe: "Klettern",   nameEn: "Climbing",   iconName: "figure.climbing",                     colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "swimming",    nameDe: "Schwimmen",  nameEn: "Swimming",   iconName: "figure.pool.swim",                    colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "yoga",        nameDe: "Yoga",       nameEn: "Yoga",       iconName: "figure.yoga",                         colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "tennis",      nameDe: "Tennis",     nameEn: "Tennis",     iconName: "figure.tennis",                       colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "golf",        nameDe: "Golf",       nameEn: "Golf",       iconName: "figure.golf",                         colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "sailing",     nameDe: "Segeln",     nameEn: "Sailing",    iconName: "sailboat.fill",                       colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "kitesurfing", nameDe: "Kitesurfen", nameEn: "Kitesurfing",iconName: "wind",                                colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
+        Category(id: "diving",      nameDe: "Tauchen",    nameEn: "Diving",     iconName: "figure.open.water.swim",              colorHex: "D85A30", isPlusOnly: false, cluster: "sport"),
 
-        // ── FOOD (4) ──────────────────────────────────────────────────────────
-        Category(id: "restaurant",   nameDe: "Restaurant",  nameEn: "Restaurant",   iconName: "fork.knife",          colorHex: "#BA7517", isPlusOnly: false),
-        Category(id: "cafe",         nameDe: "Café",        nameEn: "Café",          iconName: "cup.and.saucer.fill", colorHex: "#BA7517", isPlusOnly: false),
-        Category(id: "bar",          nameDe: "Bar & Kneipe",nameEn: "Bar",           iconName: "wineglass.fill",      colorHex: "#BA7517", isPlusOnly: false),
-        Category(id: "wine_tasting", nameDe: "Weinprobe",   nameEn: "Wine Tasting",  iconName: "wineglass",           colorHex: "#BA7517", isPlusOnly: false),
+        // Food
+        Category(id: "restaurant",   nameDe: "Restaurant",  nameEn: "Restaurant",  iconName: "fork.knife",          colorHex: "E8A838", isPlusOnly: false, cluster: "food"),
+        Category(id: "cafe",         nameDe: "Café",        nameEn: "Café",        iconName: "cup.and.saucer.fill", colorHex: "E8A838", isPlusOnly: false, cluster: "food"),
+        Category(id: "bar",          nameDe: "Bar & Kneipe",nameEn: "Bar & Pub",   iconName: "wineglass.fill",      colorHex: "E8A838", isPlusOnly: false, cluster: "food"),
+        Category(id: "wine_tasting", nameDe: "Weinprobe",   nameEn: "Wine Tasting",iconName: "wineglass",           colorHex: "E8A838", isPlusOnly: false, cluster: "food"),
 
-        // ── KULTUR (5) ────────────────────────────────────────────────────────
-        Category(id: "museum",      nameDe: "Museum",    nameEn: "Museum",   iconName: "building.columns.fill", colorHex: "#7F77DD", isPlusOnly: false),
-        Category(id: "cinema",      nameDe: "Kino",      nameEn: "Cinema",   iconName: "film.fill",             colorHex: "#7F77DD", isPlusOnly: false),
-        Category(id: "concert",     nameDe: "Konzert",   nameEn: "Concert",  iconName: "music.quarternote.3",   colorHex: "#7F77DD", isPlusOnly: false),
-        Category(id: "theater",     nameDe: "Theater",   nameEn: "Theater",  iconName: "theatermasks.fill",     colorHex: "#7F77DD", isPlusOnly: false),
-        Category(id: "festival",    nameDe: "Festival",  nameEn: "Festival", iconName: "party.popper",          colorHex: "#7F77DD", isPlusOnly: false),
+        // Kultur
+        Category(id: "museum",  nameDe: "Museum",  nameEn: "Museum",  iconName: "building.columns.fill", colorHex: "7F77DD", isPlusOnly: false, cluster: "kultur"),
+        Category(id: "cinema",  nameDe: "Kino",    nameEn: "Cinema",  iconName: "film.fill",             colorHex: "7F77DD", isPlusOnly: false, cluster: "kultur"),
+        Category(id: "concert", nameDe: "Konzert", nameEn: "Concert", iconName: "music.quarternote.3",   colorHex: "7F77DD", isPlusOnly: false, cluster: "kultur"),
+        Category(id: "theater", nameDe: "Theater", nameEn: "Theater", iconName: "theatermasks.fill",     colorHex: "7F77DD", isPlusOnly: false, cluster: "kultur"),
 
-        // ── KREATIV (2) ───────────────────────────────────────────────────────
-        Category(id: "journal",     nameDe: "Tagebuch",  nameEn: "Journal",     iconName: "book.fill",  colorHex: "#378ADD", isPlusOnly: false),
-        Category(id: "photography", nameDe: "Fotografie",nameEn: "Photography", iconName: "camera.fill",colorHex: "#378ADD", isPlusOnly: false),
+        // Kreativ
+        Category(id: "journal",    nameDe: "Tagebuch", nameEn: "Journal",    iconName: "book.fill",   colorHex: "378ADD", isPlusOnly: false, cluster: "kreativ"),
+        Category(id: "photo_spot", nameDe: "Fotospot", nameEn: "Photo Spot", iconName: "camera.fill", colorHex: "378ADD", isPlusOnly: false, cluster: "kreativ"),
 
-        // ── LIFESTYLE (1) ─────────────────────────────────────────────────────
-        Category(id: "travel",      nameDe: "Reise",     nameEn: "Travel",      iconName: "airplane",   colorHex: "#D4537E", isPlusOnly: false),
+        // Lifestyle
+        Category(id: "travel", nameDe: "Reise", nameEn: "Travel", iconName: "airplane", colorHex: "9B59B6", isPlusOnly: false, cluster: "lifestyle"),
     ]
 }
 
-// MARK: - Plus Categories (70 — isPlusOnly: true)
+// MARK: - Plus Categories (isPlusOnly: true)
 
 extension Category {
 
-    /// Zusätzliche Kategorien, die nur mit aktivem Plus-Abo verfügbar sind.
     static let plusCategories: [Category] = [
 
-        // ── OUTDOOR PLUS (8) ──────────────────────────────────────────────────
-        Category(id: "camping",       nameDe: "Zelten",           nameEn: "Camping",       iconName: "tent.fill",        colorHex: "#1D9E75", isPlusOnly: true),
-        Category(id: "fishing",       nameDe: "Angeln",           nameEn: "Fishing",       iconName: "figure.fishing",   colorHex: "#1D9E75", isPlusOnly: true),
-        Category(id: "gardening",     nameDe: "Gärtnern",         nameEn: "Gardening",     iconName: "leaf.fill",        colorHex: "#1D9E75", isPlusOnly: true),
-        Category(id: "foraging",      nameDe: "Sammeln",          nameEn: "Foraging",      iconName: "leaf.circle.fill", colorHex: "#1D9E75", isPlusOnly: true),
-        Category(id: "bird_watching", nameDe: "Vogelbeobachtung", nameEn: "Bird Watching", iconName: "bird.fill",        colorHex: "#1D9E75", isPlusOnly: true),
-        Category(id: "stargazing",    nameDe: "Sternegucken",     nameEn: "Stargazing",    iconName: "moon.stars.fill",  colorHex: "#1D9E75", isPlusOnly: true),
+        // Sport PLUS
+        Category(id: "basketball",        nameDe: "Basketball",     nameEn: "Basketball",    iconName: "basketball.fill",           colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "dancing",           nameDe: "Tanzen",         nameEn: "Dancing",       iconName: "figure.socialdance",        colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "surfing",           nameDe: "Surfen",         nameEn: "Surfing",       iconName: "figure.surfing",            colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "kayaking",          nameDe: "Kajak",          nameEn: "Kayaking",      iconName: "figure.water.fitness",      colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "horse_riding",      nameDe: "Reiten",         nameEn: "Horse Riding",  iconName: "figure.equestrian.sports",  colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "paragliding",       nameDe: "Paragliding",    nameEn: "Paragliding",   iconName: "bird.fill",                 colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "canoeing",          nameDe: "Kanu",           nameEn: "Canoeing",      iconName: "oar.2.crossed",             colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "volleyball",        nameDe: "Volleyball",     nameEn: "Volleyball",    iconName: "volleyball.fill",           colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "boxing",            nameDe: "Boxen",          nameEn: "Boxing",        iconName: "figure.boxing",             colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "martial_arts",      nameDe: "Kampfsport",     nameEn: "Martial Arts",  iconName: "figure.martial.arts",       colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "badminton",         nameDe: "Badminton",      nameEn: "Badminton",     iconName: "figure.badminton",          colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "ice_skating",       nameDe: "Eislaufen",      nameEn: "Ice Skating",   iconName: "figure.skating",            colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "skateboarding",     nameDe: "Skateboarden",   nameEn: "Skateboarding", iconName: "figure.skateboarding",      colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "table_tennis",      nameDe: "Tischtennis",    nameEn: "Table Tennis",  iconName: "figure.table.tennis",       colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "archery",           nameDe: "Bogenschiessen", nameEn: "Archery",       iconName: "figure.archery",            colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "pilates",           nameDe: "Pilates",        nameEn: "Pilates",       iconName: "figure.pilates",            colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "rugby",             nameDe: "Rugby",          nameEn: "Rugby",         iconName: "figure.rugby",              colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "ice_hockey",        nameDe: "Eishockey",      nameEn: "Ice Hockey",    iconName: "figure.ice.hockey",         colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "baseball",          nameDe: "Baseball",       nameEn: "Baseball",      iconName: "figure.baseball",           colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "american_football", nameDe: "Football",       nameEn: "Football",      iconName: "football.fill",             colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "cross_country",     nameDe: "Langlaufen",     nameEn: "Cross-Country", iconName: "figure.skiing.crosscountry",colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "fishing",           nameDe: "Angeln",         nameEn: "Fishing",       iconName: "figure.fishing",            colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "billiards",         nameDe: "Billard",        nameEn: "Billiards",     iconName: "circle.grid.3x3.fill",      colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
+        Category(id: "bouldering",        nameDe: "Bouldern",       nameEn: "Bouldering",    iconName: "figure.climbing",           colorHex: "D85A30", isPlusOnly: true, cluster: "sport"),
 
-        // ── SPORT PLUS ────────────────────────────────────────────────────────
-        Category(id: "surfing",          nameDe: "Surfen",           nameEn: "Surfing",           iconName: "figure.surfing",                   colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "kayaking",         nameDe: "Kajak",            nameEn: "Kayaking",          iconName: "figure.water.fitness",             colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "sailing",          nameDe: "Segeln",           nameEn: "Sailing",           iconName: "sailboat.fill",                    colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "horse_riding",     nameDe: "Reiten",           nameEn: "Horse Riding",      iconName: "figure.equestrian.sports",         colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "paragliding",      nameDe: "Paragliding",      nameEn: "Paragliding",       iconName: "bird.fill",                        colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "canoeing",         nameDe: "Kanu",             nameEn: "Canoeing",          iconName: "oar.2.crossed",                    colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "basketball",       nameDe: "Basketball",       nameEn: "Basketball",       iconName: "basketball.fill",       colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "volleyball",       nameDe: "Volleyball",       nameEn: "Volleyball",       iconName: "volleyball.fill",       colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "boxing",           nameDe: "Boxen",            nameEn: "Boxing",           iconName: "figure.boxing",         colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "martial_arts",     nameDe: "Kampfsport",       nameEn: "Martial Arts",     iconName: "figure.martial.arts",   colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "badminton",        nameDe: "Badminton",        nameEn: "Badminton",        iconName: "figure.badminton",      colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "ice_skating",      nameDe: "Eislaufen",        nameEn: "Ice Skating",      iconName: "snowflake",             colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "skateboarding",    nameDe: "Skateboarden",     nameEn: "Skateboarding",    iconName: "figure.skateboarding",  colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "table_tennis",     nameDe: "Tischtennis",      nameEn: "Table Tennis",     iconName: "figure.table.tennis",   colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "archery",          nameDe: "Bogenschiessen",   nameEn: "Archery",          iconName: "figure.archery",        colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "pilates",          nameDe: "Pilates",          nameEn: "Pilates",          iconName: "figure.core.training",  colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "rugby",            nameDe: "Rugby",            nameEn: "Rugby",            iconName: "figure.rugby",          colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "ice_hockey",       nameDe: "Eishockey",        nameEn: "Ice Hockey",       iconName: "figure.hockey",         colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "baseball",         nameDe: "Baseball",         nameEn: "Baseball",         iconName: "figure.baseball",       colorHex: "#D85A30", isPlusOnly: true),
-        Category(id: "american_football",nameDe: "Football",         nameEn: "Football",         iconName: "football.fill",           colorHex: "#D85A30", isPlusOnly: true),
+        // Outdoor PLUS
+        Category(id: "viewpoint",    nameDe: "Aussichtspunkt",  nameEn: "Viewpoint",    iconName: "binoculars.fill",   colorHex: "3A7D44", isPlusOnly: true, cluster: "outdoor"),
+        Category(id: "camping_wild", nameDe: "Zelten",          nameEn: "Wild Camping", iconName: "tent.2.fill",       colorHex: "3A7D44", isPlusOnly: true, cluster: "outdoor"),
+        Category(id: "foraging",     nameDe: "Sammeln",         nameEn: "Foraging",     iconName: "leaf.circle.fill",  colorHex: "3A7D44", isPlusOnly: true, cluster: "outdoor"),
+        Category(id: "birdwatching", nameDe: "Vogelbeobachtung",nameEn: "Birdwatching", iconName: "binoculars",        colorHex: "3A7D44", isPlusOnly: true, cluster: "outdoor"),
+        Category(id: "geocaching",   nameDe: "Geocaching",      nameEn: "Geocaching",   iconName: "map.fill",          colorHex: "3A7D44", isPlusOnly: true, cluster: "outdoor"),
+        Category(id: "sightseeing",  nameDe: "Sehenswürdigkeit",nameEn: "Sightseeing",  iconName: "camera.viewfinder", colorHex: "3A7D44", isPlusOnly: true, cluster: "outdoor"),
 
-        // ── FOOD PLUS (9) ─────────────────────────────────────────────────────
-        Category(id: "cocktail_bar",   nameDe: "Cocktailbar",    nameEn: "Cocktail Bar",   iconName: "wineglass.fill",                   colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "brewery",        nameDe: "Brauerei",       nameEn: "Brewery",        iconName: "mug.fill",                         colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "food_market",    nameDe: "Markt",          nameEn: "Food Market",    iconName: "cart.fill",                        colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "street_food",    nameDe: "Street Food",    nameEn: "Street Food",    iconName: "takeoutbag.and.cup.and.straw.fill", colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "tea_house",      nameDe: "Teehaus",        nameEn: "Tea House",      iconName: "cup.and.saucer.fill",              colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "rooftop_bar",    nameDe: "Rooftop Bar",    nameEn: "Rooftop Bar",    iconName: "building.2.fill",                  colorHex: "#BA7517", isPlusOnly: true),
-        Category(id: "cooking_class",  nameDe: "Kochkurs",       nameEn: "Cooking Class",  iconName: "frying.pan.fill",                  colorHex: "#BA7517", isPlusOnly: true),
+        // Food PLUS
+        Category(id: "cocktail_bar", nameDe: "Cocktailbar", nameEn: "Cocktail Bar", iconName: "wineglass.fill",         colorHex: "E8A838", isPlusOnly: true, cluster: "food"),
+        Category(id: "market",       nameDe: "Markt",       nameEn: "Market",       iconName: "bag.fill",               colorHex: "E8A838", isPlusOnly: true, cluster: "food"),
+        Category(id: "street_food",  nameDe: "Street Food", nameEn: "Street Food",  iconName: "fork.knife.circle.fill", colorHex: "E8A838", isPlusOnly: true, cluster: "food"),
+        Category(id: "rooftop_bar",  nameDe: "Rooftop Bar", nameEn: "Rooftop Bar",  iconName: "building.2.fill",        colorHex: "E8A838", isPlusOnly: true, cluster: "food"),
+        Category(id: "ice_cream",    nameDe: "Eiscafé",     nameEn: "Ice Cream",    iconName: "birthday.cake.fill",     colorHex: "E8A838", isPlusOnly: true, cluster: "food"),
+        Category(id: "beer_garden",  nameDe: "Biergarten",  nameEn: "Beer Garden",  iconName: "mug.fill",               colorHex: "E8A838", isPlusOnly: true, cluster: "food"),
 
-        Category(id: "ice_cream_shop", nameDe: "Eiscafé",        nameEn: "Ice Cream Shop", iconName: "birthday.cake.fill",               colorHex: "#BA7517", isPlusOnly: true),
+        // Kultur PLUS
+        Category(id: "festival",      nameDe: "Festival",     nameEn: "Festival",       iconName: "party.popper",        colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "opera",         nameDe: "Oper",         nameEn: "Opera",          iconName: "theatermasks.fill",           colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "comedy",        nameDe: "Comedy",       nameEn: "Comedy",         iconName: "face.smiling.fill",   colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "art_gallery",   nameDe: "Kunstgalerie", nameEn: "Art Gallery",    iconName: "photo.artframe",      colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "circus",        nameDe: "Zirkus",       nameEn: "Circus",         iconName: "star.circle.fill",    colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "karaoke",       nameDe: "Karaoke",      nameEn: "Karaoke",        iconName: "mic.fill",            colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "gaming",        nameDe: "Gaming",       nameEn: "Gaming",         iconName: "gamecontroller.fill", colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "casino",        nameDe: "Casino",       nameEn: "Casino",         iconName: "dice.fill",           colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "amusement_park",nameDe: "Freizeitpark", nameEn: "Amusement Park", iconName: "sparkles",            colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
+        Category(id: "jazz",          nameDe: "Jazz",         nameEn: "Jazz",           iconName: "music.note",          colorHex: "7F77DD", isPlusOnly: true, cluster: "kultur"),
 
-        // ── KULTUR PLUS ───────────────────────────────────────────────────────
-        Category(id: "opera",           nameDe: "Oper",         nameEn: "Opera",           iconName: "music.quarternote.3",     colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "comedy_show",     nameDe: "Comedy",       nameEn: "Comedy Show",     iconName: "face.smiling.fill",       colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "art_gallery",     nameDe: "Kunstgalerie", nameEn: "Art Gallery",     iconName: "paintpalette.fill",       colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "book_fair",       nameDe: "Buchmesse",    nameEn: "Book Fair",       iconName: "books.vertical.fill",     colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "board_game_cafe", nameDe: "Spielecafé",   nameEn: "Board Game Café", iconName: "puzzlepiece.fill",        colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "circus",          nameDe: "Zirkus",       nameEn: "Circus",          iconName: "star.circle.fill",        colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "karaoke",         nameDe: "Karaoke",      nameEn: "Karaoke",         iconName: "mic.fill",                colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "gaming",          nameDe: "Gaming",       nameEn: "Gaming",          iconName: "gamecontroller.fill",     colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "casino",          nameDe: "Casino",       nameEn: "Casino",          iconName: "dollarsign.circle.fill",  colorHex: "#7F77DD", isPlusOnly: true),
-        Category(id: "amusement_park",  nameDe: "Freizeitpark", nameEn: "Amusement Park",  iconName: "figure.jumprope",         colorHex: "#7F77DD", isPlusOnly: true),
+        // Kreativ PLUS
+        Category(id: "writing",         nameDe: "Schreiben",   nameEn: "Writing", iconName: "pencil",           colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
+        Category(id: "painting",        nameDe: "Malen",       nameEn: "Painting",iconName: "paintbrush.pointed.fill",  colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
+        Category(id: "drawing",         nameDe: "Zeichnen",    nameEn: "Drawing", iconName: "pencil.tip",       colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
+        Category(id: "podcast",         nameDe: "Podcast",     nameEn: "Podcast", iconName: "mic.circle.fill",  colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
+        Category(id: "filming",         nameDe: "Filmdreh",    nameEn: "Filming", iconName: "video.fill",       colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
+        Category(id: "music_listening", nameDe: "Musik hören", nameEn: "Music",   iconName: "headphones",       colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
+        Category(id: "reading",         nameDe: "Lesen",       nameEn: "Reading", iconName: "book.closed.fill", colorHex: "378ADD", isPlusOnly: true, cluster: "kreativ"),
 
-        // ── KREATIV PLUS ──────────────────────────────────────────────────────
-        Category(id: "reading",           nameDe: "Lesen",         nameEn: "Reading",           iconName: "book.fill",                        colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "writing",           nameDe: "Schreiben",     nameEn: "Writing",           iconName: "pencil",                           colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "painting",          nameDe: "Malen",         nameEn: "Painting",          iconName: "paintbrush.fill",                  colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "drawing",           nameDe: "Zeichnen",      nameEn: "Drawing",           iconName: "pencil.tip",                       colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "pottery",           nameDe: "Töpfern",       nameEn: "Pottery",           iconName: "cylinder.fill",                    colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "language_learning", nameDe: "Sprache lernen",nameEn: "Language Learning", iconName: "bubble.left.and.bubble.right.fill", colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "podcast",           nameDe: "Podcast",       nameEn: "Podcast",           iconName: "mic.circle.fill",                  colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "film_making",       nameDe: "Filmdreh",      nameEn: "Film Making",       iconName: "video.fill",                       colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "music_listening",   nameDe: "Musik hören",   nameEn: "Music Listening",   iconName: "headphones",                       colorHex: "#378ADD", isPlusOnly: true),
-        Category(id: "fotospot",          nameDe: "Fotospot",      nameEn: "Photo Spot",        iconName: "camera.fill",                      colorHex: "#378ADD", isPlusOnly: true),
-
-        // ── LIFESTYLE PLUS ────────────────────────────────────────────────────
-        Category(id: "shopping",         nameDe: "Shopping",   nameEn: "Shopping",        iconName: "bag.fill",                    colorHex: "#D4537E", isPlusOnly: true),
-        Category(id: "spa",              nameDe: "Spa",        nameEn: "Spa",             iconName: "sparkles",                    colorHex: "#D4537E", isPlusOnly: true),
-        Category(id: "massage",          nameDe: "Massage",    nameEn: "Massage",         iconName: "hand.raised.fill",            colorHex: "#D4537E", isPlusOnly: true),
-        Category(id: "flea_market",      nameDe: "Flohmarkt",  nameEn: "Flea Market",     iconName: "tag.fill",                    colorHex: "#D4537E", isPlusOnly: true),
-        Category(id: "city_trip",        nameDe: "Städtetrip", nameEn: "City Trip",       iconName: "building.2.crop.circle.fill", colorHex: "#D4537E", isPlusOnly: true),
-        Category(id: "wellness_retreat", nameDe: "Wellness",   nameEn: "Wellness Retreat",iconName: "leaf.fill",                   colorHex: "#D4537E", isPlusOnly: true),
+        // Lifestyle PLUS
+        Category(id: "shopping",     nameDe: "Shopping",    nameEn: "Shopping",    iconName: "bag.fill",                    colorHex: "9B59B6", isPlusOnly: true, cluster: "lifestyle"),
+        Category(id: "spa",          nameDe: "Spa",         nameEn: "Spa",         iconName: "sparkles",                    colorHex: "9B59B6", isPlusOnly: true, cluster: "lifestyle"),
+        Category(id: "flea_market",  nameDe: "Flohmarkt",   nameEn: "Flea Market", iconName: "tag.fill",                    colorHex: "9B59B6", isPlusOnly: true, cluster: "lifestyle"),
+        Category(id: "city_trip",    nameDe: "Städtetrip",  nameEn: "City Trip",   iconName: "building.2.crop.circle.fill", colorHex: "9B59B6", isPlusOnly: true, cluster: "lifestyle"),
+        Category(id: "vintage_shop", nameDe: "Vintage Shop",nameEn: "Vintage Shop",iconName: "tshirt.fill",                 colorHex: "9B59B6", isPlusOnly: true, cluster: "lifestyle"),
     ]
 
-    /// Alle 100 Kategorien als flache Liste (MVP + Plus).
+    /// Alle Kategorien als flache Liste (MVP + Plus).
     static var all: [Category] { mvpCategories + plusCategories }
 }

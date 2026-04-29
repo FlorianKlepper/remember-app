@@ -68,4 +68,8 @@ enum AnalyticsEvent {
 
     /// Kauf ist fehlgeschlagen (abgebrochen oder Fehler).
     case purchaseFailed
+
+    /// Plus-Screen wurde angezeigt.
+    /// - Parameter source: Auslöser, z.B. "plus_tab", "category_locked", "activity_limit".
+    case plusScreenViewed(source: String)
 }

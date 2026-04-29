@@ -332,12 +332,20 @@ struct AddActivityLocationScreen: View {
         let queries = [
             "restaurant imbiss food",
             "cafe coffee bar",
+            "sport tennis golf fitness",
+            "club verein sportplatz",
+            "fussball basketball volleyball",
+            "schwimmbad hallenbad freibad",
+            "sporthalle sportcenter",
+            "yoga pilates crossfit",
+            "kletterpark kletterhalle",
+            "bowlingbahn minigolf",
             "shop store supermarket",
             "hotel",
-            "bakery",
-            "fast food",
-            "pizza kebab",
-            "pharmacy apotheke"
+            "fast food pizza kebab",
+            "pharmacy apotheke",
+            "museum park natur",
+            "theater kino konzert"
         ]
 
         var allPlaces: [NearbyPlace] = []

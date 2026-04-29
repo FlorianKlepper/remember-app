@@ -1,13 +1,13 @@
 // AnalyticsManager.swift
 // ActivityTracker2 — Remember
-// Analytics-Tracking via TelemetryDeck
+// Analytics-Tracking via PostHog
 
 import Foundation
-import TelemetryDeck
+import PostHog
 
 // MARK: - AnalyticsManager
 
-/// Zentraler Analytics-Manager der App — sendet Events via TelemetryDeck.
+/// Zentraler Analytics-Manager der App — sendet Events via PostHog.
 /// Im DEBUG-Modus werden Events zusätzlich auf der Konsole geloggt.
 @Observable
 final class AnalyticsManager {
@@ -18,8 +18,8 @@ final class AnalyticsManager {
 
     // MARK: Tracking
 
-    /// Tracked ein Analytics-Event via TelemetryDeck.
-    /// Fire-and-forget — TelemetryDeck puffert und sendet intern asynchron.
+    /// Tracked ein Analytics-Event via PostHog.
+    /// Fire-and-forget — PostHog puffert und sendet intern asynchron.
     /// - Parameter event: Das zu trackende Event aus `AnalyticsEvent`.
     func track(_ event: AnalyticsEvent) {
         #if DEBUG
@@ -31,61 +31,85 @@ final class AnalyticsManager {
         // MARK: App-Lifecycle
 
         case .appOpened:
-            TelemetryDeck.signal("app.opened")
+            PostHogSDK.shared.capture("app_opened")
 
         // MARK: Onboarding
 
         case .onboardingCompleted:
-            TelemetryDeck.signal("onboarding.completed")
+            PostHogSDK.shared.capture("onboarding_completed")
 
         case .onboardingSkipped:
-            TelemetryDeck.signal("onboarding.skipped")
+            PostHogSDK.shared.capture("onboarding_skipped")
 
         // MARK: Activity CRUD
 
         case .activitySaved(let categoryId, let city):
-            var params: [String: String] = ["categoryId": categoryId]
-            if let city { params["city"] = city }
-            TelemetryDeck.signal("activity.saved", parameters: params)
+            PostHogSDK.shared.capture(
+                "activity_saved",
+                properties: [
+                    "categoryId": categoryId,
+                    "city": city ?? "unknown"
+                ])
 
         case .activityDeleted(let categoryId):
-            TelemetryDeck.signal("activity.deleted",
-                                 parameters: ["categoryId": categoryId])
+            PostHogSDK.shared.capture(
+                "activity_deleted",
+                properties: [
+                    "categoryId": categoryId
+                ])
 
         case .activityEdited:
-            TelemetryDeck.signal("activity.edited")
+            PostHogSDK.shared.capture("activity_edited")
 
         // MARK: Filter
 
         case .filterActivated(let categoryId):
-            TelemetryDeck.signal("filter.activated",
-                                 parameters: ["categoryId": categoryId])
+            PostHogSDK.shared.capture(
+                "filter_activated",
+                properties: [
+                    "categoryId": categoryId
+                ])
 
         case .filterReset:
-            TelemetryDeck.signal("filter.reset")
+            PostHogSDK.shared.capture("filter_reset")
 
         // MARK: Map
 
         case .mapPinTapped:
-            TelemetryDeck.signal("map.pin_tapped")
+            PostHogSDK.shared.capture("map_pin_tapped")
 
         // MARK: Stats
 
         case .statsOpened:
-            TelemetryDeck.signal("stats.opened")
+            PostHogSDK.shared.capture("stats_opened")
 
         // MARK: Monetarisierung
 
         case .paywallViewed(let source):
-            TelemetryDeck.signal("paywall.viewed",
-                                 parameters: ["source": source])
+            PostHogSDK.shared.capture(
+                "paywall_viewed",
+                properties: [
+                    "source": source
+                ])
 
         case .purchaseSuccess(let productId):
-            TelemetryDeck.signal("purchase.success",
-                                 parameters: ["productId": productId])
+            PostHogSDK.shared.capture(
+                "purchase_success",
+                properties: [
+                    "productId": productId
+                ])
 
         case .purchaseFailed:
-            TelemetryDeck.signal("purchase.failed")
+            PostHogSDK.shared.capture("purchase_failed")
+
+        // MARK: Plus
+
+        case .plusScreenViewed(let source):
+            PostHogSDK.shared.capture(
+                "plus_screen_viewed",
+                properties: [
+                    "source": source
+                ])
         }
     }
 }
