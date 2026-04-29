@@ -313,9 +313,10 @@ struct PermanentBottomSheet: View {
                             return
                         }
 
-                        // Schneller Fling → warten bis ScrollView ausläuft, dann einsnappen
+                        // Fling → warten bis ScrollView ausläuft, dann einsnappen
                         if abs(vel) > 500 {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                            let waitTime: Double = abs(vel) > 1000 ? 0.6 : 0.3
+                            DispatchQueue.main.asyncAfter(deadline: .now() + waitTime) {
                                 snapToCurrentPosition(proxy: proxy)
                             }
                             return
@@ -337,6 +338,26 @@ struct PermanentBottomSheet: View {
                         snapTo(index: newIndex, proxy: proxy)
                     }
             )
+            // ScrollPosition-Debounce → Snap nach Fling wenn ScrollView stoppt
+            .onChange(of: scrollPosition) { _, newId in
+                guard let newId else { return }
+                snapTimer?.invalidate()
+                snapTimer = Timer.scheduledTimer(
+                    withTimeInterval: 0.15,
+                    repeats: false
+                ) { _ in
+                    DispatchQueue.main.async {
+                        guard self.scrollPosition == newId else { return }
+                        guard let activity = self.currentActivities
+                            .first(where: { $0.id == newId }),
+                              let location = activity.location
+                        else { return }
+                        self.mapVM.highlightedActivityId = newId
+                        self.mapVM.smoothAnimateToPin(to: location.coordinate)
+                        self.mapVM.selectedLocation = location
+                    }
+                }
+            }
             // Externe Änderung (Pin-Tap, Row-Tap) → Index syncen + scrollen
             .onChange(of: mapVM.highlightedActivityId) { _, newId in
                 guard let newId,
@@ -593,10 +614,23 @@ struct PermanentBottomSheet: View {
                             .truncationMode(.tail)
                     }
 
-                    if let place = activity.location?.locationName ?? activity.location?.city, !place.isEmpty {
-                        Text(place)
+                    let poi  = activity.location?.locationName ?? ""
+                    let city = activity.location?.city ?? ""
+
+                    if !poi.isEmpty && !city.isEmpty {
+                        Text("\(poi) · \(city)")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    } else if !poi.isEmpty {
+                        Text(poi)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    } else if !city.isEmpty {
+                        Text(city)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                 }

@@ -202,17 +202,12 @@ struct MapScreen: View {
         .onReceive(NotificationCenter.default.publisher(for: .activitySaved)) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 let descriptor = FetchDescriptor<Activity>(
-                    sortBy: [SortDescriptor(\.date, order: .reverse)]
+                    sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
                 )
                 guard let activities = try? modelContext.fetch(descriptor),
                       let newest = activities.first,
                       let location = newest.location
-                else {
-                    print("No activity found!")
-                    return
-                }
-
-                print("Found: \(newest.id)")
+                else { return }
 
                 // 1. Filter zurücksetzen
                 filterVM.clearFilter()
@@ -260,7 +255,27 @@ struct MapScreen: View {
                 mapVM.isFollowingUser = false
             },
             onAnnotationTap: { annotation in
+                // 1. Highlight setzen
                 mapVM.highlightedActivityId = annotation.activity.id
+                mapVM.selectedLocation      = annotation.activity.location
+
+                // 2. Karte auf Pin zentrieren (Zoom bleibt)
+                guard let location = annotation.activity.location else { return }
+                let currentSpan = mapVM.region.span
+                mapVM.region = MKCoordinateRegion(
+                    center: mapVM.adjustedCenter(
+                        for: location.coordinate,
+                        span: currentSpan,
+                        sheetDetent: 0.45
+                    ),
+                    span: currentSpan
+                )
+
+                // 3. Liste zur Aktivität scrollen
+                NotificationCenter.default.post(
+                    name: .scrollToActivity,
+                    object: annotation.activity.id
+                )
             }
         )
     }

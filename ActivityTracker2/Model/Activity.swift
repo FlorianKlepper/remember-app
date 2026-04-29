@@ -24,7 +24,7 @@ final class Activity {
     var date: Date
 
     /// Zeitstempel der Erstellung in der App.
-    var createdAt: Date
+    var createdAt: Date = Date()
 
     // MARK: Optionale Felder
 

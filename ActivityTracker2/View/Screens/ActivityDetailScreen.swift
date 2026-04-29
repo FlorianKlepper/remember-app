@@ -54,10 +54,36 @@ struct ActivityDetailScreen: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
-                        if let city = activity.location?.city {
-                            Text(city)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        let poi  = activity.location?.locationName ?? ""
+                        let city = activity.location?.city ?? ""
+
+                        if !poi.isEmpty && !city.isEmpty {
+                            HStack(spacing: 6) {
+                                Image(systemName: "mappin.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(hex: "#E8593C"))
+                                Text("\(poi) · \(city)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else if !poi.isEmpty {
+                            HStack(spacing: 6) {
+                                Image(systemName: "mappin.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(hex: "#E8593C"))
+                                Text(poi)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else if !city.isEmpty {
+                            HStack(spacing: 6) {
+                                Image(systemName: "mappin.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(hex: "#E8593C"))
+                                Text(city)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
 

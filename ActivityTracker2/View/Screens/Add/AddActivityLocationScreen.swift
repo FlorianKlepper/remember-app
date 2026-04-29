@@ -300,18 +300,13 @@ struct AddActivityLocationScreen: View {
 
     private func useCurrentLocation() {
         guard let coord = locationManager.currentLocation else { return }
-        // Reverse Geocode um POI-Name zu ermitteln
-        CLGeocoder().reverseGeocodeLocation(
-            CLLocation(latitude: coord.latitude, longitude: coord.longitude)
-        ) { placemarks, _ in
-            guard let place = placemarks?.first else { return }
-            DispatchQueue.main.async {
-                addActivityVM.pendingCoordinate   = coord
-                addActivityVM.pendingLocationName = place.name ?? place.locality
-                addActivityVM.pendingCity         = place.locality
-                addActivityVM.pendingCountry      = place.country
-                navigateToText = true
-            }
+        // Gecachten GeocodeManager verwenden — vermeidet doppelten Netzwerkaufruf
+        geocodeManager.geocode(coord) { result in
+            addActivityVM.pendingCoordinate   = coord
+            addActivityVM.pendingLocationName = result.locationName ?? result.city
+            addActivityVM.pendingCity         = result.city
+            addActivityVM.pendingCountry      = result.country
+            navigateToText = true
         }
     }
 

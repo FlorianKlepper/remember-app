@@ -51,10 +51,23 @@ struct ActivityRowView: View {
                         .truncationMode(.tail)
                 }
 
-                if let city = activity.location?.city, !city.isBlank {
+                let poi  = activity.location?.locationName ?? ""
+                let city = activity.location?.city ?? ""
+
+                if !poi.isEmpty && !city.isEmpty {
+                    Text("\(poi) · \(city)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                } else if !poi.isEmpty {
+                    Text(poi)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                } else if !city.isEmpty {
                     Text(city)
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
