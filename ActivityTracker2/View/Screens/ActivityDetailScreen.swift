@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import MapKit
 
 // MARK: - ActivityDetailScreen
 
@@ -25,6 +26,30 @@ struct ActivityDetailScreen: View {
 
     @State private var showEditSheet     = false
     @State private var showDeleteConfirm = false
+    @State private var showShareSheet    = false
+
+    // MARK: Computed — Share
+
+    /// Apple Maps URL für den Ort der Activity.
+    private var mapsURL: URL? {
+        guard let location = activity.location else { return nil }
+        let lat  = location.latitude
+        let lon  = location.longitude
+        let name = (location.locationName ?? location.city ?? "")
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return URL(string: "https://maps.apple.com/?ll=\(lat),\(lon)&q=\(name)")
+    }
+
+    /// Teile-Text mit Titel und Ort der Activity.
+    private var shareText: String {
+        let poi  = activity.location?.locationName ?? ""
+        let city = activity.location?.city ?? ""
+        let locationText = poi.isEmpty ? city : city.isEmpty ? poi : "\(poi), \(city)"
+        return """
+        \(activity.displayTitle)
+        📍 \(locationText)
+        """
+    }
 
     // MARK: Body
 
@@ -145,35 +170,156 @@ struct ActivityDetailScreen: View {
                 }
             }
 
-            // ── Trailing: Papierkorb, Bearbeiten, Fertig ─────────
+            // ── Trailing: Share, Papierkorb, Bearbeiten, Fertig ──
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button {
-                    showDeleteConfirm = true
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.red)
-                }
+                HStack(spacing: 8) {
+                    Button {
+                        showShareSheet = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color(hex: "#E8593C"))
+                    }
 
-                Button {
-                    showEditSheet = true
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.primary)
-                }
+                    Button {
+                        showDeleteConfirm = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.red)
+                    }
 
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#E8593C"))
+                    Button {
+                        showEditSheet = true
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.primary)
+                    }
+
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#E8593C"))
+                    }
                 }
             }
         }
         .sheet(isPresented: $showEditSheet) {
             EditActivityScreen(activity: activity)
+        }
+        .sheet(isPresented: $showShareSheet) {
+            VStack(spacing: 0) {
+
+                // Handle
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color(.systemGray4))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 20)
+
+                // Titel
+                Text(String(localized: "share.title", defaultValue: "Ort teilen"))
+                    .font(.headline)
+                    .padding(.bottom, 20)
+
+                // Optionen
+                VStack(spacing: 6) {
+
+                    // Apple Maps teilen
+                    if let url = mapsURL {
+                        ShareLink(
+                            item: url,
+                            subject: Text(activity.displayTitle),
+                            message: Text(shareText)
+                        ) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(LinearGradient(
+                                            colors: [Color(hex: "00C7F5"), Color(hex: "0A84FF")],
+                                            startPoint: .top,
+                                            endPoint: .bottom))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "map.fill")
+                                        .foregroundStyle(.white)
+                                        .font(.system(size: 20))
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(String(localized: "share.maps.title",
+                                                defaultValue: "In Maps öffnen"))
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Text(String(localized: "share.maps.subtitle",
+                                                defaultValue: "Ort in Apple Maps anzeigen"))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.tertiary)
+                                    .font(.caption)
+                            }
+                            .padding(16)
+                            .background(RoundedRectangle(cornerRadius: 14).fill(Color(.systemGray6)))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // Koordinaten + Maps-Link teilen
+                    if let location = activity.location {
+                        ShareLink(
+                            item: "\(shareText)\n🗺 https://maps.apple.com/?ll=\(location.latitude),\(location.longitude)"
+                        ) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color(hex: "#E8593C"))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "location.fill")
+                                        .foregroundStyle(.white)
+                                        .font(.system(size: 20))
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(String(localized: "share.coords.title",
+                                                defaultValue: "Ort teilen"))
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Text(String(localized: "share.coords.subtitle",
+                                                defaultValue: "Mit Maps Link"))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.tertiary)
+                                    .font(.caption)
+                            }
+                            .padding(16)
+                            .background(RoundedRectangle(cornerRadius: 14).fill(Color(.systemGray6)))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 24)
+
+                Spacer()
+
+                // Abbrechen
+                Button {
+                    showShareSheet = false
+                } label: {
+                    Text(String(localized: "button.cancel", defaultValue: "Abbrechen"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, 32)
+            }
+            .presentationDetents([.fraction(0.35)])
         }
         .confirmationDialog(
             String(localized: "activity.delete.confirm.title",
