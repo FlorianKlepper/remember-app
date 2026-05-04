@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import PhotosUI
 import CoreLocation
 
 // MARK: - AddActivityTextScreen
@@ -32,6 +33,9 @@ struct AddActivityTextScreen: View {
 
     /// Toast für den allerersten gespeicherten Eintrag.
     @State private var showFirstActivityToast = false
+
+    /// Ausgewähltes Foto aus der PhotosPicker-Session.
+    @State private var selectedPhoto: PhotosPickerItem? = nil
 
     // MARK: Private
 
@@ -157,6 +161,81 @@ struct AddActivityTextScreen: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
                         .allowsHitTesting(false)
+                }
+            }
+
+            Divider()
+
+            // ── Foto ──────────────────────────────────────────────────
+            HStack {
+                if let photoData = addActivityVM.selectedPhotoData,
+                   let uiImage = UIImage(data: photoData) {
+
+                    // Vorschau mit Löschen-Button
+                    ZStack(alignment: .topTrailing) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                        Button {
+                            addActivityVM.selectedPhotoData = nil
+                            selectedPhoto = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.white)
+                                .background(Color.black.opacity(0.6))
+                                .clipShape(Circle())
+                                .font(.system(size: 20))
+                        }
+                        .offset(x: 6, y: -6)
+                    }
+
+                } else {
+
+                    // Foto hinzufügen
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        VStack(spacing: 6) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.secondary)
+                            Text(String(localized: "add.photo.button",
+                                        defaultValue: "Foto"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(width: 80, height: 80)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(.systemGray6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(Color(.systemGray4), lineWidth: 1)
+                                )
+                        )
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .onChange(of: selectedPhoto) { _, item in
+                Task {
+                    guard let item else { return }
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+                        if let uiImage = UIImage(data: data),
+                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
+                            if compressed.count > 800_000 {
+                                let ratio = 800_000.0 / Double(compressed.count)
+                                addActivityVM.selectedPhotoData =
+                                    uiImage.jpegData(compressionQuality: 0.7 * ratio)
+                            } else {
+                                addActivityVM.selectedPhotoData = compressed
+                            }
+                        }
+                    }
                 }
             }
 

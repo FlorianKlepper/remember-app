@@ -74,7 +74,7 @@ struct ActivityRowView: View {
 
             Spacer(minLength: 4)
 
-            // ── Sterne oben + Icon unten ─────────────────────────
+            // ── Sterne oben + Icon (+ Thumbnail) unten ───────────
             VStack(alignment: .trailing, spacing: 4) {
 
                 if activity.starRating > 0 {
@@ -89,13 +89,25 @@ struct ActivityRowView: View {
                     Color.clear.frame(height: 10)
                 }
 
-                CategoryIconView(categoryId: activity.categoryId, size: 34)
-                    .onTapGesture {
-                        filterVM.setFilter(categoryId: activity.categoryId)
-                        mapVM.highlightedActivityId = activity.id
-                        HapticManager.selectionChanged()
+                HStack(spacing: 6) {
+                    CategoryIconView(categoryId: activity.categoryId, size: 34)
+                        .onTapGesture {
+                            filterVM.setFilter(categoryId: activity.categoryId)
+                            mapVM.highlightedActivityId = activity.id
+                            HapticManager.selectionChanged()
+                        }
+
+                    if let photoData = activity.photoData,
+                       let uiImage = UIImage(data: photoData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 34, height: 34)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
+                }
             }
+            .frame(width: activity.photoData != nil ? 80 : 40)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)

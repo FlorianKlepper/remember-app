@@ -3,6 +3,7 @@
 // Step 2 des Add-Flows: Ort wählen
 
 import SwiftUI
+import SwiftData
 import MapKit
 import CoreLocation
 import UIKit
@@ -20,6 +21,30 @@ struct AddActivityLocationScreen: View {
     @Environment(GeocodeManager.self)       private var geocodeManager
     @Environment(UserSettings.self)         private var userSettings
     @Environment(\.dismiss)                 private var dismiss
+
+    @Query private var activities: [Activity]
+
+    // MARK: Computed — Zuletzt verwendet
+
+    /// Letzte 5 eindeutige Locations für die aktuell gewählte Kategorie (neueste zuerst).
+    private var recentLocationsForCategory: [Location] {
+        activities
+            .filter {
+                $0.categoryId == addActivityVM.selectedCategoryId &&
+                $0.location != nil
+            }
+            .sorted { $0.createdAt > $1.createdAt }
+            .compactMap { $0.location }
+            .reduce(into: [Location]()) { result, location in
+                let isDuplicate = result.contains {
+                    $0.locationName == location.locationName &&
+                    $0.city == location.city
+                }
+                if !isDuplicate && result.count < 5 {
+                    result.append(location)
+                }
+            }
+    }
 
     // MARK: State
 
@@ -181,6 +206,69 @@ struct AddActivityLocationScreen: View {
                         )
                     }
                     .listRowBackground(Color.clear)
+                }
+
+                // Zuletzt verwendet (nur wenn keine Suche aktiv)
+                if searchText.isEmpty && !recentLocationsForCategory.isEmpty {
+                    Section {
+                        ForEach(recentLocationsForCategory, id: \.id) { location in
+                            Button {
+                                addActivityVM.pendingCoordinate   = CLLocationCoordinate2D(
+                                    latitude:  location.latitude,
+                                    longitude: location.longitude)
+                                addActivityVM.pendingLocationName = location.locationName
+                                addActivityVM.pendingCity         = location.city
+                                addActivityVM.pendingCountry      = location.country
+                                navigateToText = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(.systemGray6))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "clock.arrow.circlepath")
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        if let poi = location.locationName, !poi.isEmpty {
+                                            Text(poi)
+                                                .font(.body)
+                                                .foregroundStyle(.primary)
+                                                .lineLimit(1)
+                                        }
+                                        let city    = location.city ?? ""
+                                        let country = location.country ?? ""
+                                        let subtitle = city.isEmpty
+                                            ? country
+                                            : country.isEmpty ? city : "\(city), \(country)"
+                                        if !subtitle.isEmpty {
+                                            Text(subtitle)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        }
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .listRowBackground(Color.clear)
+                        }
+                    } header: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.system(size: 12))
+                            Text(String(localized: "add.location.recent",
+                                        defaultValue: "Zuletzt verwendet"))
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .textCase(nil)
+                    }
                 }
 
                 // In der Nähe (nur wenn keine Suche aktiv)

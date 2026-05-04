@@ -73,6 +73,7 @@ extension ActivityViewModel {
         location: Location,
         date: Date,
         starRating: Int = 0,
+        photoData: Data? = nil,
         context: ModelContext
     ) async throws {
         let normalizedTitle = title.flatMap { $0.isBlank ? nil : $0 }
@@ -86,6 +87,7 @@ extension ActivityViewModel {
             starRating: starRating,
             location: location
         )
+        activity.photoData = photoData
 
         context.insert(activity)
 

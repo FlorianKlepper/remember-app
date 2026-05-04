@@ -37,8 +37,12 @@ final class Activity {
     /// Gibt an, ob die Activity als Favorit markiert ist.
     var isFavorite: Bool
 
-    /// Sterne-Bewertung: 0 = keine, 1–3 Sterne.
+    /// Sterne-Bewertung: 0 = keine, 1–5 Sterne.
     var starRating: Int
+
+    /// Optionale Foto-Bilddaten. Extern gespeichert via `.externalStorage` —
+    /// kein SwiftData-Größenlimit. `nil` bedeutet kein Foto vorhanden.
+    @Attribute(.externalStorage) var photoData: Data?
 
     // MARK: Relation
 

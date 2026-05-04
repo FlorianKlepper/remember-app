@@ -652,27 +652,38 @@ struct PermanentBottomSheet: View {
                         Color.clear.frame(width: 1, height: 10)
                     }
 
-                    // Icon darunter (tippbar → Kategorie-Filter)
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            filterVM.setFilter(categoryId: activity.categoryId)
+                    // Thumbnail links + Icon rechts
+                    HStack(spacing: 6) {
+                        if let photoData = activity.photoData,
+                           let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 34, height: 34)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
-                        mapVM.highlightedActivityId = activity.id
-                        if let location = activity.location {
-                            mapVM.animateToPin(
-                                from: mapVM.selectedLocation,
-                                to: location,
-                                currentSpan: mapVM.region.span
-                            )
-                            mapVM.selectedLocation = location
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                filterVM.setFilter(categoryId: activity.categoryId)
+                            }
+                            mapVM.highlightedActivityId = activity.id
+                            if let location = activity.location {
+                                mapVM.animateToPin(
+                                    from: mapVM.selectedLocation,
+                                    to: location,
+                                    currentSpan: mapVM.region.span
+                                )
+                                mapVM.selectedLocation = location
+                            }
+                            HapticManager.selectionChanged()
+                        } label: {
+                            CategoryIconView(categoryId: activity.categoryId, size: 34)
                         }
-                        HapticManager.selectionChanged()
-                    } label: {
-                        CategoryIconView(categoryId: activity.categoryId, size: 34)
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
-                .frame(width: 40)
+                .frame(width: activity.photoData != nil ? 80 : 40)
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
             .padding(.vertical, 6)

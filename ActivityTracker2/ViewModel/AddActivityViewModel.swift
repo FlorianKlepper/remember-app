@@ -51,8 +51,11 @@ final class AddActivityViewModel {
     /// Datum des Erlebnisses — Default: jetzt.
     var selectedDate: Date = .now
 
-    /// Sterne-Bewertung: 0 = keine, 1–3 Sterne.
+    /// Sterne-Bewertung: 0 = keine, 1–5 Sterne.
     var starRating: Int = 0
+
+    /// Vom User gewählte Foto-Bilddaten. `nil` = kein Foto ausgewählt.
+    var selectedPhotoData: Data? = nil
 
     // MARK: Loading
 
@@ -194,6 +197,7 @@ extension AddActivityViewModel {
             location: location,
             date: selectedDate,
             starRating: starRating,
+            photoData: selectedPhotoData,
             context: context
         )
 
@@ -220,6 +224,7 @@ extension AddActivityViewModel {
         text = ""
         selectedDate = .now
         starRating = 0
+        selectedPhotoData = nil
         isLoading = false
         isSaved = false
         skipLocationScreen = false

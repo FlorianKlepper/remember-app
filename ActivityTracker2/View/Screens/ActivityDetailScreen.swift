@@ -111,6 +111,21 @@ struct ActivityDetailScreen: View {
                     )
                 }
 
+                // ── 5. Foto ─────────────────────────────────────────
+                if let photoData = activity.photoData,
+                   let uiImage = UIImage(data: photoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
+                }
+
                 Spacer(minLength: 40)
             }
             .padding(.top, 16)
