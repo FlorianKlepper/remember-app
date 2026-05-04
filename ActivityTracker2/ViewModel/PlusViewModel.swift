@@ -58,7 +58,8 @@ extension PlusViewModel {
     /// - Parameters:
     ///   - manager: Der App-weite `StoreKitManager`.
     ///   - settings: Globales `UserSettings`-Objekt für Subscription-Update.
-    func purchasePlus(manager: StoreKitManager, settings: UserSettings) async {
+    ///   - activityCount: Anzahl Aktivitäten zum Kaufzeitpunkt — für `trackPlusPurchased`.
+    func purchasePlus(manager: StoreKitManager, settings: UserSettings, activityCount: Int) async {
         guard let product = plusProduct else {
             errorMessage = String(
                 localized: "plus.error.no.product",
@@ -72,7 +73,12 @@ extension PlusViewModel {
         defer { isPurchasing = false }
 
         do {
-            let success = try await manager.purchase(product, settings: settings)
+            let success = try await manager.purchase(
+                product,
+                settings: settings,
+                analytics: analytics,
+                activityCount: activityCount
+            )
             if success {
                 analytics.track(.purchaseSuccess(productId: product.id))
             } else {

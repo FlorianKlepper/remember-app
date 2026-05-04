@@ -17,6 +17,7 @@ struct AddActivityTextScreen: View {
 
     @Environment(AddActivityViewModel.self) private var addActivityVM
     @Environment(ActivityViewModel.self)    private var activityVM
+    @Environment(AnalyticsManager.self)     private var analyticsManager
     @Environment(LanguageManager.self)      private var languageManager
     @Environment(\.modelContext)            private var modelContext
     @Environment(\.dismiss)                 private var dismiss
@@ -266,6 +267,7 @@ struct AddActivityTextScreen: View {
         do {
             try await addActivityVM.saveActivity(
                 activityViewModel: activityVM,
+                analytics: analyticsManager,
                 context: modelContext
             )
 

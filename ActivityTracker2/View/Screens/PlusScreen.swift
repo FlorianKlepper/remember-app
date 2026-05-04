@@ -3,6 +3,7 @@
 // Paywall und Plus-Mitglieder-Ansicht
 
 import SwiftUI
+import SwiftData
 import StoreKit
 
 // MARK: - PlusScreen
@@ -24,6 +25,8 @@ struct PlusScreen: View {
     @Environment(StoreKitManager.self)    private var storeKitManager
     @Environment(AnalyticsManager.self)   private var analyticsManager
     @Environment(\.dismiss)               private var dismiss
+
+    @Query private var activities: [Activity]
 
     // MARK: Body
 
@@ -95,7 +98,8 @@ struct PlusScreen: View {
                     Task {
                         await plusVM.purchasePlus(
                             manager: storeKitManager,
-                            settings: userSettings
+                            settings: userSettings,
+                            activityCount: activities.count
                         )
                     }
                 } label: {

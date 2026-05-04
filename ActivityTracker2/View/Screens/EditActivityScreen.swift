@@ -18,8 +18,10 @@ struct EditActivityScreen: View {
 
     // MARK: Environment
 
-    @Environment(ActivityViewModel.self) private var activityVM
-    @Environment(\.modelContext)         private var modelContext
+    @Environment(ActivityViewModel.self)  private var activityVM
+    @Environment(UserSettings.self)       private var userSettings
+    @Environment(LanguageManager.self)    private var languageManager
+    @Environment(\.modelContext)          private var modelContext
     @Environment(\.dismiss)              private var dismiss
 
     // MARK: State (lokale Kopien)
@@ -28,6 +30,9 @@ struct EditActivityScreen: View {
     @State private var editText:        String
     @State private var editDate:        Date
     @State private var editStarRating:  Int
+    @State private var editCategoryId:  String
+
+    @State private var showCategoryPicker = false
 
     @FocusState private var focusedField: Field?
 
@@ -37,15 +42,20 @@ struct EditActivityScreen: View {
         case title, text
     }
 
+    private var category: Category? {
+        Category.all.first { $0.id == editCategoryId }
+    }
+
     // MARK: Init
 
     /// Initialisiert die lokalen State-Kopien aus der übergebenen Activity.
     init(activity: Activity) {
-        self.activity   = activity
-        _editTitle      = State(initialValue: activity.title ?? "")
-        _editText       = State(initialValue: activity.text ?? "")
-        _editDate       = State(initialValue: activity.date)
-        _editStarRating = State(initialValue: activity.starRating)
+        self.activity    = activity
+        _editTitle       = State(initialValue: activity.title ?? "")
+        _editText        = State(initialValue: activity.text ?? "")
+        _editDate        = State(initialValue: activity.date)
+        _editStarRating  = State(initialValue: activity.starRating)
+        _editCategoryId  = State(initialValue: activity.categoryId)
     }
 
     // MARK: Body
@@ -55,18 +65,56 @@ struct EditActivityScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
 
-                    // ── Kategorie (read-only) ────────────────────────
-                    HStack(spacing: 12) {
-                        CategoryIconView(categoryId: activity.categoryId, size: 36)
-                        Text(activity.displayTitle)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
+                    // ── Kategorie (antippbar) ────────────────────────
+                    if let category {
+                        Button {
+                            showCategoryPicker = true
+                        } label: {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(.white)
+                                        .frame(width: 44, height: 44)
+                                        .overlay(
+                                            Circle()
+                                                .strokeBorder(
+                                                    Color(hex: category.colorHex),
+                                                    lineWidth: 2)
+                                        )
+                                    Image(systemName: category.iconName)
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color(hex: category.colorHex))
+                                }
 
-                    Divider().padding(.horizontal)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(category.localizedName(for: languageManager.currentLanguageCode))
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Text(String(localized: "edit.category.change",
+                                                defaultValue: "Kategorie ändern"))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(.systemGray6))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal)
+                        .padding(.top, 12)
+                    }
+
+                    Divider().padding(.horizontal).padding(.top, 12)
 
                     // ── Titel ────────────────────────────────────────
                     TextField(
@@ -108,7 +156,6 @@ struct EditActivityScreen: View {
                     // ── Sterne-Bewertung ─────────────────────────────
                     StarRatingView(rating: $editStarRating, isEditable: true)
                         .padding(.top, 12)
-
                 }
             }
             .navigationTitle(String(localized: "edit.title", defaultValue: "Bearbeiten"))
@@ -135,6 +182,30 @@ struct EditActivityScreen: View {
                 }
             }
         }
+        .sheet(isPresented: $showCategoryPicker) {
+            NavigationStack {
+                AddActivityCategoryScreen(
+                    editBinding: Binding(
+                        get: { editCategoryId },
+                        set: { newId in
+                            if let newId { editCategoryId = newId }
+                            showCategoryPicker = false
+                        }
+                    ),
+                    isEditMode: true
+                )
+                .navigationTitle(String(localized: "edit.category.title",
+                                        defaultValue: "Kategorie ändern"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(String(localized: "action.cancel", defaultValue: "Abbrechen")) {
+                            showCategoryPicker = false
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: Save
@@ -144,6 +215,7 @@ struct EditActivityScreen: View {
         activity.text       = editText.isBlank  ? nil : editText
         activity.date       = editDate
         activity.starRating = editStarRating
+        activity.categoryId = editCategoryId
         activityVM.updateActivity(activity, context: modelContext)
         dismiss()
     }
@@ -152,9 +224,17 @@ struct EditActivityScreen: View {
 // MARK: - Preview
 
 #Preview("Edit Activity Screen") {
-    let analytics = AnalyticsManager()
-    let actVM     = ActivityViewModel(analytics: analytics)
+    let analytics      = AnalyticsManager()
+    let actVM          = ActivityViewModel(analytics: analytics)
+    let userSettings   = UserSettings()
+    let languageManager = LanguageManager()
+    let addActivityVM  = AddActivityViewModel()
+    let storeKitMgr    = StoreKitManager()
 
     return EditActivityScreen(activity: Activity.preview)
         .environment(actVM)
+        .environment(userSettings)
+        .environment(languageManager)
+        .environment(addActivityVM)
+        .environment(storeKitMgr)
 }

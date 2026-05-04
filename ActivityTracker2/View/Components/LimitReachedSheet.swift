@@ -3,6 +3,7 @@
 // Sheet wenn Free-Limit (100 Aktivitäten) erreicht ist
 
 import SwiftUI
+import SwiftData
 
 // MARK: - LimitReachedSheet
 
@@ -16,8 +17,11 @@ struct LimitReachedSheet: View {
 
     // MARK: Environment
 
-    @Environment(UserSettings.self)    private var userSettings
-    @Environment(StoreKitManager.self) private var storeKitManager
+    @Environment(UserSettings.self)      private var userSettings
+    @Environment(StoreKitManager.self)   private var storeKitManager
+    @Environment(AnalyticsManager.self)  private var analyticsManager
+
+    @Query private var activities: [Activity]
 
     // MARK: State
 
@@ -74,7 +78,12 @@ struct LimitReachedSheet: View {
                 Task {
                     guard let product = storeKitManager.plusProduct else { return }
                     isPurchasing = true
-                    let success = (try? await storeKitManager.purchase(product, settings: userSettings)) ?? false
+                    let success = (try? await storeKitManager.purchase(
+                        product,
+                        settings: userSettings,
+                        analytics: analyticsManager,
+                        activityCount: activities.count
+                    )) ?? false
                     isPurchasing = false
                     if success { isShowing = false }
                 }

@@ -9,8 +9,20 @@ import SwiftUI
 /// Sheet-Root des 3-Screen-Add-Flows.
 /// Zeigt das Kategorie-Grid, navigiert bei Auswahl zu `AddActivityLocationScreen`
 /// oder direkt zu `AddActivityTextScreen` (bei journal_home).
+/// Im Edit-Modus (`isEditMode = true`) wird das externe `editBinding` direkt gesetzt —
+/// keine Navigation, kein VM-Reset.
 /// Schließt das Sheet sobald `addActivityVM.isSaved` gesetzt wird.
 struct AddActivityCategoryScreen: View {
+
+    // MARK: Parameter
+
+    /// Im Edit-Modus: externes Binding für die gewählte Kategorie-ID.
+    /// Die `set`-Closure schließt das Sheet nach der Auswahl.
+    var editBinding: Binding<String?> = .constant(nil)
+
+    /// `true` wenn der Screen im Bearbeitungskontext aufgerufen wird.
+    /// Deaktiviert Add-Flow-Navigation und VM-Logik.
+    var isEditMode: Bool = false
 
     // MARK: Environment
 
@@ -36,37 +48,43 @@ struct AddActivityCategoryScreen: View {
         Locale.current.language.languageCode?.identifier ?? "en"
     }
 
+    /// Binding für das Grid — Edit-Modus nutzt externes Binding, Add-Flow nutzt VM.
+    private var gridBinding: Binding<String?> {
+        if isEditMode {
+            return editBinding
+        }
+        return Binding(
+            get: { addActivityVM.selectedCategoryId },
+            set: { newId in
+                guard let newId else { return }
+                addActivityVM.selectedCategoryId = newId
+
+                if addActivityVM.skipLocationScreen {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        navigateToText = true
+                    }
+                } else {
+                    if newId == "journal" &&
+                       !userSettings.hasHomeLocation &&
+                       !UserDefaults.standard.bool(forKey: "hasSeenHomePrompt") {
+                        showHomePrompt = true
+                    }
+                    if !navigateToLocation {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            navigateToLocation = true
+                        }
+                    }
+                }
+            }
+        )
+    }
+
     // MARK: Body
 
     var body: some View {
         NavigationStack {
             CategoryPickerGrid(
-                selectedCategoryId: Binding(
-                    get: { addActivityVM.selectedCategoryId },
-                    set: { newId in
-                        guard let newId else { return }
-                        addActivityVM.selectedCategoryId = newId
-
-                        if addActivityVM.skipLocationScreen {
-                            // Zuhause-Button in journalSection wurde getippt
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                navigateToText = true
-                            }
-                        } else {
-                            // Erstes Tippen auf "journal" ohne gespeichertes Zuhause → Prompt
-                            if newId == "journal" &&
-                               !userSettings.hasHomeLocation &&
-                               !UserDefaults.standard.bool(forKey: "hasSeenHomePrompt") {
-                                showHomePrompt = true
-                            }
-                            if !navigateToLocation {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    navigateToLocation = true
-                                }
-                            }
-                        }
-                    }
-                ),
+                selectedCategoryId: gridBinding,
                 userSettings: userSettings,
                 language: language
             )
@@ -75,8 +93,12 @@ struct AddActivityCategoryScreen: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        addActivityVM.reset()
-                        dismiss()
+                        if isEditMode {
+                            dismiss()
+                        } else {
+                            addActivityVM.reset()
+                            dismiss()
+                        }
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 16, weight: .medium))
@@ -84,7 +106,7 @@ struct AddActivityCategoryScreen: View {
                     }
                 }
             }
-            // Navigation zu Step 2 (Ort)
+            // Navigation zu Step 2 (Ort) — nur im Add-Flow
             .navigationDestination(isPresented: $navigateToLocation) {
                 AddActivityLocationScreen()
             }
@@ -97,7 +119,7 @@ struct AddActivityCategoryScreen: View {
             HomeLocationSheet(isShowing: $showHomePrompt)
         }
         .onAppear {
-            addActivityVM.reset()
+            if !isEditMode { addActivityVM.reset() }
             #if DEBUG
             print("isPlusActive: \(storeKitManager.isPlusActive)")
             print("subscriptionStatus: \(userSettings.subscriptionStatus)")
@@ -105,15 +127,11 @@ struct AddActivityCategoryScreen: View {
         }
         // Location-Screen dismissed → Auswahl zurücksetzen für Neu-Auswahl
         .onChange(of: navigateToLocation) { _, isActive in
-            if !isActive {
-                addActivityVM.selectedCategoryId = nil
-            }
+            if !isActive { addActivityVM.selectedCategoryId = nil }
         }
         // Text-Screen dismissed (direkt) → Auswahl zurücksetzen
         .onChange(of: navigateToText) { _, isActive in
-            if !isActive {
-                addActivityVM.selectedCategoryId = nil
-            }
+            if !isActive { addActivityVM.selectedCategoryId = nil }
         }
         // Aktivität gespeichert → Sheet schließen
         .onChange(of: addActivityVM.isSaved) { _, saved in

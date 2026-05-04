@@ -112,4 +112,58 @@ final class AnalyticsManager {
                 ])
         }
     }
+
+    // MARK: Milestones
+
+    // MARK: Milestones
+
+    /// Trackt Aktivitäts-Meilensteine (5 / 10 / 25 / 50 / 100).
+    /// Wird nach jedem `activitySaved` mit dem aktuellen Gesamtcount aufgerufen.
+    /// - Parameter count: Aktuelle Anzahl gespeicherter Aktivitäten.
+    func trackActivityMilestone(count: Int) {
+        let milestones = [5, 10, 25, 50, 100]
+        guard milestones.contains(count) else { return }
+
+        PostHogSDK.shared.capture(
+            "activity_milestone",
+            properties: [
+                "milestone":          count,
+                "days_since_install": daysSinceInstall()
+            ])
+
+        print("Milestone: \(count) activities after \(daysSinceInstall()) days")
+    }
+
+    /// Trackt einen erfolgreichen Plus-Kauf mit Kontext-Properties.
+    /// - Parameter activityCount: Anzahl Aktivitäten zum Kaufzeitpunkt.
+    func trackPlusPurchased(activityCount: Int) {
+        PostHogSDK.shared.capture(
+            "plus_purchased",
+            properties: [
+                "activity_count_at_purchase": activityCount,
+                "days_since_install":         daysSinceInstall()
+            ])
+
+        print("Plus purchased: \(activityCount) activities, day \(daysSinceInstall())")
+    }
+
+    // MARK: Private
+
+    /// Anzahl Tage seit dem Install-Datum.
+    /// Liest `installDate` aus UserDefaults — falls nicht gesetzt, wird das Bundle-Erstellungsdatum
+    /// als Proxy für das App Store Install-Datum verwendet. Fallback: heute (→ 0 Tage).
+    private func daysSinceInstall() -> Int {
+        if UserDefaults.standard.object(forKey: "installDate") == nil {
+            if let bundleURL   = Bundle.main.bundleURL as URL?,
+               let attrs       = try? FileManager.default.attributesOfItem(atPath: bundleURL.path),
+               let creationDate = attrs[.creationDate] as? Date {
+                UserDefaults.standard.set(creationDate, forKey: "installDate")
+            } else {
+                UserDefaults.standard.set(Date(), forKey: "installDate")
+            }
+        }
+
+        let installDate = UserDefaults.standard.object(forKey: "installDate") as? Date ?? Date()
+        return max(0, Calendar.current.dateComponents([.day], from: installDate, to: Date()).day ?? 0)
+    }
 }

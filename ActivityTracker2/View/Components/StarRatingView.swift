@@ -6,7 +6,7 @@ import SwiftUI
 
 // MARK: - StarRatingView
 
-/// Sterne-Bewertung (0–3). Editierbar in Add/Edit-Screens, read-only im Detail-Screen.
+/// Sterne-Bewertung (0–5). Editierbar in Add/Edit-Screens, read-only im Detail-Screen.
 /// Zeigt "Bewertung"-Label links, Sterne-Picker rechts.
 struct StarRatingView: View {
 
@@ -44,16 +44,16 @@ struct StarRatingView: View {
                     Divider().frame(height: 16)
                 }
 
-                // 1–3 Sterne
-                ForEach(1...3, id: \.self) { star in
+                // 1–5 Sterne
+                ForEach(1...5, id: \.self) { star in
                     if isEditable {
                         Button {
                             rating = star
                         } label: {
                             Image(systemName: star <= rating ? "star.fill" : "star")
-                                .font(.system(size: 18))
+                                .font(.system(size: 20))
                                 .foregroundStyle(
-                                    star <= rating ? Color(hex: "#FFD700") : Color(.systemGray3)
+                                    star <= rating ? Color(hex: "#FFD700") : Color(.systemGray4)
                                 )
                         }
                         .buttonStyle(.plain)
@@ -80,8 +80,8 @@ struct StarRatingView: View {
 // MARK: - Preview
 
 #Preview("Star Rating View") {
-    @Previewable @State var editableRating: Int = 2
-    let readOnlyRating = 3
+    @Previewable @State var editableRating: Int = 3
+    let readOnlyRating = 5
 
     return VStack(spacing: 24) {
         VStack(alignment: .leading, spacing: 8) {

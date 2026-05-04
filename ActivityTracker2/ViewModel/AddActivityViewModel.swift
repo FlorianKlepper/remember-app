@@ -157,11 +157,13 @@ extension AddActivityViewModel {
     ///
     /// - Parameters:
     ///   - activityViewModel: Das zentrale ActivityViewModel für die tatsächliche Persistenz.
+    ///   - analytics: `AnalyticsManager` — für Milestone-Tracking nach dem Speichern.
     ///   - context: Aktiver SwiftData `ModelContext`.
     /// - Throws: `AppError.locationUnavailable` wenn keine Koordinate gesetzt ist,
     ///           `AppError.saveFailed` bei Datenbankfehlern.
     func saveActivity(
         activityViewModel: ActivityViewModel,
+        analytics: AnalyticsManager,
         context: ModelContext
     ) async throws {
         guard let coordinate = pendingCoordinate,
@@ -194,6 +196,10 @@ extension AddActivityViewModel {
             starRating: starRating,
             context: context
         )
+
+        // Meilenstein prüfen nach erfolgreichem Speichern
+        let count = activityViewModel.activities.count
+        analytics.trackActivityMilestone(count: count)
     }
 }
 

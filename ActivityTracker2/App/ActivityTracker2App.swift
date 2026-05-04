@@ -141,6 +141,11 @@ struct ActivityTracker2App: App {
             .environment(onboardingViewModel)
             .environment(plusViewModel)
             .onAppear {
+                // Install-Datum beim ersten Start einmalig sichern
+                if UserDefaults.standard.object(forKey: "installDate") == nil {
+                    UserDefaults.standard.set(Date(), forKey: "installDate")
+                    print("Install date set: \(Date())")
+                }
                 analyticsManager.track(.appOpened)
                 locationManager.startUpdating()
                 #if DEBUG

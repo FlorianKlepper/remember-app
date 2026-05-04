@@ -79,7 +79,7 @@ struct ActivityRowView: View {
 
                 if activity.starRating > 0 {
                     HStack(spacing: 2) {
-                        ForEach(1...activity.starRating, id: \.self) { _ in
+                        ForEach(1...max(activity.starRating, 1), id: \.self) { _ in
                             Image(systemName: "star.fill")
                                 .font(.system(size: 8))
                                 .foregroundStyle(Color(hex: "#FFD700"))

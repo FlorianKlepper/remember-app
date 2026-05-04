@@ -57,9 +57,16 @@ extension StoreKitManager {
     /// - Parameters:
     ///   - product: Das zu kaufende `Product` (muss `plusProduct` sein).
     ///   - settings: `UserSettings`-Objekt — wird bei Erfolg auf `.plus` gesetzt.
+    ///   - analytics: `AnalyticsManager` — für `trackPlusPurchased` bei Erfolg.
+    ///   - activityCount: Aktuelle Anzahl Aktivitäten zum Zeitpunkt des Kaufs.
     /// - Throws: `AppError.storeKitError` bei Kauffehlern.
     /// - Returns: `true` bei verifiziertem Kauf, `false` bei Abbruch oder Pending.
-    func purchase(_ product: Product, settings: UserSettings) async throws -> Bool {
+    func purchase(
+        _ product: Product,
+        settings: UserSettings,
+        analytics: AnalyticsManager,
+        activityCount: Int
+    ) async throws -> Bool {
         let result: Product.PurchaseResult
         do {
             result = try await product.purchase()
@@ -69,7 +76,11 @@ extension StoreKitManager {
 
         switch result {
         case .success(let verification):
-            return await handleVerification(verification, settings: settings)
+            let success = await handleVerification(verification, settings: settings)
+            if success {
+                analytics.trackPlusPurchased(activityCount: activityCount)
+            }
+            return success
         case .userCancelled:
             return false
         case .pending:

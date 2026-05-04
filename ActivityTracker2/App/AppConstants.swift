@@ -38,7 +38,7 @@ enum AppConstants {
     static let defaultLongitude: Double = 11.5755
 
     /// Standardzoom der Karte als MKCoordinateSpan-Delta.
-    static let defaultMapSpan: Double = 0.05
+    static let defaultMapSpan: Double = 0.25
 
     // MARK: Eingabelimits
 
