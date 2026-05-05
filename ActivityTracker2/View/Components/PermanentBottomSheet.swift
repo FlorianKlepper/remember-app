@@ -15,6 +15,24 @@ struct ScrollOffsetKey: PreferenceKey {
     }
 }
 
+// MARK: - RowTracker
+
+/// Unsichtbare Hilfsview die den `minY`-Frame einer Row im benannten Koordinatenraum trackt.
+/// Wird als `.background()` auf jede Listenzeile gesetzt.
+private struct RowTracker: View {
+    let activityId: Activity.ID
+    let onFrameChange: (CGRect) -> Void
+
+    var body: some View {
+        GeometryReader { geo in
+            Color.clear
+                .onChange(of: geo.frame(in: .named("scrollSpace")).minY) { _, _ in
+                    onFrameChange(geo.frame(in: .named("scrollSpace")))
+                }
+        }
+    }
+}
+
 // MARK: - PermanentBottomSheet
 
 /// Permanentes Bottom Sheet das sich NIEMALS schließt.
@@ -74,8 +92,20 @@ struct PermanentBottomSheet: View {
     /// Index der aktuell sichtbaren Aktivität in `currentActivities`.
     @State private var currentIndex: Int = 0
 
-    /// Timer der nach dem Einsnappen feuert — forciert highlightedActivityId Update.
-    @State private var snapTimer: Timer? = nil
+    /// Timer der nach dem Stopp des ScrollView feuert — forciert highlightedActivityId Update.
+    @State private var scrollStopTimer: Timer? = nil
+
+    /// Velocity beim letzten DragGesture.onEnded — für zukünftige Snap-Logik.
+    @State private var lastVelocity: CGFloat = 0
+
+    /// ID der aktuell obersten sichtbaren Row — via GeometryReader getrackt.
+    @State private var topRowId: Activity.ID? = nil
+
+    /// Sichtbarkeitsanteil der obersten Row (0.0–1.0) — für 50%-Regel.
+    @State private var topRowVisible: CGFloat = 1.0
+
+    /// True während ein programmatischer Snap läuft — unterdrückt GeometryReader-Updates.
+    @State private var isSnapping: Bool = false
 
     /// True während der User den ScrollView berührt — verhindert programmatisches Scrollen.
     @State private var isUserScrolling: Bool = false
@@ -287,6 +317,11 @@ struct PermanentBottomSheet: View {
                             activityRow(activity: activity)
                                 .frame(height: 72)
                                 .id(activity.id)
+                                .background(
+                                    RowTracker(activityId: activity.id) { frame in
+                                        updateTopRow(frame: frame, activityId: activity.id)
+                                    }
+                                )
                             Divider().padding(.leading, 16)
                         }
                         Color.clear
@@ -294,6 +329,7 @@ struct PermanentBottomSheet: View {
                     }
                 }
             }
+            .coordinateSpace(name: "scrollSpace")
             .scrollPosition(id: $scrollPosition, anchor: .top)
             .id(listId)
             .offset(x: listOffset)
@@ -302,60 +338,55 @@ struct PermanentBottomSheet: View {
             .simultaneousGesture(
                 DragGesture(minimumDistance: 20)
                     .onEnded { value in
-                        let h = value.translation.width
-                        let v = value.translation.height
-                        let vel = value.velocity.height
+                        let h      = value.translation.width
+                        let v      = value.translation.height
+                        let vel    = value.velocity.height
+                        let absVel = abs(vel)
+                        lastVelocity = vel
 
                         // Horizontal → Kategorie wechseln
-                        if abs(h) > abs(v) * 1.5, abs(h) > 40 {
-                            if h < -40 { swipeToNext() }
+                        guard !(abs(h) > abs(v) * 1.5 && abs(h) > 40) else {
+                            if h < -40     { swipeToNext() }
                             else if h > 40 { swipeToPrevious() }
                             return
                         }
 
-                        // Fling → warten bis ScrollView ausläuft, dann einsnappen
-                        if abs(vel) > 500 {
-                            let waitTime: Double = abs(vel) > 1000 ? 0.6 : 0.3
-                            DispatchQueue.main.asyncAfter(deadline: .now() + waitTime) {
-                                snapToCurrentPosition(proxy: proxy)
+                        if absVel < 150 {
+                            // TYP 1: Kurz warten bis scrollPosition aktualisiert ist
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                self.snapToCurrentPosition(proxy: proxy)
                             }
-                            return
-                        }
 
-                        // Kleine Bewegungen ignorieren
-                        guard abs(v) > 20 || abs(vel) > 100 else { return }
-
-                        // Normale Bewegung → Paging
-                        var newIndex = currentIndex
-                        if vel < -100 || v < -40 {
-                            newIndex = min(currentIndex + 1, currentActivities.count - 1)
-                        } else if vel > 100 || v > 40 {
-                            newIndex = max(currentIndex - 1, 0)
                         } else {
-                            return // Unklare Richtung → bei aktuellem bleiben
+                            // TYP 2 + TYP 3: velocity-basierte Wartezeit bis ScrollView stoppt
+                            let waitTime = min(Double(absVel) / 1000.0, 1.5)
+                            scrollStopTimer?.invalidate()
+                            scrollStopTimer = Timer.scheduledTimer(
+                                withTimeInterval: waitTime,
+                                repeats: false
+                            ) { _ in
+                                DispatchQueue.main.async {
+                                    self.snapToCurrentPosition(proxy: proxy)
+                                }
+                            }
                         }
-
-                        snapTo(index: newIndex, proxy: proxy)
                     }
             )
-            // ScrollPosition-Debounce → Snap nach Fling wenn ScrollView stoppt
+            // Map-Sync nach manuellem Scrollen — kein Timer, kein zweiter Snap
             .onChange(of: scrollPosition) { _, newId in
                 guard let newId else { return }
-                snapTimer?.invalidate()
-                snapTimer = Timer.scheduledTimer(
-                    withTimeInterval: 0.15,
-                    repeats: false
-                ) { _ in
-                    DispatchQueue.main.async {
-                        guard self.scrollPosition == newId else { return }
-                        guard let activity = self.currentActivities
-                            .first(where: { $0.id == newId }),
-                              let location = activity.location
-                        else { return }
-                        self.mapVM.highlightedActivityId = newId
-                        self.mapVM.smoothAnimateToPin(to: location.coordinate)
-                        self.mapVM.selectedLocation = location
-                    }
+                guard !isSnapping else { return }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    guard !self.isSnapping else { return }
+                    self.mapVM.highlightedActivityId = newId
+
+                    guard let activity = self.currentActivities
+                        .first(where: { $0.id == newId }),
+                          let location = activity.location
+                    else { return }
+                    self.mapVM.smoothAnimateToPin(to: location.coordinate)
+                    self.mapVM.selectedLocation = location
                 }
             }
             // Externe Änderung (Pin-Tap, Row-Tap) → Index syncen + scrollen
@@ -363,6 +394,7 @@ struct PermanentBottomSheet: View {
                 guard let newId,
                       let index = currentActivities.firstIndex(where: { $0.id == newId })
                 else { return }
+                guard !isSnapping else { return }
                 currentIndex = index
                 withAnimation(.easeInOut(duration: 0.3)) {
                     proxy.scrollTo(newId, anchor: .top)
@@ -719,28 +751,69 @@ struct PermanentBottomSheet: View {
 
     // MARK: Snap Helpers
 
+    /// Aktualisiert `topRowId` und `topRowVisible` wenn die übergebene Row die oberste sichtbare ist.
+    private func updateTopRow(frame: CGRect, activityId: Activity.ID) {
+        guard !isSnapping else { return }
+        let rowHeight = frame.height
+        guard rowHeight > 0 else { return }
+        let minY = frame.minY
+        guard minY <= 0 && minY > -rowHeight else { return }
+        let percent        = (rowHeight + minY) / rowHeight
+        let idChanged      = topRowId != activityId
+        let percentChanged = abs(topRowVisible - percent) > 0.1
+        guard idChanged || percentChanged else { return }
+        topRowId      = activityId
+        topRowVisible = percent
+    }
+
     /// Snappt zur Aktivität die nach einem Fling ganz oben sichtbar ist (via scrollPosition-Tracker).
     private func snapToCurrentPosition(proxy: ScrollViewProxy) {
-        guard let currentId = scrollPosition,
-              let index = currentActivities.firstIndex(where: { $0.id == currentId })
-        else { return }
-        snapTo(index: index, proxy: proxy)
+        guard let topId = topRowId,
+              let idx   = currentActivities.firstIndex(where: { $0.id == topId })
+        else {
+            // Fallback: scrollPosition
+            guard let currentId = scrollPosition,
+                  let fbIdx = currentActivities.firstIndex(where: { $0.id == currentId })
+            else {
+                snapTo(index: currentIndex, proxy: proxy)
+                return
+            }
+            snapTo(index: fbIdx, proxy: proxy)
+            return
+        }
+
+        let targetIndex: Int
+        if topRowVisible >= 0.5 {
+            targetIndex = idx
+        } else {
+            targetIndex = min(idx + 1, currentActivities.count - 1)
+        }
+
+        snapTo(index: targetIndex, proxy: proxy)
     }
 
     /// Scrollt zu einer Aktivität per Index und aktualisiert Map + Highlight.
     private func snapTo(index: Int, proxy: ScrollViewProxy) {
+        guard index >= 0 && index < currentActivities.count else { return }
+
+        let target   = currentActivities[index]
         currentIndex = index
-        guard currentActivities.indices.contains(index) else { return }
-        let target = currentActivities[index]
+        isSnapping   = true
+
         withAnimation(.easeInOut(duration: 0.3)) {
             proxy.scrollTo(target.id, anchor: .top)
         }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            mapVM.highlightedActivityId = target.id
+            self.mapVM.highlightedActivityId = target.id
             if let location = target.location {
-                mapVM.smoothAnimateToPin(to: location.coordinate)
-                mapVM.selectedLocation = location
+                self.mapVM.smoothAnimateToPin(to: location.coordinate)
+                self.mapVM.selectedLocation = location
             }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.isSnapping = false
         }
     }
 

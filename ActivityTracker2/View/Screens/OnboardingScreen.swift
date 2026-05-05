@@ -190,7 +190,7 @@ struct OnboardingScreen: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("onboarding.screen3.cta")
+                        Text("button.next")
                     }
                 }
                 .font(.headline)
