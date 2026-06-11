@@ -174,6 +174,7 @@ struct ContentView: View {
             if selectedTab == 0 || selectedTab == 1 {
                 FloatingPlusButton(
                     action: {
+                        analyticsManager.trackFirstAddTapped()
                         if hasReachedLimit {
                             showLimitReached = true
                         } else {
@@ -261,11 +262,13 @@ struct ContentView: View {
                     .foregroundStyle(.orange)
                     .padding(.top, 8)
 
-                Text("Fast voll!")
+                Text(String(localized: "limit.warning.title",
+                            defaultValue: "Almost full!"))
                     .font(.title2)
                     .fontWeight(.bold)
 
-                Text("Du hast 80 von 100 kostenlosen Aktivitäten verwendet.\nNoch 20 verfügbar.")
+                Text(String(localized: "limit.warning.body",
+                            defaultValue: "You've used 80 of 100 free activities.\n20 remaining."))
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -294,7 +297,8 @@ struct ContentView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(Color(hex: "#FFD700"))
-                        Text("Jetzt upgraden — 4,99€")
+                        Text(String(localized: "limit.warning.cta",
+                                    defaultValue: "Upgrade now — €8.99"))
                             .fontWeight(.semibold)
                     }
                     .foregroundStyle(.white)
@@ -311,7 +315,8 @@ struct ContentView: View {
                     showLimitWarning = false
                     UserDefaults.standard.set(true, forKey: "hasSeenLimit80Warning")
                 } label: {
-                    Text("Später")
+                    Text(String(localized: "limit.warning.later",
+                                defaultValue: "Later"))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

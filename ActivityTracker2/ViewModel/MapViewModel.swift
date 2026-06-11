@@ -78,6 +78,46 @@ final class MapViewModel {
     }
 }
 
+// MARK: - Initiale Region
+
+extension MapViewModel {
+
+    /// Setzt die Startregion der Karte.
+    ///
+    /// Priorität: GPS-Standort → Sprache (DE: München, EN: San Francisco).
+    /// Wird einmalig in `MapScreen.onAppear` aufgerufen, bevor `onChange(of: locationManager.currentLocation)`
+    /// den ersten GPS-Fix übernimmt.
+    /// - Parameter currentLocation: Aktueller GPS-Standort, falls bereits verfügbar.
+    func setInitialRegion(currentLocation: CLLocationCoordinate2D?) {
+        if let coord = currentLocation {
+            region = MKCoordinateRegion(
+                center: coord,
+                span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+            )
+            hasInitialLocation = true
+            print("Map start: GPS \(coord.latitude), \(coord.longitude)")
+        } else if L10n.isDe {
+            region = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 48.1374, longitude: 11.5755),
+                span: MKCoordinateSpan(
+                    latitudeDelta: AppConstants.defaultMapSpan,
+                    longitudeDelta: AppConstants.defaultMapSpan
+                )
+            )
+            print("Map start: München (DE fallback)")
+        } else {
+            region = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+                span: MKCoordinateSpan(
+                    latitudeDelta: AppConstants.defaultMapSpan,
+                    longitudeDelta: AppConstants.defaultMapSpan
+                )
+            )
+            print("Map start: San Francisco (EN fallback)")
+        }
+    }
+}
+
 // MARK: - Pin-Logik
 
 extension MapViewModel {

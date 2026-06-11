@@ -53,6 +53,7 @@ struct PermanentBottomSheet: View {
     @Environment(FilterViewModel.self)   private var filterVM
     @Environment(ActivityViewModel.self) private var activityVM
     @Environment(LanguageManager.self)   private var languageManager
+    @Environment(AnalyticsManager.self)  private var analyticsManager
 
     // MARK: Inputs
 
@@ -207,6 +208,7 @@ struct PermanentBottomSheet: View {
             }
             mapVM.currentSheetDetent = 1.0
             NotificationCenter.default.post(name: .sheetSizeChanged, object: false)
+            analyticsManager.trackFirstListViewed()
         }
         // Nach Speichern einer Aktivität → Sheet auf medium
         .onReceive(NotificationCenter.default.publisher(for: .setSheetMedium)) { _ in
@@ -617,7 +619,7 @@ struct PermanentBottomSheet: View {
                 .frame(width: 3)
                 .padding(.vertical, 4)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
 
                 // ── Datum links ──────────────────────────────────
                 VStack(alignment: .center, spacing: 0) {
@@ -628,7 +630,7 @@ struct PermanentBottomSheet: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
-                .frame(width: 32)
+                .frame(width: 36)
 
                 // ── Titel → Text → Location mitte ───────────────
                 VStack(alignment: .leading, spacing: 2) {
@@ -646,42 +648,33 @@ struct PermanentBottomSheet: View {
                             .truncationMode(.tail)
                     }
 
-                    let poi  = activity.location?.locationName ?? ""
-                    let city = activity.location?.city ?? ""
+                    let poi          = activity.location?.locationName ?? ""
+                    let city         = activity.location?.city ?? ""
+                    let locationText = poi.isEmpty ? city : city.isEmpty ? poi : "\(poi) · \(city)"
 
-                    if !poi.isEmpty && !city.isEmpty {
-                        Text("\(poi) · \(city)")
+                    if !locationText.isEmpty {
+                        Text(locationText)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    } else if !poi.isEmpty {
-                        Text(poi)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    } else if !city.isEmpty {
-                        Text(city)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.tertiary)
                             .lineLimit(1)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                // ── Sterne oben, Icon darunter — feste Breite ───
-                VStack(alignment: .trailing, spacing: 4) {
+                // ── Sterne oben, Icon darunter ───────────────────
+                VStack(alignment: .trailing, spacing: 2) {
 
                     // Sterne ganz oben — Platzhalter wenn keine
                     if activity.starRating > 0 {
                         HStack(spacing: 2) {
                             ForEach(1...activity.starRating, id: \.self) { _ in
                                 Image(systemName: "star.fill")
-                                    .font(.system(size: 8))
+                                    .font(.system(size: 9))
                                     .foregroundStyle(Color(hex: "#FFD700"))
                             }
                         }
                     } else {
-                        Color.clear.frame(width: 1, height: 10)
+                        Color.clear.frame(height: 9)
                     }
 
                     // Thumbnail links + Icon rechts
@@ -691,7 +684,7 @@ struct PermanentBottomSheet: View {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: 34, height: 34)
+                                .frame(width: 38, height: 38)
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
 
@@ -710,12 +703,12 @@ struct PermanentBottomSheet: View {
                             }
                             HapticManager.selectionChanged()
                         } label: {
-                            CategoryIconView(categoryId: activity.categoryId, size: 34)
+                            CategoryIconView(categoryId: activity.categoryId, size: 38)
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .frame(width: activity.photoData != nil ? 80 : 40)
+                .fixedSize()
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
             .padding(.vertical, 6)

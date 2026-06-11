@@ -12,7 +12,7 @@ enum L10n {
 
     // MARK: Private Helper
 
-    private static var isDe: Bool {
+    static var isDe: Bool {
         Locale.current.language.languageCode?.identifier == "de"
     }
 
@@ -318,5 +318,63 @@ enum L10n {
 
     static var journalSectionSubtitle: String {
         isDe ? "Was bewegt dich heute?" : "What moves you today?"
+    }
+
+    // MARK: Wochenbericht
+
+    static var weeklyTitle: String {
+        isDe ? "Deine Woche" : "Your Week"
+    }
+
+    static var weeklySubtitle: String {
+        isDe ? "Diese Woche im Überblick" : "This week at a glance"
+    }
+
+    static var weeklyActivities: String {
+        isDe ? "Aktivitäten" : "Activities"
+    }
+
+    static var weeklyTopMoments: String {
+        isDe ? "Top 5★ Momente" : "Top 5★ Moments"
+    }
+
+    static var weeklyPlacesDiscovered: String {
+        isDe ? "Orte entdeckt" : "Places discovered"
+    }
+
+    static var weeklyFavorite: String {
+        isDe ? "Favorit" : "Favorite"
+    }
+
+    static var weeklyHotspot: String {
+        isDe ? "Hotspot diese Woche:" : "Hotspot this week:"
+    }
+
+    static var weeklyEmpty: String {
+        isDe
+            ? "Diese Woche noch keine Aktivitäten — fang jetzt an! ✨"
+            : "No activities this week — start now! ✨"
+    }
+
+    static func weeklyGrowthText(_ n: Int) -> String {
+        isDe
+            ? "Super Woche! \(n) mehr als letzte Woche 🔥"
+            : "Great week! \(n) more than last week 🔥"
+    }
+
+    static var weeklyVsLastWeek: String {
+        isDe ? "vs. Vorwoche" : "vs. last week"
+    }
+
+    static var weeklyStars: String {
+        isDe ? "Sterne vergeben" : "Stars given"
+    }
+
+    static var totalStars: String {
+        isDe ? "Sterne gesamt" : "Total stars"
+    }
+
+    static var averageStars: String {
+        isDe ? "Ø Sterne" : "Avg. stars"
     }
 }

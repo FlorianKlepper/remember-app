@@ -38,32 +38,32 @@ enum AppError: LocalizedError {
         case .locationDenied:
             return String(
                 localized: "error.location.denied.description",
-                defaultValue: "Ortszugriff verweigert. Bitte aktiviere den Zugriff in den Einstellungen."
+                defaultValue: "Location access denied. Please enable access in Settings."
             )
         case .locationUnavailable:
             return String(
                 localized: "error.location.unavailable.description",
-                defaultValue: "Standort ist aktuell nicht verfügbar. Bitte versuche es später erneut."
+                defaultValue: "Location is currently unavailable. Please try again later."
             )
         case .saveFailed:
             return String(
                 localized: "error.save.failed.description",
-                defaultValue: "Die Aktivität konnte nicht gespeichert werden. Bitte versuche es erneut."
+                defaultValue: "The activity could not be saved. Please try again."
             )
         case .geocodingFailed:
             return String(
                 localized: "error.geocoding.failed.description",
-                defaultValue: "Der Ort konnte nicht ermittelt werden. Bitte wähle ihn manuell."
+                defaultValue: "The location could not be determined. Please select it manually."
             )
         case .storeKitError(let underlying):
             return String(
                 localized: "error.storekit.description",
-                defaultValue: "Kauf fehlgeschlagen: \(underlying.localizedDescription)"
+                defaultValue: "Purchase failed: \(underlying.localizedDescription)"
             )
         case .homeLocationNotSet:
             return String(
                 localized: "error.home.location.not.set.description",
-                defaultValue: "Kein Heimatort gespeichert. Bitte lege einen Heimatort in den Einstellungen fest."
+                defaultValue: "No home location saved. Please set a home location in Settings."
             )
         }
     }
@@ -74,17 +74,17 @@ enum AppError: LocalizedError {
         case .locationDenied:
             return String(
                 localized: "error.location.denied.recovery",
-                defaultValue: "Öffne Einstellungen → Datenschutz → Ortungsdienste → Remember."
+                defaultValue: "Open Settings → Privacy → Location Services → Remember."
             )
         case .locationUnavailable:
             return String(
                 localized: "error.location.unavailable.recovery",
-                defaultValue: "Überprüfe deine Netzwerkverbindung oder deaktiviere den Flugmodus."
+                defaultValue: "Check your network connection or disable Airplane mode."
             )
         case .homeLocationNotSet:
             return String(
                 localized: "error.home.location.not.set.recovery",
-                defaultValue: "Gehe zu Einstellungen und tippe auf 'Heimatort festlegen'."
+                defaultValue: "Go to Settings and tap 'Set home location'."
             )
         default:
             return nil

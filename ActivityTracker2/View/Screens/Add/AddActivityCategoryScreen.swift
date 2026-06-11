@@ -88,7 +88,7 @@ struct AddActivityCategoryScreen: View {
                 userSettings: userSettings,
                 language: language
             )
-            .navigationTitle(String(localized: "add.step1.title", defaultValue: "Kategorie"))
+            .navigationTitle(String(localized: "add.step1.title", defaultValue: "Category"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

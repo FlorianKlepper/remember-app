@@ -4,7 +4,10 @@
       "Bash(xcodebuild -scheme ActivityTracker2 -destination 'platform=iOS Simulator,name=iPhone 17' build)",
       "Bash(python3:*)",
       "Bash(ls \"/Users/florianklepper/Documents/_ActivityTracker2/4-Screenshots/onboarding\"*)",
-      "Bash(grep -v \"^--$\")"
+      "Bash(grep -v \"^--$\")",
+      "Bash(git push:*)",
+      "Bash(xcodebuild -project ActivityTracker2.xcodeproj -scheme ActivityTracker2 -destination 'platform=iOS Simulator,name=iPhone 17' build)",
+      "Bash(xxd)"
     ]
   }
 }

@@ -52,6 +52,7 @@ struct StatsScreen: View {
     // MARK: State
 
     @State private var showSettings = false
+    private let reviewManager = ReviewManager.shared
 
     // MARK: Private
 
@@ -71,6 +72,10 @@ struct StatsScreen: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+
+                    // ── Section 0: Wochenbericht ─────────────────────
+                    WeeklyReportCard(statsVM: statsVM)
+                        .padding(.top, 16)
 
                     // ── Section 1: Zusammenfassung ───────────────────
                     StatsSummaryCard(
@@ -119,10 +124,18 @@ struct StatsScreen: View {
             .sheet(isPresented: $showSettings) {
                 SettingsScreen()
             }
+            .sheet(isPresented: Binding(
+                get: { reviewManager.showPreReviewSheet },
+                set: { reviewManager.showPreReviewSheet = $0 }
+            )) {
+                PreReviewSheet()
+            }
         }
         .onAppear {
             statsVM.compute(from: activityVM.activities)
             analyticsManager.track(.statsOpened)
+            analyticsManager.trackFirstStatsViewed()
+            reviewManager.checkAndTriggerReview(activityCount: totalCount)
         }
         .onChange(of: activityVM.activities.count) {
             statsVM.compute(from: activityVM.activities)
@@ -155,6 +168,20 @@ struct StatsScreen: View {
                     text: String(format: L10n.statsFavorites, favoriteCount)
                 )
             }
+            if statsVM.totalStars > 0 {
+                Divider().padding(.leading, 52)
+                emotionalStatRow(
+                    icon: "star.fill",
+                    text: "\(statsVM.totalStars) \(L10n.totalStars)",
+                    iconColor: Color(hex: "#FFD700")
+                )
+                Divider().padding(.leading, 52)
+                emotionalStatRow(
+                    icon: "star.leadinghalf.filled",
+                    text: "\(String(format: "%.1f", statsVM.averageStars)) \(L10n.averageStars)",
+                    iconColor: Color(hex: "#FFD700")
+                )
+            }
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
@@ -171,11 +198,11 @@ struct StatsScreen: View {
         .padding(.horizontal, 16)
     }
 
-    private func emotionalStatRow(icon: String, text: String) -> some View {
+    private func emotionalStatRow(icon: String, text: String, iconColor: Color? = nil) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 16))
-                .foregroundStyle(brandColor)
+                .foregroundStyle(iconColor ?? brandColor)
                 .frame(width: 24)
             Text(text)
                 .font(.subheadline)
@@ -451,6 +478,165 @@ struct StatsScreen: View {
         Text(key)
             .font(.headline)
             .padding(.horizontal)
+    }
+}
+
+// MARK: - WeeklyReportCard
+
+private struct WeeklyReportCard: View {
+
+    let statsVM: StatsViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+
+            // ── Header ────────────────────────────────────────────
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.weeklyTitle)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    Text(L10n.weeklySubtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if statsVM.weeklyGrowth != 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: statsVM.weeklyGrowth > 0
+                              ? "arrow.up.circle.fill"
+                              : "arrow.down.circle.fill")
+                            .foregroundStyle(statsVM.weeklyGrowth > 0 ? .green : .orange)
+                        Text("\(abs(statsVM.weeklyGrowth)) \(L10n.weeklyVsLastWeek)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            // ── Stats Grid ────────────────────────────────────────
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible()), count: 2),
+                spacing: 12
+            ) {
+                weekStat(
+                    icon: "checkmark.circle.fill",
+                    color: Color(hex: "#E8593C"),
+                    value: "\(statsVM.thisWeekActivities.count)",
+                    label: L10n.weeklyActivities
+                )
+                weekStat(
+                    icon: "crown.fill",
+                    color: Color(hex: "#FFD700"),
+                    value: "\(statsVM.thisWeekStarredCount)",
+                    label: L10n.weeklyTopMoments
+                )
+                weekStat(
+                    icon: "mappin.circle.fill",
+                    color: Color(hex: "#378ADD"),
+                    value: "\(statsVM.thisWeekUniqueCities)",
+                    label: L10n.weeklyPlacesDiscovered
+                )
+                weekStat(
+                    icon: "star.fill",
+                    color: Color(hex: "#FFD700"),
+                    value: "\(statsVM.thisWeekTotalStars)",
+                    label: L10n.weeklyStars
+                )
+                if let catId = statsVM.thisWeekFavoriteCategory,
+                   let category = (Category.mvpCategories + Category.plusCategories)
+                       .first(where: { $0.id == catId }) {
+                    weekStat(
+                        icon: category.iconName,
+                        color: Color(hex: category.colorHex),
+                        value: category.nameDe,
+                        label: L10n.weeklyFavorite
+                    )
+                }
+            }
+
+            // ── Top Ort ───────────────────────────────────────────
+            if let city = statsVM.thisWeekTopCity {
+                Divider()
+                HStack(spacing: 8) {
+                    Image(systemName: "mappin.fill")
+                        .foregroundStyle(Color(hex: "#E8593C"))
+                    Text(L10n.weeklyHotspot)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(city)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                    Spacer()
+                }
+            }
+
+            // ── Motivationstext ───────────────────────────────────
+            if statsVM.thisWeekActivities.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(Color(hex: "#E8593C"))
+                    Text(L10n.weeklyEmpty)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else if statsVM.weeklyGrowth > 0 {
+                HStack(spacing: 6) {
+                    Image(systemName: "flame.fill")
+                        .foregroundStyle(.orange)
+                    Text(L10n.weeklyGrowthText(statsVM.weeklyGrowth))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.04), radius: 3,  x: 0, y: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(LinearGradient(
+                    colors: [.white.opacity(0.5), .clear],
+                    startPoint: .top,
+                    endPoint: .center
+                ))
+                .allowsHitTesting(false)
+        )
+        .padding(.horizontal, 16)
+    }
+
+    private func weekStat(
+        icon: String,
+        color: Color,
+        value: String,
+        label: String
+    ) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 22))
+                .foregroundStyle(color)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 16, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text(label)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.systemGray6))
+        )
     }
 }
 

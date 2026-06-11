@@ -1,6 +1,6 @@
 // PreviewDataHelper.swift
 // ActivityTracker2 — Remember
-// Debug-Sample-Daten: 100 Aktivitäten — München + Umland + Deutschland + Welt
+// Debug-Sample-Daten: 130 Aktivitäten — München + Umland + Deutschland + Welt + San Francisco
 
 #if DEBUG
 
@@ -631,6 +631,194 @@ enum PreviewDataHelper {
             text: "Angefangen ein Tagebuch zu führen. Erster Eintrag: heute war ein guter Tag. Mehr braucht es nicht.",
             isFavorite: true,
             location: Location(latitude: 48.1374, longitude: 11.5755, city: "München", region: "Bayern", country: "Deutschland")),
+
+        // ══════════════════════════════════════════════════
+        // San Francisco — Jan / Feb 2026 (30 Aktivitäten)
+        // ══════════════════════════════════════════════════
+
+        // ── 10 Tagebuch-Einträge ──────────────────────────
+
+        Activity(categoryId: "journal", date: .daysAgo(159),
+            title: "New Year in the City",
+            text: "Started 2026 in San Francisco. The fireworks over the bay were absolutely breathtaking. Feeling grateful and excited for what this year will bring.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.8080, longitude: -122.4177, locationName: "Fisherman's Wharf", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(155),
+            title: "Morning Thoughts at Dolores Park",
+            text: "Sitting here watching the city wake up. The fog is slowly lifting over the skyline. These quiet moments are what I live for.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7596, longitude: -122.4269, locationName: "Dolores Park", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(151),
+            title: "Reflections on Castro Street",
+            text: "Long walk through the Castro today. This neighborhood has such a unique energy. Grabbed coffee at a tiny corner café and wrote for two hours.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7609, longitude: -122.4350, locationName: "Castro Street", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(145),
+            title: "Mid-January Check-in",
+            text: "Two weeks into the new year. Feeling settled in SF. The city is incredible — every street has a story. Need to explore more neighborhoods this month.",
+            isFavorite: false, starRating: 3,
+            location: Location(latitude: 37.7785, longitude: -122.3948, locationName: "SoMa District", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(141),
+            title: "Foggy Morning in Haight",
+            text: "The famous San Francisco fog never gets old. Walked through Haight-Ashbury in the mist. Felt like a scene from a movie. This city has so much soul.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7692, longitude: -122.4481, locationName: "Haight-Ashbury", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(115),
+            title: "Valentine's Day Thoughts",
+            text: "Spent the morning alone at Twin Peaks watching the sunrise over the city. Sometimes solitude is the best companion. Beautiful 360° view of San Francisco.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7525, longitude: -122.4477, locationName: "Twin Peaks", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(113),
+            title: "Week 7 Reflections",
+            text: "Seven weeks in San Francisco. Still discovering new things every day. Today found a hidden bookshop in the Mission. This city rewards those who wander.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7599, longitude: -122.4148, locationName: "Mission District", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(109),
+            title: "Grateful for This City",
+            text: "Coit Tower at golden hour. The light was perfect. Feeling incredibly grateful for this experience in SF. Every day feels like a gift.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.8024, longitude: -122.4058, locationName: "Coit Tower", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(107),
+            title: "Noe Valley Sunday",
+            text: "Perfect Sunday in Noe Valley. Farmers market, fresh bread, great coffee. This neighborhood feels like a village within a city. Love it here.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7502, longitude: -122.4337, locationName: "Noe Valley Farmers Market", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "journal", date: .daysAgo(101),
+            title: "Last Day of February",
+            text: "February is over already. Two months in SF have flown by. Looking back at all the places I've visited on my Remember map — it tells the story better than any journal ever could.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7749, longitude: -122.4194, locationName: "Union Square", city: "San Francisco", country: "United States")),
+
+        // ── 20 weitere Aktivitäten ────────────────────────
+
+        Activity(categoryId: "running", date: .daysAgo(157),
+            title: "Morning Run at the Embarcadero",
+            text: "Best run of the year so far. 8km along the waterfront with views of the Bay Bridge. The city is magical at 7am.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7955, longitude: -122.3937, locationName: "The Embarcadero", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(156),
+            title: "Brunch at Tartine",
+            text: "Finally made it to the famous Tartine Bakery. The croissants are absolutely worth the hype and the queue. Best pastry I've had in years.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7612, longitude: -122.4243, locationName: "Tartine Bakery", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "museum", date: .daysAgo(153),
+            title: "SFMOMA Visit",
+            text: "Spent the afternoon at the SF Museum of Modern Art. The Frida Kahlo exhibition was stunning. Art always puts life in perspective.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7857, longitude: -122.4011, locationName: "SFMOMA", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "yoga", date: .daysAgo(150),
+            title: "Yoga at Alamo Square",
+            text: "Outdoor yoga with the Painted Ladies as backdrop. Only in San Francisco can you do downward dog with Victorian mansions in view.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7762, longitude: -122.4344, locationName: "Alamo Square Park", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(148),
+            title: "Dinner at Zuni Café",
+            text: "The legendary Zuni Café did not disappoint. Roast chicken for two was the best I've ever had. A San Francisco institution.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7747, longitude: -122.4220, locationName: "Zuni Café", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "hiking", date: .daysAgo(146),
+            title: "Hiking Land's End Trail",
+            text: "Incredible coastal hike with views of the Golden Gate. Found hidden ruins from an old bathhouse. SF never runs out of surprises.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7786, longitude: -122.5089, locationName: "Land's End Trail", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "festival", date: .daysAgo(143),
+            title: "Giants Game at Oracle Park",
+            text: "First baseball game ever! Oracle Park is stunning — you can see the bay from the bleachers. Hot dog and cold beer. American dream.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7786, longitude: -122.3893, locationName: "Oracle Park", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "cocktail_bar", date: .daysAgo(139),
+            title: "Cocktails at Trick Dog",
+            text: "Best cocktail bar in SF — maybe in the world. The menu changes every six months with a completely new theme. Absolutely creative.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7594, longitude: -122.4117, locationName: "Trick Dog Bar", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "cycling", date: .daysAgo(136),
+            title: "Cycling Golden Gate Park",
+            text: "Rented a bike and cycled through the entire park. 55 acres of green in the middle of the city. Stopped at the Japanese Garden.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7694, longitude: -122.4862, locationName: "Golden Gate Park", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "travel", date: .daysAgo(133),
+            title: "Ferry to Sausalito",
+            text: "Took the ferry across the bay to Sausalito. Stunning views of the Golden Gate Bridge from the water. Had fresh crab for lunch.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.8590, longitude: -122.4852, locationName: "Sausalito Ferry Terminal", city: "Sausalito", country: "United States")),
+
+        Activity(categoryId: "climbing", date: .daysAgo(130),
+            title: "Climbing at Mission Cliffs",
+            text: "First time indoor climbing in years. Mission Cliffs is a great facility. Arms are destroyed but my confidence is back.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7630, longitude: -122.4109, locationName: "Mission Cliffs Climbing", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "restaurant", date: .daysAgo(128),
+            title: "Dim Sum in Chinatown",
+            text: "Sunday dim sum at City View Restaurant. Arrived early to beat the queue. Har gow and siu mai were perfect. Best dim sum outside Hong Kong.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7956, longitude: -122.4059, locationName: "City View Restaurant Chinatown", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "concert", date: .daysAgo(124),
+            title: "Concert at The Fillmore",
+            text: "Legendary music venue. Saw an incredible jazz fusion band tonight. The history of this place is palpable — Hendrix, Janis, Grateful Dead.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7843, longitude: -122.4331, locationName: "The Fillmore", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "swimming", date: .daysAgo(121),
+            title: "Swimming at Aquatic Park",
+            text: "Brave enough to swim in the bay today. Water was freezing — maybe 12 degrees. The Dolphin Club regulars do this every single day!",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.8075, longitude: -122.4230, locationName: "Aquatic Park", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "cafe", date: .daysAgo(118),
+            title: "Coffee at Blue Bottle",
+            text: "The original Blue Bottle coffee kiosk in Hayes Valley. Where the third wave coffee movement started. Perfect single origin pour over.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7763, longitude: -122.4236, locationName: "Blue Bottle Coffee Hayes Valley", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "flea_market", date: .daysAgo(114),
+            title: "Flea Market at Alameda",
+            text: "Took the ferry to Alameda for the famous antique fair. Found an incredible vintage Leica camera. Could not resist. Worth every penny.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7652, longitude: -122.2416, locationName: "Alameda Antique Fair", city: "Alameda", country: "United States")),
+
+        Activity(categoryId: "tennis", date: .daysAgo(111),
+            title: "Tennis at Dolores Park",
+            text: "Finally found a partner for tennis in SF! Courts at Dolores Park with city views. Played for two hours in perfect weather.",
+            isFavorite: false, starRating: 4,
+            location: Location(latitude: 37.7596, longitude: -122.4269, locationName: "Dolores Park Tennis Courts", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "comedy", date: .daysAgo(108),
+            title: "Comedy Night at Cobb's",
+            text: "Cobb's Comedy Club on Columbus Avenue. Laughed for two hours straight. SF comedy scene is seriously underrated.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.8003, longitude: -122.4103, locationName: "Cobb's Comedy Club", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "rooftop_bar", date: .daysAgo(105),
+            title: "Rooftop Bar at Virgin Hotels",
+            text: "Sunset drinks at the rooftop bar with panoramic city views. The whole bay was golden. One of those moments you never want to end.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.7841, longitude: -122.4026, locationName: "Virgin Hotels SF Rooftop", city: "San Francisco", country: "United States")),
+
+        Activity(categoryId: "picnic", date: .daysAgo(102),
+            title: "Picnic at Crissy Field",
+            text: "Perfect ending to February. Picnic on the grass at Crissy Field with direct views of the Golden Gate. Sunshine, good food, great company.",
+            isFavorite: true, starRating: 5,
+            location: Location(latitude: 37.8038, longitude: -122.4481, locationName: "Crissy Field", city: "San Francisco", country: "United States")),
     ]}
 }
 

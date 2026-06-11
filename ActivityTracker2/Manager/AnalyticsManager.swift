@@ -117,11 +117,11 @@ final class AnalyticsManager {
 
     // MARK: Milestones
 
-    /// Trackt Aktivitäts-Meilensteine (5 / 10 / 25 / 50 / 100).
+    /// Trackt Aktivitäts-Meilensteine (2 / 5 / 10 / 25 / 50 / 100).
     /// Wird nach jedem `activitySaved` mit dem aktuellen Gesamtcount aufgerufen.
     /// - Parameter count: Aktuelle Anzahl gespeicherter Aktivitäten.
     func trackActivityMilestone(count: Int) {
-        let milestones = [5, 10, 25, 50, 100]
+        let milestones = [2, 5, 10, 25, 50, 100]
         guard milestones.contains(count) else { return }
 
         PostHogSDK.shared.capture(
@@ -147,6 +147,64 @@ final class AnalyticsManager {
         print("Plus purchased: \(activityCount) activities, day \(daysSinceInstall())")
     }
 
+    // MARK: First-Time Events
+
+    /// Trackt den ersten Tap auf den Add-Button — einmalig pro Install.
+    func trackFirstAddTapped() {
+        let key = "hasTrackedFirstAddTap"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        PostHogSDK.shared.capture(
+            "first_add_tapped",
+            properties: [
+                "days_since_install":    daysSinceInstall(),
+                "minutes_since_install": minutesSinceInstall(),
+                "time_bucket":           timeBucket()
+            ])
+    }
+
+    /// Trackt die erste Listenansicht — einmalig pro Install.
+    func trackFirstListViewed() {
+        let key = "hasTrackedFirstListView"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        PostHogSDK.shared.capture(
+            "first_list_viewed",
+            properties: [
+                "days_since_install":    daysSinceInstall(),
+                "minutes_since_install": minutesSinceInstall(),
+                "time_bucket":           timeBucket()
+            ])
+    }
+
+    /// Trackt den ersten Aufruf des Plus Screens — einmalig pro Install.
+    func trackFirstPlusScreenViewed() {
+        let key = "hasTrackedFirstPlusScreen"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        PostHogSDK.shared.capture(
+            "first_plus_screen_viewed",
+            properties: [
+                "days_since_install":    daysSinceInstall(),
+                "minutes_since_install": minutesSinceInstall(),
+                "time_bucket":           timeBucket()
+            ])
+    }
+
+    /// Trackt den ersten Aufruf des Stats Screens — einmalig pro Install.
+    func trackFirstStatsViewed() {
+        let key = "hasTrackedFirstStatsView"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        PostHogSDK.shared.capture(
+            "first_stats_viewed",
+            properties: [
+                "days_since_install":    daysSinceInstall(),
+                "minutes_since_install": minutesSinceInstall(),
+                "time_bucket":           timeBucket()
+            ])
+    }
+
     // MARK: Private
 
     /// Anzahl Tage seit dem Install-Datum.
@@ -165,5 +223,25 @@ final class AnalyticsManager {
 
         let installDate = UserDefaults.standard.object(forKey: "installDate") as? Date ?? Date()
         return max(0, Calendar.current.dateComponents([.day], from: installDate, to: Date()).day ?? 0)
+    }
+
+    /// Anzahl Minuten seit dem Install-Datum.
+    private func minutesSinceInstall() -> Int {
+        let installDate = UserDefaults.standard.object(forKey: "installDate") as? Date ?? Date()
+        return Int(Date().timeIntervalSince(installDate) / 60)
+    }
+
+    /// Zeitbucket seit Install — für gruppierte Auswertung in PostHog.
+    private func timeBucket() -> String {
+        let minutes = minutesSinceInstall()
+        switch minutes {
+        case 0..<2:           return "0-2min"
+        case 2..<5:           return "2-5min"
+        case 5..<15:          return "5-15min"
+        case 15..<60:         return "15-60min"
+        case 60..<(60*24):    return "1-24h"
+        case (60*24)..<(60*24*3): return "1-3days"
+        default:              return "3days+"
+        }
     }
 }

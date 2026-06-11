@@ -94,7 +94,7 @@ struct EditActivityScreen: View {
                                         .fontWeight(.medium)
                                         .foregroundStyle(.primary)
                                     Text(String(localized: "edit.category.change",
-                                                defaultValue: "Kategorie ändern"))
+                                                defaultValue: "Change category"))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -121,7 +121,7 @@ struct EditActivityScreen: View {
                     // ── Titel ────────────────────────────────────────
                     TextField(
                         String(localized: "add.text.title.placeholder",
-                               defaultValue: "Titel (optional)"),
+                               defaultValue: "Title (optional)"),
                         text: $editTitle
                     )
                     .font(.headline)
@@ -141,8 +141,9 @@ struct EditActivityScreen: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
 
-                    // ── Foto ────────────────────────────────────────
-                    HStack {
+                    // ── Foto + Sterne nebeneinander ──────────────────
+                    HStack(alignment: .center, spacing: 12) {
+
                         if let photoData = activity.photoData,
                            let uiImage = UIImage(data: photoData) {
 
@@ -150,7 +151,7 @@ struct EditActivityScreen: View {
                                 Image(uiImage: uiImage)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(width: 80, height: 80)
+                                    .frame(width: 70, height: 70)
                                     .clipShape(RoundedRectangle(cornerRadius: 10))
 
                                 Button {
@@ -161,7 +162,7 @@ struct EditActivityScreen: View {
                                         .foregroundStyle(.white)
                                         .background(Color.black.opacity(0.6))
                                         .clipShape(Circle())
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 18))
                                 }
                                 .offset(x: 6, y: -6)
                             }
@@ -171,14 +172,14 @@ struct EditActivityScreen: View {
                             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                                 VStack(spacing: 6) {
                                     Image(systemName: "camera.fill")
-                                        .font(.system(size: 22))
+                                        .font(.system(size: 20))
                                         .foregroundStyle(.secondary)
                                     Text(String(localized: "add.photo.button",
-                                                defaultValue: "Foto"))
+                                                defaultValue: "Photo"))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
-                                .frame(width: 80, height: 80)
+                                .frame(width: 70, height: 70)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
                                         .fill(Color(.systemGray6))
@@ -190,6 +191,16 @@ struct EditActivityScreen: View {
                             }
                         }
 
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(String(localized: "add.rating.label",
+                                        defaultValue: "Rating"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            StarRatingView(rating: $editStarRating, isEditable: true)
+                                .fixedSize()
+                        }
+                        .fixedSize()
+
                         Spacer()
                     }
                     .padding(.horizontal, 16)
@@ -197,15 +208,15 @@ struct EditActivityScreen: View {
                     .onChange(of: selectedPhoto) { _, item in
                         Task {
                             guard let item else { return }
-                            if let data = try? await item.loadTransferable(type: Data.self) {
-                                if let uiImage = UIImage(data: data),
-                                   let compressed = uiImage.jpegData(compressionQuality: 0.7) {
-                                    if compressed.count > 800_000 {
-                                        let ratio = 800_000.0 / Double(compressed.count)
-                                        activity.photoData = uiImage.jpegData(compressionQuality: 0.7 * ratio)
-                                    } else {
-                                        activity.photoData = compressed
-                                    }
+                            if let data = try? await item.loadTransferable(type: Data.self),
+                               let uiImage = UIImage(data: data),
+                               let compressed = uiImage.jpegData(compressionQuality: 0.7) {
+                                if compressed.count > 800_000 {
+                                    let ratio   = 800_000.0 / Double(compressed.count)
+                                    let quality = 0.7 * ratio
+                                    activity.photoData = uiImage.jpegData(compressionQuality: quality)
+                                } else {
+                                    activity.photoData = compressed
                                 }
                             }
                         }
@@ -216,21 +227,15 @@ struct EditActivityScreen: View {
                     // ── Datum & Uhrzeit ──────────────────────────────
                     DatePicker(
                         String(localized: "add.date.label",
-                               defaultValue: "Datum & Uhrzeit"),
+                               defaultValue: "Date & time"),
                         selection: $editDate,
                         displayedComponents: [.date, .hourAndMinute]
                     )
                     .padding(.horizontal)
                     .padding(.vertical, 12)
-
-                    Divider().padding(.horizontal)
-
-                    // ── Sterne-Bewertung ─────────────────────────────
-                    StarRatingView(rating: $editStarRating, isEditable: true)
-                        .padding(.top, 12)
                 }
             }
-            .navigationTitle(String(localized: "edit.title", defaultValue: "Bearbeiten"))
+            .navigationTitle(String(localized: "edit.title", defaultValue: "Edit"))
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
@@ -267,11 +272,11 @@ struct EditActivityScreen: View {
                     isEditMode: true
                 )
                 .navigationTitle(String(localized: "edit.category.title",
-                                        defaultValue: "Kategorie ändern"))
+                                        defaultValue: "Change category"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button(String(localized: "action.cancel", defaultValue: "Abbrechen")) {
+                        Button(String(localized: "action.cancel", defaultValue: "Cancel")) {
                             showCategoryPicker = false
                         }
                     }

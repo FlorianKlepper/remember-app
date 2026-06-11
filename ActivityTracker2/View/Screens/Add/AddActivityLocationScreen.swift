@@ -76,7 +76,7 @@ struct AddActivityLocationScreen: View {
                     .foregroundStyle(.secondary)
 
                 TextField(
-                    String(localized: "add.location.search", defaultValue: "Ort suchen..."),
+                    String(localized: "add.location.search", defaultValue: "Search location..."),
                     text: $searchText
                 )
                 .autocorrectionDisabled()
@@ -157,7 +157,7 @@ struct AddActivityLocationScreen: View {
                             }
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(String(localized: "add.location.home",
-                                            defaultValue: "Zuhause"))
+                                            defaultValue: "Home"))
                                     .font(.body)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.primary)
@@ -183,10 +183,10 @@ struct AddActivityLocationScreen: View {
                         icon: "location.fill",
                         iconColor: categoryColor,
                         title: String(localized: "add.location.current",
-                                      defaultValue: "Aktueller Standort"),
+                                      defaultValue: "Current location"),
                         subtitle: locationName.isEmpty
                             ? String(localized: "add.location.loading",
-                                     defaultValue: "Wird ermittelt...")
+                                     defaultValue: "Determining...")
                             : locationName
                     )
                 }
@@ -222,13 +222,15 @@ struct AddActivityLocationScreen: View {
                                 navigateToText = true
                             } label: {
                                 HStack(spacing: 12) {
+                                    let all      = Category.mvpCategories + Category.plusCategories
+                                    let category = all.first { $0.id == addActivityVM.selectedCategoryId }
                                     ZStack {
                                         Circle()
-                                            .fill(Color(.systemGray6))
+                                            .fill(Color(hex: category?.colorHex ?? "888888").opacity(0.15))
                                             .frame(width: 36, height: 36)
-                                        Image(systemName: "clock.arrow.circlepath")
-                                            .font(.system(size: 14))
-                                            .foregroundStyle(.secondary)
+                                        Image(systemName: category?.iconName ?? "mappin")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(Color(hex: category?.colorHex ?? "888888"))
                                     }
                                     VStack(alignment: .leading, spacing: 2) {
                                         if let poi = location.locationName, !poi.isEmpty {
@@ -258,23 +260,19 @@ struct AddActivityLocationScreen: View {
                             .listRowBackground(Color.clear)
                         }
                     } header: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .font(.system(size: 12))
-                            Text(String(localized: "add.location.recent",
-                                        defaultValue: "Zuletzt verwendet"))
-                        }
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .textCase(nil)
+                        Text(String(localized: "add.location.recent",
+                                    defaultValue: "Recently used"))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+                            .textCase(nil)
                     }
                 }
 
                 // In der Nähe (nur wenn keine Suche aktiv)
                 if searchText.isEmpty && !nearbyPlaces.isEmpty {
                     Section(String(localized: "add.location.nearby",
-                                   defaultValue: "In der Nähe")) {
+                                   defaultValue: "Nearby")) {
                         ForEach(nearbyPlaces) { place in
                             Button {
                                 selectNearbyPlace(place)
@@ -314,7 +312,7 @@ struct AddActivityLocationScreen: View {
             }
             .listStyle(.plain)
         }
-        .navigationTitle(String(localized: "add.step2.title", defaultValue: "Ort"))
+        .navigationTitle(String(localized: "add.step2.title", defaultValue: "Location"))
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {

@@ -63,7 +63,7 @@ extension PlusViewModel {
         guard let product = plusProduct else {
             errorMessage = String(
                 localized: "plus.error.no.product",
-                defaultValue: "Produkt nicht verfügbar. Bitte versuche es später erneut."
+                defaultValue: "Product unavailable. Please try again later."
             )
             return
         }

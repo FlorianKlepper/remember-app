@@ -52,7 +52,7 @@ struct SettingsScreen: View {
                         }
 
                         Text(String(localized: "settings.plan.plus_detail",
-                                    defaultValue: "Unbegrenzte Aktivitäten"))
+                                    defaultValue: "Unlimited activities"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
@@ -66,7 +66,7 @@ struct SettingsScreen: View {
                         }
 
                         Text(String(localized: "settings.plan.free_detail",
-                                    defaultValue: "100 Aktivitäten kostenlos"))
+                                    defaultValue: "100 activities for free"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
@@ -216,7 +216,7 @@ struct SettingsScreen: View {
                             .padding(.bottom, 4)
 
                         Text(String(localized: "settings.legal.imprint.type",
-                                    defaultValue: "Einzelunternehmen"))
+                                    defaultValue: "Sole trader"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Text("F. Klepper")
@@ -283,7 +283,7 @@ struct SettingsScreen: View {
                 // ── Made in Munich ────────────────────────────────
                 Section {
                     VStack(spacing: 4) {
-                        Text("🇩🇪 \(L10n.indieApp)")
+                        Text(L10n.indieApp)
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundStyle(.secondary)

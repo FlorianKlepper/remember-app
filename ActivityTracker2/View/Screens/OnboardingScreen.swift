@@ -25,6 +25,12 @@ struct OnboardingScreen: View {
     /// Steuert den LocationPermissionDeniedScreen (Sackgassen-Screen).
     @State private var showDeniedScreen = false
 
+    // MARK: Image Names (sprachabhängig)
+
+    private var onboarding1Image: String { L10n.isDe ? "onboarding_preview"  : "onboarding1_en" }
+    private var onboarding2Image: String { L10n.isDe ? "onboarding2_preview" : "onboarding2_en" }
+    private var onboarding3Image: String { L10n.isDe ? "onboarding3_preview" : "onboarding3_en" }
+
     // MARK: Body
 
     var body: some View {
@@ -46,109 +52,116 @@ struct OnboardingScreen: View {
     // MARK: Page 1 — App-Wert
 
     private var page1: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 16) {
 
-            Image("onboarding_preview")
+            Image(onboarding1Image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity)
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.55)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color(.systemGray5), lineWidth: 1)
+                )
                 .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
-                .padding(.horizontal, 36)
+                .padding(.horizontal, 24)
                 .padding(.top, 8)
-                .padding(.bottom, 12)
-                .layoutPriority(1)
 
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Text(String(localized: "onboarding.screen1.title",
-                            defaultValue: "Dein Leben. Deine Karte."))
+                            defaultValue: "Your life. Your map."))
                     .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
                 Text(String(localized: "onboarding.screen1.subtitle",
-                            defaultValue: "Halte deine schönsten Momente fest —\nauf einer interaktiven Karte."))
+                            defaultValue: "Capture your most beautiful moments —\non an interactive map."))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 8)
+            .padding(.horizontal, 32)
 
             nextButton { onboardingVM.nextPage() }
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.top, 8)
             skipButton
-                .padding(.top, 12)
-                .padding(.bottom, 24)
+                .padding(.bottom, 8)
         }
-        .padding(.bottom, 32)
+        .padding(.bottom, 16)
     }
 
     // MARK: Page 2 — Datenschutz
 
     private var page2: some View {
-        VStack(spacing: 28) {
-            Image("onboarding2_preview")
+        VStack(spacing: 16) {
+
+            Image(onboarding2Image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.55)
+                .clipShape(RoundedRectangle(cornerRadius: 32))
                 .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
-                .padding(.horizontal, 36)
+                .padding(.horizontal, 40)
                 .padding(.top, 8)
-                .layoutPriority(1)
 
-            VStack(spacing: 10) {
+            VStack(spacing: 6) {
                 Text(String(localized: "onboarding.screen2.title",
-                            defaultValue: "Einfach & schnell erfassen."))
-                    .font(.title)
+                            defaultValue: "Capture easily & quickly."))
+                    .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
                 Text(String(localized: "onboarding.screen2.subtitle",
-                            defaultValue: "Wähle eine Kategorie,\ndeinen Standort und los."))
-                    .font(.body)
+                            defaultValue: "Choose a category,\nyour location, and go."))
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
             }
+            .padding(.horizontal, 32)
 
             nextButton { onboardingVM.nextPage() }
-                .padding(.top, 16)
+                .padding(.top, 8)
             skipButton
+                .padding(.bottom, 8)
         }
-        .padding(.bottom, 32)
+        .padding(.bottom, 16)
     }
 
     // MARK: Page 3 — Standort-Berechtigung
 
     private var page3: some View {
-        VStack(spacing: 28) {
-            Image("onboarding3_preview")
+        VStack(spacing: 16) {
+
+            Image(onboarding3Image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity)
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.55)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color(.systemGray5), lineWidth: 1)
+                )
                 .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
-                .padding(.horizontal, 36)
+                .padding(.horizontal, 24)
                 .padding(.top, 8)
-                .layoutPriority(1)
 
-            VStack(spacing: 10) {
+            VStack(spacing: 6) {
                 Text(String(localized: "onboarding.screen3.title",
-                            defaultValue: "Deine Erinnerungen. Für immer."))
-                    .font(.title3)
+                            defaultValue: "Your memories. Forever."))
+                    .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
                 Text(String(localized: "onboarding.screen3.subtitle",
-                            defaultValue: "Titel, Text und Bewertung —\njeder Moment wird unvergesslich."))
+                            defaultValue: "Title, text and rating —\nevery moment becomes unforgettable."))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
             }
+            .padding(.horizontal, 32)
 
             // ── Preis-Info ────────────────────────────────────────
             VStack(spacing: 4) {
@@ -156,7 +169,8 @@ struct OnboardingScreen: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .font(.system(size: 12))
-                    Text("Kostenlos: bis zu 100 Aktivitäten")
+                    Text(String(localized: "onboarding.pricing.free",
+                                defaultValue: "Free: up to 100 activities"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -164,13 +178,13 @@ struct OnboardingScreen: View {
                     Image(systemName: "crown.fill")
                         .foregroundStyle(Color(hex: "#FFD700"))
                         .font(.system(size: 12))
-                    Text("Plus: Unbegrenzt — einmalig 4,99€")
+                    Text(String(localized: "onboarding.pricing.plus",
+                                defaultValue: "Plus: Unlimited — one-time €8.99"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, 8)
 
             // ── Primärer CTA: Berechtigung anfragen ───────────────
             Button {
@@ -204,9 +218,12 @@ struct OnboardingScreen: View {
             }
             .disabled(onboardingVM.isRequestingPermission)
             .padding(.horizontal, 32)
-            .padding(.top, 16)
+            .padding(.top, 8)
+
+            skipButton
+                .padding(.bottom, 8)
         }
-        .padding(.bottom, 32)
+        .padding(.bottom, 16)
     }
 
     // MARK: Reusable Sub-Views

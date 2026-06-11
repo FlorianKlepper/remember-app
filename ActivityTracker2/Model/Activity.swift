@@ -87,7 +87,7 @@ extension Activity {
         }
         let allCategories = Category.mvpCategories + Category.plusCategories
         guard let category = allCategories.first(where: { $0.id == categoryId }) else {
-            return String(localized: "activity.fallback.title", defaultValue: "Aktivität")
+            return String(localized: "activity.fallback.title", defaultValue: "Activity")
         }
         let langCode = Locale.current.language.languageCode?.identifier ?? "en"
         return langCode == "de" ? category.nameDe : category.nameEn

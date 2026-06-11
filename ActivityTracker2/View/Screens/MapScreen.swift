@@ -140,6 +140,7 @@ struct MapScreen: View {
                 categoryId: filterVM.selectedCategoryId,
                 allActivities: activityVM.activities
             )
+            mapVM.setInitialRegion(currentLocation: locationManager.currentLocation)
         }
         // GPS-Update → Karte beim ersten Fix zentrieren, danach nur wenn Follow-Modus aktiv
         .onChange(of: locationManager.currentLocation) { _, newLocation in

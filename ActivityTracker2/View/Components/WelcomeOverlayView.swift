@@ -13,6 +13,10 @@ struct WelcomeOverlayView: View {
 
     @Binding var isShowing: Bool
 
+    // MARK: Image Name (sprachabhängig)
+
+    private var welcomeImage: String { L10n.isDe ? "welcome_preview" : "welcome_preview_en" }
+
     // MARK: Body
 
     var body: some View {
@@ -23,39 +27,39 @@ struct WelcomeOverlayView: View {
                 .onTapGesture { }   // verhindert tap-through auf Karte
 
             // ── Card ──────────────────────────────────────────────
-            VStack(spacing: 0) {
+            VStack(spacing: 28) {
+
+                // ── Handle ────────────────────────────────────────
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color(.systemGray4))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
 
                 // ── Screenshot ────────────────────────────────────
-                Image("welcome_preview")
+                Image(welcomeImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(
-                        maxWidth:  UIScreen.main.bounds.width  * 0.92,
-                        maxHeight: UIScreen.main.bounds.height * 0.56
-                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: UIScreen.main.bounds.height * 0.45)
                     .clipShape(RoundedRectangle(cornerRadius: 24))
                     .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 8)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 24)
+                    .padding(.horizontal, 36)
 
                 // ── Titel + Text ──────────────────────────────────
-                VStack(spacing: 0) {
+                VStack(spacing: 8) {
                     Text(String(localized: "welcome.title",
-                                defaultValue: "Hier entsteht deine\npersönliche Weltkarte."))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                                defaultValue: "Your personal\nworld map starts here."))
+                        .font(.title2)
+                        .fontWeight(.bold)
                         .multilineTextAlignment(.center)
-                        .padding(.top, 16)
 
                     Text(String(localized: "welcome.body",
-                                defaultValue: "Fang mit deinem ersten\nErlebnis an."))
-                        .font(.caption)
+                                defaultValue: "Start with your first\nexperience."))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                        .padding(.top, 4)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 32)
 
                 // ── CTA Button ────────────────────────────────────
                 Button {
@@ -66,7 +70,8 @@ struct WelcomeOverlayView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark")
-                        Text("Los geht's!")
+                        Text(String(localized: "welcome.cta",
+                                    defaultValue: "Let's go!"))
                             .fontWeight(.semibold)
                     }
                     .foregroundStyle(.white)
@@ -76,20 +81,17 @@ struct WelcomeOverlayView: View {
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color(hex: "#E8593C"))
                     )
+                    .padding(.horizontal, 32)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-
-                Spacer().frame(height: 20)
+                .padding(.bottom, 24)
             }
-            .padding(.top, 16)
-            .padding(.bottom, 16)
+            .padding(.bottom, 32)
             .background(
                 RoundedRectangle(cornerRadius: 28)
                     .fill(Color(.systemBackground))
             )
-            .padding(.horizontal, 16)
             .shadow(color: .black.opacity(0.2), radius: 24, x: 0, y: 8)
+            .padding(.horizontal, 16)
         }
         .transition(.opacity)
     }

@@ -43,6 +43,7 @@ struct PlusScreen: View {
                 await plusVM.loadProducts(from: storeKitManager)
             }
             analyticsManager.track(.paywallViewed(source: source))
+            analyticsManager.trackFirstPlusScreenViewed()
         }
     }
 
@@ -107,7 +108,8 @@ struct PlusScreen: View {
                         if plusVM.isPurchasing {
                             HStack(spacing: 8) {
                                 ProgressView().tint(.white)
-                                Text("Wird verarbeitet…")
+                                Text(String(localized: "plus.processing",
+                                            defaultValue: "Processing…"))
                             }
                         } else {
                             HStack(spacing: 8) {
@@ -211,13 +213,13 @@ struct PlusScreen: View {
                 .foregroundStyle(.green)
 
             Text(String(localized: "plus.member.title",
-                        defaultValue: "Du bist dabei!"))
+                        defaultValue: "You're in!"))
                 .font(.title2)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
 
             Text(String(localized: "plus.member.subtitle",
-                        defaultValue: "Danke für deine Unterstützung.\nAlle Momente gehören dir."))
+                        defaultValue: "Thank you for your support.\nAll your moments belong to you."))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

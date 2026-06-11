@@ -24,7 +24,7 @@ struct StatsSummaryCard: View {
             StatItemView(
                 value: "\(totalCount)",
                 label: String(localized: "stats.total",
-                              defaultValue: "Aktivitäten gesamt")
+                              defaultValue: "Total activities")
             )
 
             Divider()
@@ -33,7 +33,7 @@ struct StatsSummaryCard: View {
             StatItemView(
                 value: "\(categoriesUsed)",
                 label: String(localized: "stats.categories_used",
-                              defaultValue: "Kategorien verwendet")
+                              defaultValue: "Categories used")
             )
 
             Divider()
@@ -56,7 +56,7 @@ struct StatsSummaryCard: View {
                     .minimumScaleFactor(0.7)
 
                 Text(String(localized: "stats.top_category",
-                            defaultValue: "Top Kategorie"))
+                            defaultValue: "Top category"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

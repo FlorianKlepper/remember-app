@@ -78,7 +78,7 @@ extension Location {
 
     /// Bester verfügbarer Anzeigename: POI-Name → Stadt → Region → Land → Fallback.
     var displayName: String {
-        locationName ?? city ?? region ?? country ?? String(localized: "location.unknown", defaultValue: "Unbekannt")
+        locationName ?? city ?? region ?? country ?? String(localized: "location.unknown", defaultValue: "Unknown")
     }
 }
 

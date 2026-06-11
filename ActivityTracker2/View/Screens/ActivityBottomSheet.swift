@@ -58,7 +58,7 @@ struct ActivityBottomSheet: View {
                     .padding(.horizontal, 16)
             }
 
-            Text("\(count) \(String(localized: count == 1 ? "bottomsheet.activities.count.few" : "bottomsheet.activities", defaultValue: count == 1 ? "Aktivität" : "Aktivitäten"))")
+            Text("\(count) \(String(localized: count == 1 ? "bottomsheet.activities.count.few" : "bottomsheet.activities", defaultValue: count == 1 ? "activity" : "activities"))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 16)

@@ -172,7 +172,7 @@ struct ActivityDetailScreen: View {
 
             // ── Trailing: Share, Papierkorb, Bearbeiten, Fertig ──
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                HStack(spacing: 8) {
+                HStack(spacing: 16) {
                     Button {
                         showShareSheet = true
                     } label: {
@@ -221,7 +221,7 @@ struct ActivityDetailScreen: View {
                     .padding(.bottom, 20)
 
                 // Titel
-                Text(String(localized: "share.title", defaultValue: "Ort teilen"))
+                Text(String(localized: "share.title", defaultValue: "Share location"))
                     .font(.headline)
                     .padding(.bottom, 20)
 
@@ -249,12 +249,12 @@ struct ActivityDetailScreen: View {
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(String(localized: "share.maps.title",
-                                                defaultValue: "In Maps öffnen"))
+                                                defaultValue: "Open in Maps"))
                                         .font(.body)
                                         .fontWeight(.medium)
                                         .foregroundStyle(.primary)
                                     Text(String(localized: "share.maps.subtitle",
-                                                defaultValue: "Ort in Apple Maps anzeigen"))
+                                                defaultValue: "Show location in Apple Maps"))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -285,12 +285,12 @@ struct ActivityDetailScreen: View {
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(String(localized: "share.coords.title",
-                                                defaultValue: "Ort teilen"))
+                                                defaultValue: "Share location"))
                                         .font(.body)
                                         .fontWeight(.medium)
                                         .foregroundStyle(.primary)
                                     Text(String(localized: "share.coords.subtitle",
-                                                defaultValue: "Mit Maps Link"))
+                                                defaultValue: "With Maps link"))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -313,7 +313,7 @@ struct ActivityDetailScreen: View {
                 Button {
                     showShareSheet = false
                 } label: {
-                    Text(String(localized: "button.cancel", defaultValue: "Abbrechen"))
+                    Text(String(localized: "button.cancel", defaultValue: "Cancel"))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -323,19 +323,19 @@ struct ActivityDetailScreen: View {
         }
         .confirmationDialog(
             String(localized: "activity.delete.confirm.title",
-                   defaultValue: "Aktivität löschen?"),
+                   defaultValue: "Delete activity?"),
             isPresented: $showDeleteConfirm,
             titleVisibility: .visible
         ) {
             Button(
-                String(localized: "button.delete", defaultValue: "Löschen"),
+                String(localized: "button.delete", defaultValue: "Delete"),
                 role: .destructive
             ) {
                 activityVM.deleteActivity(activity, context: modelContext)
                 dismiss()
             }
             Button(
-                String(localized: "button.cancel", defaultValue: "Abbrechen"),
+                String(localized: "button.cancel", defaultValue: "Cancel"),
                 role: .cancel
             ) {}
         } message: {

@@ -65,6 +65,43 @@ final class StatsViewModel {
     /// Anzahl der Activities der letzten 7 Tage.
     private(set) var activitiesThisWeek: Int = 0
 
+    // MARK: Wochenbericht
+
+    /// Activities der aktuellen Kalenderwoche.
+    private(set) var thisWeekActivities: [Activity] = []
+
+    /// Activities der vergangenen Kalenderwoche.
+    private(set) var lastWeekActivities: [Activity] = []
+
+    /// Lieblingskategorie (häufigste) dieser Woche.
+    private(set) var thisWeekFavoriteCategory: String? = nil
+
+    /// Anzahl verschiedener Städte diese Woche.
+    private(set) var thisWeekUniqueCities: Int = 0
+
+    /// Top-Stadt (häufigste) dieser Woche.
+    private(set) var thisWeekTopCity: String? = nil
+
+    /// Differenz Aktivitäten diese Woche vs. letzte Woche.
+    private(set) var weeklyGrowth: Int = 0
+
+    /// Anzahl Aktivitäten mit 3+ Sternen diese Woche.
+    private(set) var thisWeekStarredCount: Int = 0
+
+    /// Summe aller Sterne dieser Woche.
+    private(set) var thisWeekTotalStars: Int = 0
+
+    // MARK: Gesamt-Sterne
+
+    /// Summe aller Sterne über alle Aktivitäten.
+    private(set) var totalStars: Int = 0
+
+    /// Durchschnittliche Sternbewertung (0.0 wenn keine Aktivitäten).
+    private(set) var averageStars: Double = 0.0
+
+    /// Anzahl der Aktivitäten mit mindestens 1 Stern.
+    private(set) var ratedActivitiesCount: Int = 0
+
     // MARK: Init
 
     init() {}
@@ -83,6 +120,8 @@ extension StatsViewModel {
         computeTopCities(from: activities)
         computeMonthStats(from: activities)
         computeWeekStats(from: activities)
+        computeWeeklyReport(from: activities)
+        computeStarStats(from: activities)
     }
 }
 
@@ -149,9 +188,54 @@ private extension StatsViewModel {
         activitiesPerMonth = stats
     }
 
+    func computeStarStats(from activities: [Activity]) {
+        let stars = activities.reduce(0) { $0 + $1.starRating }
+        totalStars           = stars
+        ratedActivitiesCount = activities.filter { $0.starRating > 0 }.count
+        averageStars         = activities.isEmpty
+            ? 0.0
+            : Double(stars) / Double(activities.count)
+    }
+
     func computeWeekStats(from activities: [Activity]) {
         let calendar = Calendar.current
         let weekAgo = calendar.date(byAdding: .day, value: -7, to: .now) ?? .now
         activitiesThisWeek = activities.filter { $0.date >= weekAgo }.count
+    }
+
+    func computeWeeklyReport(from activities: [Activity]) {
+        let calendar = Calendar.current
+
+        // Beginn der aktuellen Kalenderwoche (Mo 00:00)
+        let startOfThisWeek = calendar.date(from: calendar.dateComponents(
+            [.yearForWeekOfYear, .weekOfYear], from: Date())) ?? Date()
+
+        // Beginn der letzten Kalenderwoche
+        let startOfLastWeek = calendar.date(
+            byAdding: .weekOfYear, value: -1, to: startOfThisWeek) ?? Date()
+
+        let thisWeek = activities.filter { $0.date >= startOfThisWeek }
+        let lastWeek = activities.filter {
+            $0.date >= startOfLastWeek && $0.date < startOfThisWeek
+        }
+
+        thisWeekActivities   = thisWeek
+        lastWeekActivities   = lastWeek
+        weeklyGrowth         = thisWeek.count - lastWeek.count
+        thisWeekStarredCount = thisWeek.filter { $0.starRating >= 3 }.count
+        thisWeekTotalStars   = thisWeek.reduce(0) { $0 + $1.starRating }
+
+        // Lieblingskategorie
+        let categoryCounts = Dictionary(grouping: thisWeek, by: { $0.categoryId })
+            .mapValues { $0.count }
+        thisWeekFavoriteCategory = categoryCounts
+            .sorted { $0.value > $1.value }
+            .first?.key
+
+        // Top-Stadt + unique cities
+        let cities = thisWeek.compactMap { $0.location?.city }.filter { !$0.isBlank }
+        let cityCounts = Dictionary(grouping: cities, by: { $0 }).mapValues { $0.count }
+        thisWeekTopCity      = cityCounts.sorted { $0.value > $1.value }.first?.key
+        thisWeekUniqueCities = Set(cities).count
     }
 }

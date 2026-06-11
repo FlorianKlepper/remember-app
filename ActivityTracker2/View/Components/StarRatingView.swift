@@ -18,62 +18,29 @@ struct StarRatingView: View {
     // MARK: Body
 
     var body: some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 6) {
 
-            Text(String(localized: "rating.label", defaultValue: "Bewertung"))
+            Text(String(localized: "rating.label", defaultValue: "Rating"))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
 
-            Spacer()
-
-            HStack(spacing: 6) {
-
-                // Reset-Button — nur im Edit-Modus
-                if isEditable {
+            HStack(spacing: 4) {
+                ForEach(1...5, id: \.self) { star in
                     Button {
-                        rating = 0
+                        if isEditable { rating = star }
                     } label: {
-                        Image(systemName: "star.slash")
-                            .font(.system(size: 16))
+                        Image(systemName: star <= rating ? "star.fill" : "star")
+                            .font(.system(size: 22))
                             .foregroundStyle(
-                                rating == 0 ? Color(hex: "#E8593C") : Color(.systemGray3)
+                                star <= rating ? Color(hex: "#FFD700") : Color(.systemGray4)
                             )
                     }
                     .buttonStyle(.plain)
-
-                    Divider().frame(height: 16)
-                }
-
-                // 1–5 Sterne
-                ForEach(1...5, id: \.self) { star in
-                    if isEditable {
-                        Button {
-                            rating = star
-                        } label: {
-                            Image(systemName: star <= rating ? "star.fill" : "star")
-                                .font(.system(size: 20))
-                                .foregroundStyle(
-                                    star <= rating ? Color(hex: "#FFD700") : Color(.systemGray4)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        Image(systemName: star <= rating ? "star.fill" : "star")
-                            .font(.system(size: 16))
-                            .foregroundStyle(
-                                star <= rating ? Color(hex: "#FFD700") : Color(.systemGray5)
-                            )
-                    }
+                    .disabled(!isEditable)
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.systemGray6))
-        )
-        .padding(.horizontal, 16)
     }
 }
 

@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 import TelemetryDeck
 import PostHog
 
@@ -58,6 +59,7 @@ struct ActivityTracker2App: App {
         postHogConfig.captureScreenViews = false                  // manuelles Screen-Tracking via AnalyticsManager
         postHogConfig.captureApplicationLifecycleEvents = false   // app_opened wird manuell getrackt
         PostHogSDK.shared.setup(postHogConfig)
+        ActivityTracker2App.identifyPostHogUser()
 
         // 1. Analytics zuerst — wird von mehreren ViewModels benötigt
         let analytics = AnalyticsManager()
@@ -101,6 +103,34 @@ struct ActivityTracker2App: App {
         #if DEBUG
         PreviewDataHelper.insertSampleDataIfNeeded(context: modelContainer.mainContext)
         #endif
+    }
+
+    // MARK: Review Request
+
+    /// Fragt nach einer App-Bewertung bei definierten Aktivitäts-Meilensteinen.
+    /// iOS zeigt den Dialog maximal 3× pro Jahr — häufigere Aufrufe werden ignoriert.
+    private func requestReviewIfNeeded(activityCount: Int) {
+        guard activityCount == 5 || activityCount == 15 || activityCount == 30 else { return }
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        SKStoreReviewController.requestReview(in: scene)
+    }
+
+    // MARK: PostHog Identity
+
+    /// Generiert beim ersten Start eine anonyme UUID und identifiziert den Nutzer bei PostHog.
+    /// Die ID bleibt über App-Updates persistent in UserDefaults erhalten.
+    private static func identifyPostHogUser() {
+        let key = "posthogUserId"
+        let userId: String
+        if let existing = UserDefaults.standard.string(forKey: key) {
+            userId = existing
+        } else {
+            let newId = UUID().uuidString
+            UserDefaults.standard.set(newId, forKey: key)
+            userId = newId
+        }
+        PostHogSDK.shared.identify(userId)
+        print("PostHog User ID: \(userId)")
     }
 
     // MARK: State
@@ -162,7 +192,10 @@ struct ActivityTracker2App: App {
                 }
             }
             // ScenePhase → GPS starten/stoppen
-            .onChange(of: scenePhase) { _, newPhase in
+            .onChange(of: activityViewModel.activities.count) { _, newCount in
+            requestReviewIfNeeded(activityCount: newCount)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
                 switch newPhase {
                 case .active:
                     locationManager.startUpdating()

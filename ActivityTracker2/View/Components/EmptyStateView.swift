@@ -38,9 +38,9 @@ extension EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "map",
             title: String(localized: "empty.no_activities.title",
-                          defaultValue: "Noch keine Momente"),
+                          defaultValue: "No moments yet"),
             message: String(localized: "empty.no_activities.message",
-                            defaultValue: "Heute noch nichts erlebt?\nManchmal ist Pause auch ein Moment.")
+                            defaultValue: "Nothing experienced today?\nSometimes a break is a moment too.")
         )
     }
 
@@ -49,9 +49,9 @@ extension EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "line.3.horizontal.decrease",
             title: String(localized: "empty.filtered.title",
-                          defaultValue: "Keine Treffer"),
+                          defaultValue: "No results"),
             message: String(localized: "empty.filtered.message",
-                            defaultValue: "Für diesen Filter gibt es noch keine Einträge.")
+                            defaultValue: "No entries for this filter yet.")
         )
     }
 
@@ -60,11 +60,11 @@ extension EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "lock.fill",
             title: String(localized: "empty.limit_reached.title",
-                          defaultValue: "Limit erreicht"),
+                          defaultValue: "Limit reached"),
             message: String(localized: "empty.limit_reached.message",
-                            defaultValue: "Mit Remember Plus hältst du unbegrenzt Momente fest."),
+                            defaultValue: "With Remember Plus you can capture unlimited moments."),
             actionTitle: String(localized: "empty.limit_reached.cta",
-                                defaultValue: "Plus entdecken"),
+                                defaultValue: "Discover Plus"),
             action: action
         )
     }
@@ -74,8 +74,9 @@ extension EmptyStateConfig {
         EmptyStateConfig(
             systemImage: "map",
             title: String(localized: "empty.no_activities.title",
-                          defaultValue: "Noch keine Momente"),
-            message: "Noch keine \(name) dabei.\nZeit für ein Abenteuer? \(icon)"
+                          defaultValue: "No moments yet"),
+            message: String(localized: "empty.category.message",
+                            defaultValue: "No \(name) yet.\nTime for an adventure? \(icon)")
         )
     }
 }
