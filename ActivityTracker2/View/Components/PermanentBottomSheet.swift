@@ -644,7 +644,7 @@ struct PermanentBottomSheet: View {
                         Text(text)
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .lineLimit(1)
+                            .lineLimit(2)
                             .truncationMode(.tail)
                     }
 
@@ -661,33 +661,47 @@ struct PermanentBottomSheet: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                // ── Sterne oben, Icon darunter ───────────────────
-                VStack(alignment: .trailing, spacing: 2) {
+                // ── Foto gross + Sterne + Icon ───────────────────
+                HStack(alignment: .top, spacing: 6) {
 
-                    // Sterne ganz oben — Platzhalter wenn keine
-                    if activity.starRating > 0 {
-                        HStack(spacing: 2) {
-                            ForEach(1...activity.starRating, id: \.self) { _ in
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 9))
-                                    .foregroundStyle(Color(hex: "#FFD700"))
-                            }
-                        }
-                    } else {
-                        Color.clear.frame(height: 9)
+                    // Foto grösser
+                    if let photoData = activity.photoData,
+                       let uiImage = UIImage(data: photoData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 56, height: 56)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
 
-                    // Thumbnail links + Icon rechts
-                    HStack(spacing: 6) {
-                        if let photoData = activity.photoData,
-                           let uiImage = UIImage(data: photoData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 38, height: 38)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                    // Sterne oben + Icon unten
+                    VStack(alignment: .center, spacing: 4) {
+
+                        // Sterne — max 2 Reihen à 3
+                        if activity.starRating > 0 {
+                            VStack(spacing: 1) {
+                                HStack(spacing: 1) {
+                                    ForEach(1...min(activity.starRating, 3), id: \.self) { _ in
+                                        Image(systemName: "star.fill")
+                                            .font(.system(size: 8))
+                                            .foregroundStyle(Color(hex: "#FFD700"))
+                                    }
+                                }
+                                if activity.starRating > 3 {
+                                    HStack(spacing: 1) {
+                                        ForEach(4...activity.starRating, id: \.self) { _ in
+                                            Image(systemName: "star.fill")
+                                                .font(.system(size: 8))
+                                                .foregroundStyle(Color(hex: "#FFD700"))
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Color.clear.frame(height: 10)
                         }
 
+                        // Icon
                         Button {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 filterVM.setFilter(categoryId: activity.categoryId)
@@ -703,7 +717,7 @@ struct PermanentBottomSheet: View {
                             }
                             HapticManager.selectionChanged()
                         } label: {
-                            CategoryIconView(categoryId: activity.categoryId, size: 38)
+                            CategoryIconView(categoryId: activity.categoryId, size: 36)
                         }
                         .buttonStyle(.plain)
                     }
@@ -711,7 +725,7 @@ struct PermanentBottomSheet: View {
                 .fixedSize()
             }
             .padding(.horizontal, 13)   // 16 - 3 (Streifen-Breite)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
         }
         .background(isHighlighted ? Color(hex: "#E8593C").opacity(0.05) : Color.clear)
         .contentShape(Rectangle())

@@ -26,6 +26,8 @@ struct SettingsScreen: View {
     @State private var showPlus       = false
     @State private var showHomeSearch = false
 
+    @AppStorage("mapStyle") private var mapStyle: String = "standard"
+
     // MARK: Private
 
     private var isPlusUser: Bool {
@@ -168,10 +170,7 @@ struct SettingsScreen: View {
                     HStack {
                         Label(L10n.settingsMapStyle, systemImage: "map")
                         Spacer()
-                        Picker("", selection: Binding(
-                            get: { userSettings.mapStyle },
-                            set: { userSettings.mapStyle = $0 }
-                        )) {
+                        Picker("", selection: $mapStyle) {
                             Text(L10n.settingsStandard).tag("standard")
                             Text(L10n.settingsSatellite).tag("satellite")
                             Text(L10n.settingsHybrid).tag("hybrid")

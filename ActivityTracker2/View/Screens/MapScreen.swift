@@ -22,17 +22,21 @@ struct MapScreen: View {
 
     // MARK: Environment
 
-    @Environment(MapViewModel.self)      private var mapVM
-    @Environment(FilterViewModel.self)   private var filterVM
-    @Environment(ActivityViewModel.self) private var activityVM
-    @Environment(LocationManager.self)   private var locationManager
-    @Environment(UserSettings.self)       private var userSettings
-    @Environment(\.modelContext)          private var modelContext
+    @Environment(MapViewModel.self)        private var mapVM
+    @Environment(FilterViewModel.self)     private var filterVM
+    @Environment(ActivityViewModel.self)   private var activityVM
+    @Environment(LocationManager.self)     private var locationManager
+    @Environment(UserSettings.self)        private var userSettings
+    @Environment(AddActivityViewModel.self) private var addActivityVM
+    @Environment(\.modelContext)           private var modelContext
 
     // MARK: State
 
-    @State private var showSettings:        Bool = false
-    @State private var currentSheetIsSmall: Bool = true
+    @State private var showSettings:          Bool = false
+    @State private var currentSheetIsSmall:   Bool = true
+    @State private var longPressCoordinate:   CLLocationCoordinate2D? = nil
+    @State private var showLongPressAlert:    Bool = false
+    @State private var longPressLocationName: String = ""
 
     // MARK: Private
 
@@ -49,14 +53,17 @@ struct MapScreen: View {
     }
 
     private var displayedAnnotations: [ActivityAnnotation] {
-        mapVM.displayedActivities
-            .filter { $0.location != nil }
-            .map { activity in
-                ActivityAnnotation(
-                    activity: activity,
-                    isSelected: activity.id == mapVM.highlightedActivityId
-                )
-            }
+        var seen = Set<String>()
+        return mapVM.displayedActivities.compactMap { activity -> ActivityAnnotation? in
+            guard let location = activity.location else { return nil }
+            let key = "\(Int(location.latitude * 10000))_\(Int(location.longitude * 10000))"
+            guard !seen.contains(key) else { return nil }
+            seen.insert(key)
+            return ActivityAnnotation(
+                activity: activity,
+                isSelected: activity.id == mapVM.highlightedActivityId
+            )
+        }
     }
 
     // MARK: Body
@@ -277,8 +284,43 @@ struct MapScreen: View {
                     name: .scrollToActivity,
                     object: annotation.activity.id
                 )
+            },
+            onLongPress: { coord in
+                longPressCoordinate = coord
+                // Reverse Geocoding für Ortsname
+                let geocoder = CLGeocoder()
+                let clLocation = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                geocoder.reverseGeocodeLocation(clLocation) { placemarks, _ in
+                    longPressLocationName = placemarks?.first?.name
+                        ?? placemarks?.first?.locality
+                        ?? ""
+                    showLongPressAlert = true
+                }
             }
         )
+        .alert(
+            L10n.isDe ? "Aktivität hinzufügen?" : "Add Activity Here?",
+            isPresented: $showLongPressAlert,
+            presenting: longPressCoordinate
+        ) { coord in
+            Button(L10n.isDe ? "Ja, hier" : "Yes, here") {
+                addActivityVM.pendingCoordinate    = coord
+                addActivityVM.pendingLocationName  = longPressLocationName.isEmpty ? nil : longPressLocationName
+                // Reverse Geocoding für Stadt + Land
+                let geocoder = CLGeocoder()
+                let clLocation = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                geocoder.reverseGeocodeLocation(clLocation) { placemarks, _ in
+                    addActivityVM.pendingCity    = placemarks?.first?.locality
+                    addActivityVM.pendingCountry = placemarks?.first?.country
+                }
+                NotificationCenter.default.post(name: .openAddFlow, object: nil)
+            }
+            Button(L10n.isDe ? "Abbrechen" : "Cancel", role: .cancel) {}
+        } message: { _ in
+            Text(L10n.isDe
+                ? "Möchtest du an diesem Ort eine neue Aktivität erstellen?\n\(longPressLocationName)"
+                : "Add a new activity at this location?\n\(longPressLocationName)")
+        }
     }
 
     // MARK: Map Control Buttons (rechts oben, fix)

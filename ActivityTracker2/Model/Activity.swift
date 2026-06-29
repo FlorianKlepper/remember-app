@@ -89,8 +89,7 @@ extension Activity {
         guard let category = allCategories.first(where: { $0.id == categoryId }) else {
             return String(localized: "activity.fallback.title", defaultValue: "Activity")
         }
-        let langCode = Locale.current.language.languageCode?.identifier ?? "en"
-        return langCode == "de" ? category.nameDe : category.nameEn
+        return category.localizedName
     }
 
     /// Datum der Activity als formatierter String, z.B. "6. Feb 2026".

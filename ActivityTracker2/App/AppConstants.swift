@@ -98,4 +98,6 @@ extension Notification.Name {
     static let onboardingCompleted = Notification.Name("onboardingCompleted")
     /// MapScreen → PermanentBottomSheet: Nach Speichern zur neuen Aktivität scrollen (object: Activity.ID).
     static let scrollToActivity = Notification.Name("scrollToActivity")
+    /// MapScreen → ContentView: Add-Flow mit vorausgefüllter Koordinate öffnen.
+    static let openAddFlow = Notification.Name("openAddFlow")
 }

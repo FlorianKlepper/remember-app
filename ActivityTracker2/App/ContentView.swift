@@ -347,6 +347,11 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .dismissAddActivity)) { _ in
             showAddFlow = false
         }
+        // Long-Press auf Karte → Add-Flow öffnen (Koordinate bereits in AddActivityViewModel gesetzt)
+        .onReceive(NotificationCenter.default.publisher(for: .openAddFlow)) { _ in
+            guard !hasReachedLimit else { return }
+            showAddFlow = true
+        }
     }
 
     // MARK: Private Helpers

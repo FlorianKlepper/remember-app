@@ -18,6 +18,7 @@ struct SmoothMapView: UIViewRepresentable {
     var isAnimatingToUser: Bool
     var onRegionChange: (MKCoordinateRegion) -> Void
     var onAnnotationTap: (ActivityAnnotation) -> Void
+    var onLongPress: ((CLLocationCoordinate2D) -> Void)? = nil
 
     // MARK: UIViewRepresentable
 
@@ -32,6 +33,14 @@ struct SmoothMapView: UIViewRepresentable {
         )
         applyMapType(to: mapView)
         mapView.setRegion(region, animated: false)
+
+        let longPress = UILongPressGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleLongPress(_:))
+        )
+        longPress.minimumPressDuration = 0.6
+        mapView.addGestureRecognizer(longPress)
+
         return mapView
     }
 
@@ -134,6 +143,18 @@ extension SmoothMapView {
             self.parent = parent
         }
 
+        /// Long-Press auf Karte → Screen-Punkt in Koordinate umwandeln und Callback aufrufen.
+        @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+            guard gesture.state == .began,
+                  let mapView = gesture.view as? MKMapView
+            else { return }
+            let point = gesture.location(in: mapView)
+            let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+            DispatchQueue.main.async {
+                self.parent.onLongPress?(coordinate)
+            }
+        }
+
         /// User hat Karte gedragen — Region nur zurückmelden wenn wir nicht selbst animieren.
         /// `isAnimatingToUser` schützt den Follow-Modus während der GPS-Button-Animation.
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
@@ -188,7 +209,8 @@ private final class PinAnnotationView: MKAnnotationView {
             hc.view.frame = CGRect(x: 0, y: 0, width: 50, height: 60)
             addSubview(hc.view)
             frame = hc.view.frame
-            centerOffset = CGPoint(x: 0, y: -30)
+            centerOffset  = CGPoint(x: 0, y: -30)
+            canShowCallout = false
             hostingController = hc
         }
     }

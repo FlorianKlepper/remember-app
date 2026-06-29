@@ -138,8 +138,7 @@ private extension StatsViewModel {
             guard let category = allCategories.first(where: { $0.id == categoryId }) else {
                 return nil
             }
-            let langCode = Locale.current.language.languageCode?.identifier ?? "en"
-            let name = langCode == "de" ? category.nameDe : category.nameEn
+            let name = category.localizedName
             let percentage = total > 0
                 ? (Double(acts.count) / Double(total)) * 100.0
                 : 0.0

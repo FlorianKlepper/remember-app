@@ -549,7 +549,7 @@ private struct WeeklyReportCard: View {
                     weekStat(
                         icon: category.iconName,
                         color: Color(hex: category.colorHex),
-                        value: category.nameDe,
+                        value: category.localizedName,
                         label: L10n.weeklyFavorite
                     )
                 }

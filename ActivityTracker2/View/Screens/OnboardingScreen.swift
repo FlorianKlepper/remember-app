@@ -221,6 +221,7 @@ struct OnboardingScreen: View {
             .padding(.top, 8)
 
             skipButton
+                .hidden()
                 .padding(.bottom, 8)
         }
         .padding(.bottom, 16)

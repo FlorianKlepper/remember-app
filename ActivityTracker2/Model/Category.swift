@@ -34,6 +34,11 @@ final class Category {
     func localizedName(for code: String) -> String {
         code == "de" ? nameDe : nameEn
     }
+
+    /// Lokalisierter Kategoriename — nutzt das zentrale L10n.isDe-Flag als Single Source of Truth.
+    var localizedName: String {
+        L10n.isDe ? nameDe : nameEn
+    }
 }
 
 // MARK: - MVP Categories (Free — isPlusOnly: false)
