@@ -31,20 +31,20 @@ final class AnalyticsManager {
         // MARK: App-Lifecycle
 
         case .appOpened:
-            PostHogSDK.shared.capture("app_opened")
+            capture("app_opened")
 
         // MARK: Onboarding
 
         case .onboardingCompleted:
-            PostHogSDK.shared.capture("onboarding_completed")
+            capture("onboarding_completed")
 
         case .onboardingSkipped:
-            PostHogSDK.shared.capture("onboarding_skipped")
+            capture("onboarding_skipped")
 
         // MARK: Activity CRUD
 
         case .activitySaved(let categoryId, let city):
-            PostHogSDK.shared.capture(
+            capture(
                 "activity_saved",
                 properties: [
                     "categoryId": categoryId,
@@ -52,60 +52,60 @@ final class AnalyticsManager {
                 ])
 
         case .activityDeleted(let categoryId):
-            PostHogSDK.shared.capture(
+            capture(
                 "activity_deleted",
                 properties: [
                     "categoryId": categoryId
                 ])
 
         case .activityEdited:
-            PostHogSDK.shared.capture("activity_edited")
+            capture("activity_edited")
 
         // MARK: Filter
 
         case .filterActivated(let categoryId):
-            PostHogSDK.shared.capture(
+            capture(
                 "filter_activated",
                 properties: [
                     "categoryId": categoryId
                 ])
 
         case .filterReset:
-            PostHogSDK.shared.capture("filter_reset")
+            capture("filter_reset")
 
         // MARK: Map
 
         case .mapPinTapped:
-            PostHogSDK.shared.capture("map_pin_tapped")
+            capture("map_pin_tapped")
 
         // MARK: Stats
 
         case .statsOpened:
-            PostHogSDK.shared.capture("stats_opened")
+            capture("stats_opened")
 
         // MARK: Monetarisierung
 
         case .paywallViewed(let source):
-            PostHogSDK.shared.capture(
+            capture(
                 "paywall_viewed",
                 properties: [
                     "source": source
                 ])
 
         case .purchaseSuccess(let productId):
-            PostHogSDK.shared.capture(
+            capture(
                 "purchase_success",
                 properties: [
                     "productId": productId
                 ])
 
         case .purchaseFailed:
-            PostHogSDK.shared.capture("purchase_failed")
+            capture("purchase_failed")
 
         // MARK: Plus
 
         case .plusScreenViewed(let source):
-            PostHogSDK.shared.capture(
+            capture(
                 "plus_screen_viewed",
                 properties: [
                     "source": source
@@ -124,7 +124,7 @@ final class AnalyticsManager {
         let milestones = [2, 5, 10, 25, 50, 100]
         guard milestones.contains(count) else { return }
 
-        PostHogSDK.shared.capture(
+        capture(
             "activity_milestone",
             properties: [
                 "milestone":          count,
@@ -137,7 +137,7 @@ final class AnalyticsManager {
     /// Trackt einen erfolgreichen Plus-Kauf mit Kontext-Properties.
     /// - Parameter activityCount: Anzahl Aktivitäten zum Kaufzeitpunkt.
     func trackPlusPurchased(activityCount: Int) {
-        PostHogSDK.shared.capture(
+        capture(
             "plus_purchased",
             properties: [
                 "activity_count_at_purchase": activityCount,
@@ -154,7 +154,7 @@ final class AnalyticsManager {
         let key = "hasTrackedFirstAddTap"
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
-        PostHogSDK.shared.capture(
+        capture(
             "first_add_tapped",
             properties: [
                 "days_since_install":    daysSinceInstall(),
@@ -168,7 +168,7 @@ final class AnalyticsManager {
         let key = "hasTrackedFirstListView"
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
-        PostHogSDK.shared.capture(
+        capture(
             "first_list_viewed",
             properties: [
                 "days_since_install":    daysSinceInstall(),
@@ -182,7 +182,7 @@ final class AnalyticsManager {
         let key = "hasTrackedFirstPlusScreen"
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
-        PostHogSDK.shared.capture(
+        capture(
             "first_plus_screen_viewed",
             properties: [
                 "days_since_install":    daysSinceInstall(),
@@ -196,7 +196,7 @@ final class AnalyticsManager {
         let key = "hasTrackedFirstStatsView"
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
-        PostHogSDK.shared.capture(
+        capture(
             "first_stats_viewed",
             properties: [
                 "days_since_install":    daysSinceInstall(),
@@ -205,7 +205,23 @@ final class AnalyticsManager {
             ])
     }
 
-    // MARK: Private
+    // MARK: Private — PostHog Wrapper
+
+    /// Zentraler PostHog-Aufruf — im DEBUG-Build nur Print, im Release-Build echter Netzwerk-Call.
+    /// ALLE capture-Aufrufe im gesamten Manager laufen durch diese Methode.
+    private func capture(_ event: String, properties: [String: Any]? = nil) {
+        #if DEBUG
+        if let properties, !properties.isEmpty {
+            print("📊 [Analytics] \(event) \(properties)")
+        } else {
+            print("📊 [Analytics] \(event)")
+        }
+        #else
+        PostHogSDK.shared.capture(event, properties: properties)
+        #endif
+    }
+
+    // MARK: Private — Install Helpers
 
     /// Anzahl Tage seit dem Install-Datum.
     /// Liest `installDate` aus UserDefaults — falls nicht gesetzt, wird das Bundle-Erstellungsdatum

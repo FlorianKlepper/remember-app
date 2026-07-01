@@ -52,6 +52,7 @@ struct ActivityTracker2App: App {
         // 0. Analytics SDKs — müssen als erstes initialisiert werden
         TelemetryDeck.initialize(config: .init(appID: "DB2C7E9A-F056-413C-B648-A062D6E037A7"))
 
+        #if !DEBUG
         let postHogConfig = PostHogConfig(
             apiKey: "phc_qGRQJPTub2QqdxjLzGNf5tknH8Bkf699UBX6aPCzYPkM",
             host: "https://eu.i.posthog.com"
@@ -60,6 +61,7 @@ struct ActivityTracker2App: App {
         postHogConfig.captureApplicationLifecycleEvents = false   // app_opened wird manuell getrackt
         PostHogSDK.shared.setup(postHogConfig)
         ActivityTracker2App.identifyPostHogUser()
+        #endif
 
         // 1. Analytics zuerst — wird von mehreren ViewModels benötigt
         let analytics = AnalyticsManager()
@@ -129,7 +131,9 @@ struct ActivityTracker2App: App {
             UserDefaults.standard.set(newId, forKey: key)
             userId = newId
         }
+        #if !DEBUG
         PostHogSDK.shared.identify(userId)
+        #endif
         print("PostHog User ID: \(userId)")
     }
 

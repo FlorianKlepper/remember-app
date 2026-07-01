@@ -193,12 +193,12 @@ struct CategoryPickerGrid: View {
 
                 // 3–8. Freie Cluster (immer sichtbar)
                 let clusterOrder: [(id: String, title: String)] = [
-                    ("outdoor", String(localized: "category.section.outdoor", defaultValue: "Outdoor")),
-                    ("sport",   String(localized: "category.section.sport",   defaultValue: "Sport")),
-                    ("food",    String(localized: "category.section.food",    defaultValue: "Essen & Trinken")),
-                    ("kultur",  String(localized: "category.section.kultur",  defaultValue: "Kultur")),
-                    ("kreativ", String(localized: "category.section.kreativ", defaultValue: "Kreativ")),
-                    ("lifestyle",String(localized: "category.section.lifestyle",defaultValue: "Lifestyle")),
+                    ("outdoor",  "Outdoor"),
+                    ("sport",    "Sport"),
+                    ("food",     L10n.categorySectionFood),
+                    ("kultur",   L10n.categorySectionKultur),
+                    ("kreativ",  L10n.categorySectionKreativ),
+                    ("lifestyle","Lifestyle"),
                 ]
 
                 ForEach(clusterOrder, id: \.id) { cluster in
@@ -222,10 +222,8 @@ struct CategoryPickerGrid: View {
 
                     // Alle Plus-Kategorien gesperrt ganz unten
                     categorySection(
-                        title: String(localized: "category.section.plus",
-                                      defaultValue: "Plus Kategorien"),
-                        subtitle: String(localized: "category.section.plus.subtitle",
-                                         defaultValue: "Mit Remember Plus freischalten"),
+                        title: L10n.categoryPlusSection,
+                        subtitle: L10n.categoryPlusSectionSubtitle,
                         categories: allPlusCategories,
                         isLocked: true,
                         showPlusCTA: true
@@ -293,8 +291,7 @@ struct CategoryPickerGrid: View {
                         HStack {
                             Image(systemName: "crown.fill")
                                 .foregroundStyle(Color(hex: "#FFD700"))
-                            Text(String(localized: "category.plus.cta.button",
-                                        defaultValue: "Plus freischalten"))
+                            Text(L10n.categoryUnlockCta)
                                 .fontWeight(.semibold)
                             Spacer()
                             Image(systemName: "chevron.right")

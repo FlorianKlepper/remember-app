@@ -40,9 +40,8 @@ enum L10n {
         isDe ? "Einmalig kaufen — kein Abo" : "One-time purchase — no subscription"
     }
 
-    static var limitCta: String {
-        isDe ? "Remember Plus — 4,99€" : "Remember Plus — €4.99"
-    }
+    /// Produktname ohne Preis — Preis wird im View aus product.displayPrice ergänzt.
+    static var limitCta: String { "Remember Plus" }
 
     static var limitLater: String {
         isDe ? "Vielleicht später" : "Maybe later"
@@ -76,14 +75,6 @@ enum L10n {
         isDe ?
         "Unterstützt die Weiterentwicklung\neiner kleinen, unabhängig entwickelten App" :
         "Supports the development\nof a small, independent app"
-    }
-
-    static var plusPrice: String {
-        isDe ? "4,99€ — einmalig" : "€4.99 — one-time"
-    }
-
-    static var plusLaunchPrice: String {
-        isDe ? "Regulär 8,99€ — Launch-Preis!" : "Regular €8.99 — Launch price!"
     }
 
     static var plusCta: String {
@@ -135,6 +126,30 @@ enum L10n {
 
     static var categoryUsed: String {
         isDe ? "Verwendete Kategorien" : "Recently Used"
+    }
+
+    static var categoryUnlockCta: String {
+        isDe ? "Plus freischalten" : "Unlock Plus"
+    }
+
+    static var categorySectionFood: String {
+        isDe ? "Essen & Trinken" : "Food & Drinks"
+    }
+
+    static var categorySectionKultur: String {
+        isDe ? "Kultur" : "Culture"
+    }
+
+    static var categorySectionKreativ: String {
+        isDe ? "Kreativ" : "Creative"
+    }
+
+    static var categoryPlusSection: String {
+        isDe ? "Plus Kategorien" : "Plus Categories"
+    }
+
+    static var categoryPlusSectionSubtitle: String {
+        isDe ? "Mit Remember Plus freischalten" : "Unlock with Remember Plus"
     }
 
     // MARK: Made in Munich

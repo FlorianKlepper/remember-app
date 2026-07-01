@@ -83,16 +83,18 @@ struct PlusScreen: View {
                 .padding(.horizontal, 32)
                 .padding(.bottom, 20)
 
-                // ── Preis ─────────────────────────────────────────────
-                Text(L10n.plusPrice)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-
-                Text(L10n.plusLaunchPrice)
-                    .font(.caption)
-                    .foregroundStyle(Color(hex: "#E8593C"))
-                    .padding(.top, 4)
-                    .padding(.bottom, 20)
+                // ── Preis — dynamisch aus StoreKit product.displayPrice ──
+                if let product = plusVM.plusProduct {
+                    Text("\(product.displayPrice) \u{2014} \(L10n.isDe ? "einmalig" : "one-time")")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .padding(.bottom, 20)
+                } else {
+                    Text(L10n.isDe ? "Einmalig kaufen" : "One-time purchase")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 20)
+                }
 
                 // ── Kauf Button ───────────────────────────────────────
                 Button {

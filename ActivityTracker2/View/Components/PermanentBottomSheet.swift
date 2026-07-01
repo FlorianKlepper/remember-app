@@ -307,6 +307,15 @@ struct PermanentBottomSheet: View {
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: 0) {
+                    // Scroll-Offset Tracker — 0-Höhe, immer als erstes Element
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: ScrollOffsetKey.self,
+                            value: geo.frame(in: .named("scrollSpace")).minY
+                        )
+                    }
+                    .frame(height: 0)
+
                     if currentActivities.isEmpty {
                         EmptyStateView(
                             config: filterVM.isFilterActive
@@ -332,6 +341,9 @@ struct PermanentBottomSheet: View {
                 }
             }
             .coordinateSpace(name: "scrollSpace")
+            .onPreferenceChange(ScrollOffsetKey.self) { value in
+                scrollOffset = value
+            }
             .scrollPosition(id: $scrollPosition, anchor: .top)
             .id(listId)
             .offset(x: listOffset)
@@ -350,6 +362,28 @@ struct PermanentBottomSheet: View {
                         guard !(abs(h) > abs(v) * 1.5 && abs(h) > 40) else {
                             if h < -40     { swipeToNext() }
                             else if h > 40 { swipeToPrevious() }
+                            return
+                        }
+
+                        // Overscroll-Collapse: Liste ganz oben + intentioneller Wisch nach unten
+                        // → Sheet eine Stufe kollabieren (large→medium, medium→small)
+                        if scrollOffset >= -2,
+                           vel > 400,
+                           abs(v) > abs(h) * 1.5,
+                           currentDetent != .small {
+                            let newDetent: SheetDetent = currentDetent == .large ? .medium : .small
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                currentDetent = newDetent
+                                dragOffset    = 0
+                            }
+                            syncMapAfterDrag(detent: newDetent)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                NotificationCenter.default.post(name: .sheetBecameSmall, object: nil)
+                                NotificationCenter.default.post(
+                                    name: .sheetSizeChanged,
+                                    object: newDetent == .small
+                                )
+                            }
                             return
                         }
 

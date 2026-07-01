@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 // MARK: - TabItemView
 
@@ -297,8 +298,10 @@ struct ContentView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(Color(hex: "#FFD700"))
-                        Text(String(localized: "limit.warning.cta",
-                                    defaultValue: "Upgrade now — €8.99"))
+                        Text(storeKitManager.plusProduct.map {
+                            "Remember Plus — \($0.displayPrice)"
+                        } ?? String(localized: "limit.warning.cta",
+                                    defaultValue: "Upgrade to Remember Plus"))
                             .fontWeight(.semibold)
                     }
                     .foregroundStyle(.white)

@@ -4,6 +4,7 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 // MARK: - LimitReachedSheet
 
@@ -94,7 +95,9 @@ struct LimitReachedSheet: View {
                     } else {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(Color(hex: "#FFD700"))
-                        Text(L10n.limitCta)
+                        Text(storeKitManager.plusProduct.map {
+                            "\(L10n.limitCta) — \($0.displayPrice)"
+                        } ?? L10n.limitCta)
                             .fontWeight(.semibold)
                     }
                 }

@@ -179,7 +179,7 @@ struct OnboardingScreen: View {
                         .foregroundStyle(Color(hex: "#FFD700"))
                         .font(.system(size: 12))
                     Text(String(localized: "onboarding.pricing.plus",
-                                defaultValue: "Plus: Unlimited — one-time €8.99"))
+                                defaultValue: "Plus: Unlimited — one-time purchase"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
