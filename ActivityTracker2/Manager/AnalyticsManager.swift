@@ -205,6 +205,22 @@ final class AnalyticsManager {
             ])
     }
 
+    /// Trackt die allererste erstellte Aktivität — einmalig pro Install.
+    /// Feuert unabhängig vom aktuellen Aktivitätszähler; auch wenn die erste Aktivität
+    /// gelöscht und eine neue erstellt wird, feuert das Event nicht ein zweites Mal.
+    func trackFirstActivityCreated() {
+        let key = "hasTrackedFirstActivityCreated"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        capture(
+            "first_activity_created",
+            properties: [
+                "days_since_install":    daysSinceInstall(),
+                "minutes_since_install": minutesSinceInstall(),
+                "time_bucket":           timeBucket()
+            ])
+    }
+
     // MARK: Private — PostHog Wrapper
 
     /// Zentraler PostHog-Aufruf — im DEBUG-Build nur Print, im Release-Build echter Netzwerk-Call.

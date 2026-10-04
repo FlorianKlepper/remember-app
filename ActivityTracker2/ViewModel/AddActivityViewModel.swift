@@ -204,6 +204,7 @@ extension AddActivityViewModel {
         // Meilenstein prüfen nach erfolgreichem Speichern
         let count = activityViewModel.activities.count
         analytics.trackActivityMilestone(count: count)
+        analytics.trackFirstActivityCreated()
     }
 }
 
